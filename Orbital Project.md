@@ -26,7 +26,7 @@ Note that the storage of these flashcards are local, but requires a server to st
             → This public marketplace can make incentive for Tuition centres or other entities to also start uploading their notes. Increasing the available quality of notes
       1. THIS IS STILL BEING IDEATED, WE NEED IDEAS TO INCENTIVISE PEOPLE TO UPLOAD THEIR HARD EARNED NOTES  
    3. Public marketplace should also have a likes/upvote feature. This can help users to filter out badly made notes using crowd-sourced rating   
-      1.   
+      1.    
    4. Also more on marketplace → Put a search feature, so can filter based on mods / topics
 
 5. Topical Mindmap. Basically an interactive UI showing our topical flashcards (TFC). We also will connect topical flashcards that are potentially linked to one another using a line. On that line, we have a button showing AI insights, → Once pressed we receive AI generated insights of those topics (More on that later)  
@@ -55,8 +55,11 @@ Note that the storage of these flashcards are local, but requires a server to st
    4. Each TFC has header information containing (Curr topics \+ possibly related topics)  
       1. From there only we do the connections through code and for each link we embed the ai insight button
 
-## Next steps
+## First deliverable (technincal proof of concept)
+- A fully integrated working system of both frontend and backend
+   - to be done for a relatively trivial feature → sign-up and login
 
+## Next steps after
 - Authentication for an account (password \+ email)  
 - Create a friends list   
 - Make a secure sharing network to implement the sharing of flashcards  
