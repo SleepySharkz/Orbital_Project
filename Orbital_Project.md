@@ -38,9 +38,17 @@ Note that the storage of these flashcards are local, but requires a server to st
 1. Upload SS to app \+ notes made on what went wrong for the question / new ideas learnt  
 2. Use AI API to convert into Coursework Flashcard based on the Assignment code/paper  
    1. At the same time ask the AI to format the metadata in the flashcard into a exportable format  
-   2. Each CFC contains header information / metadata on the flashcard note  
-      1. Root (Year \+ sem of study) → Children (CourseCode) → Children (Type of Coursework \+ topical {done later by us not ai} ) → Leaf (Coursework flashcard, Topical Flashcard)  
-      2. Type of coursework → Assignment / paper /  
+   2. Each CFC contains header information / metadata on the flashcard note. 
+   3. Below is the structure segregated into its layers. This is also how the storage of the notes will look like. (It will be in a tree structure)
+      1. Root → will be the userID
+         2. Children of Root (2nd layer) → Year \+ semester of study (or just year if semester is not relevant)
+            3. Children of the  2nd layer (3rd layer) → CourseCodes for Subjects in that Year and semester of study
+               4. Only 2 Children of the 3rd layer (4th layer) → Left child is CFCs, Right Child is TFCs
+                  5. Children of the 4th layer LEFT child (5th layer LEFT) ↦ Children of CFCs → Course Work done by student. (Tutorials, Practice Papers, Assignments, Quizes, Midterms, etc)
+                  5. Children of the 4th layer RIGHT child (5th layer RIGHT) ↦ Children of TFCs → Nodes for Topics in the course
+                     6. Children of the 5th layer LEFT (6th layer RIGHT ) → These will be leaves containing the actual CFCs
+                     6. Children of the 5th layer RIGHT (6th layer RIGHT ) → Will be the nodes for each subtopic of the parent topic node
+                        7. Children of the 6th layer RIGHT → These will be leaves containing the actual TFCs  
 3. Use the exported format to build our database   
 4. Then convert the database into readable, topical notes for the user  
    1. Contains topical flashcards. → These flashcards allow for linking between concepts learnt per topic amongst the Coursework flashcards  
