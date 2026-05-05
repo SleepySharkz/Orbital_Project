@@ -345,6 +345,35 @@ Avoid contradictory guidance.
 
 ---
 
+## 5. Contribution Timeline Maintenance
+
+Maintain `Changes_Timeline.md` as the source of truth for concise daily contribution summaries by Tauzih and Dhruv.
+
+When asked to record contributions, or when meaningful project work is completed and the human contributor is known:
+
+- update `Changes_Timeline.md`
+- use date format DD/MM/YYYY
+- group work by date
+- record separate entries for Dhruv and Tauzih
+- keep summaries short, but detailed enough to support future milestone contribution documents
+- mention major frontend, backend, database, AI, design, documentation, testing, review, or debugging work
+- avoid recording excessive implementation detail, code snippets, temporary experiments, or AI-only work
+- if the contributor is unclear, ask who did the work before assigning credit
+
+Example format:
+
+```md
+## 05/05/2026
+
+Dhruv:
+- Created the frontend and backend of the sign up process.
+
+Tauzih:
+- Created the frontend and backend of the login process.
+```
+
+---
+
 # Development Workflow
 
 Recommended loop:
