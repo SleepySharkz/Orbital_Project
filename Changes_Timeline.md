@@ -12,7 +12,7 @@ Guidelines:
 - Group entries by date.
 - Keep each person's entry concise, usually 1 to 3 bullets.
 - Summarise meaningful frontend, backend, database, AI, design, documentation, testing, review, or debugging work.
-- Do not include overly detailed implementation notes, code snippets, or AI-only work.
+- Do not include overly detailed implementation notes, code snippets.
 - If a person has no recorded work for a date, write "No entry recorded yet" only if needed for clarity.
 
 ---
