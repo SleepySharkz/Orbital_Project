@@ -35,4 +35,11 @@ Dhruv:
 - Set up the contribution timeline system for tracking milestone work summaries.
 
 Tauzih:
-- No entry recorded yet.
+- Planned the first authentication feature and defined its implementation checklist: email/password auth, Spring Security with JWT, SQLite `users` table, core auth endpoints (`signup`, `login`, `logout`, `me`), and frontend sign up/login/protected page flow.
+
+## 07/05/2026
+
+Tauzih:
+- Scaffolded the Spring Boot backend auth flow and configured security, password hashing, and H2-based persistence for the authentication checkpoint.
+- Built the user entity, repository, request/response DTOs, and the signup/login service and controller flow.
+- Tested the backend auth flow end to end, including validation behavior, duplicate email handling, login checks, and persistent local database storage.
