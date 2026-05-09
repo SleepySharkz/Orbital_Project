@@ -7,7 +7,6 @@ import com.mindmesh.backend.dto.requests.LoginRequest;
 import com.mindmesh.backend.dto.requests.SignupRequest;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.exception.EmailAlreadyExistsException;
-import com.mindmesh.backend.exception.EmailNotFoundException;
 import com.mindmesh.backend.exception.InvalidCredentials;
 import com.mindmesh.backend.repository.UserRepository;
 
@@ -24,7 +23,7 @@ public class AuthService {
     this.passwordEncoder = passwordEncoder;
   }
 
-  public void userSignup(SignupRequest signupRequest) { // No need to declar throws since its unchecked
+  public void getUserFromSignup(SignupRequest signupRequest) { // No need to declar throws since its unchecked
     String psw = signupRequest.getPassword();
     String pswHash = passwordEncoder.encode(psw);
     String signUpEmail = signupRequest.getEmail();
@@ -38,7 +37,7 @@ public class AuthService {
     userRepo.save(user);
   }
 
-  public User userLogin(LoginRequest loginRequest) {
+  public User getUserFromLogin(LoginRequest loginRequest) {
     String loginEmail = loginRequest.getEmail();
     String loginPsw = loginRequest.getPassword();
 

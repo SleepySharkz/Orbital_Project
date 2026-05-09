@@ -1,9 +1,11 @@
 package com.mindmesh.backend.repository;
 
-import com.mindmesh.backend.entity.User;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+
+import com.mindmesh.backend.entity.User;
 
 @Repository // THis is the repository layer
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -15,5 +17,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                             // the id, so u just need a reference to that entity
                                             // Lazily returns the ref, so any sql injection only happens when u start
                                             // calling methods on that ref
-
 }

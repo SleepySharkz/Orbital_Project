@@ -7,10 +7,19 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.mindmesh.backend.security.jwt.JwtAuthFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+  private final JwtAuthFilter jwtAuthFilter;
+
+  public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    this.jwtAuthFilter = jwtAuthFilter;
+  }
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -34,11 +43,13 @@ public class SecurityConfig {
                 "/error",
                 "/h2-console/**")
             .permitAll() // signup and login
-                         // are public
+            // are public
             // But dont exist yet, so still cant access
             // .requestMatchers("/admin").hasRole("ADMIN") // IDK some admin endpoint later
             // on, for testing or override
-            .anyRequest().authenticated()); // Rest are private for now
+            .anyRequest().authenticated())
+        .addFilterBefore(jwtAuthFilter,
+            UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
