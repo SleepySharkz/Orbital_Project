@@ -9,7 +9,7 @@ public class SignupRequest {
   private String email;
 
   @NotBlank(message = "password is required")
-  @Size(min = 5, message = "Password must be at least 8 characters")
+  @Size(min = 8, message = "Password must be at least 8 characters")
   private String password; // Note that this is the original non hashed password
                            // We only hash password after it has reached the server, for security reasons
 

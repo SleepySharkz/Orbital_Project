@@ -14,7 +14,6 @@ import com.mindmesh.backend.repository.UserRepository;
 public class AuthService {
 
   private final PasswordEncoder passwordEncoder;
-
   private final UserRepository userRepo; // We will avoid autoinjection by spring, as recommended by spring, to avoid
                                          // reassigment, and aid testing
 

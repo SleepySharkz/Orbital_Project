@@ -4,10 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.mindmesh.backend.security.jwt.JwtAuthFilter;
 
@@ -16,14 +15,13 @@ import com.mindmesh.backend.security.jwt.JwtAuthFilter;
 public class SecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
+  private final CorsConfigurationSource corsConfigSource;
 
-  public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+  public SecurityConfig(
+      JwtAuthFilter jwtAuthFilter,
+      CorsConfigurationSource corsConfigurationSource) {
     this.jwtAuthFilter = jwtAuthFilter;
-  }
-
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+    this.corsConfigSource = corsConfigurationSource;
   }
 
   @Bean
@@ -33,6 +31,7 @@ public class SecurityConfig {
 
     http
         .csrf(a -> a.disable())
+        .cors(cors -> cors.configurationSource(corsConfigSource))
         .formLogin(a -> a.disable())
         .httpBasic(basic -> basic.disable())
         .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // Gotta allow h2-console frames
@@ -48,7 +47,8 @@ public class SecurityConfig {
             // .requestMatchers("/admin").hasRole("ADMIN") // IDK some admin endpoint later
             // on, for testing or override
             .anyRequest().authenticated())
-        .addFilterBefore(jwtAuthFilter,
+        .addFilterBefore(
+            jwtAuthFilter,
             UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
