@@ -7,18 +7,21 @@ MINDMESH is an AI-assisted learning system designed to transform unstructured le
 Core problem being solved:
 
 Students often learn the most from:
+
 - assignments
 - tutorials
 - practice papers
 - mistakes made while solving questions
 
 However, this learning is usually:
+
 - written messily on paper
 - scattered across apps/platforms
 - not structured for later revision
 - not connected across topics
 
 This causes:
+
 - repeated mistakes
 - forgotten insights
 - inefficient revision
@@ -38,6 +41,7 @@ Raw practice learning
 # Core Idea
 
 Users upload:
+
 - screenshots/questions from coursework/practice
 - rough notes describing what they learnt
 
@@ -45,12 +49,14 @@ Example:
 "I forgot to account for edge case where BST is empty"
 
 AI processes this into:
+
 - readable flashcards
 - extracted metadata
 - topic tags
 - related topics
 
 This enables:
+
 1. Coursework flashcards (CFCs)
 2. Topical flashcards (TFCs)
 3. Mindmap visualisation
@@ -66,11 +72,13 @@ Definition:
 A flashcard generated directly from a specific piece of coursework or practice.
 
 Examples:
+
 - tutorial question notes
 - assignment mistake
 - practice paper insight
 
 Characteristics:
+
 - assignment-specific
 - rawer learning unit
 - directly generated from user input
@@ -85,6 +93,7 @@ AI output:
 Well-formatted flashcard with explanation.
 
 Metadata includes:
+
 - topic
 - related topics
 - coursework type
@@ -105,11 +114,13 @@ Topic:
 Binary Search Trees
 
 TFC combines:
+
 - deletion mistakes
 - traversal notes
 - balancing notes
 
 Characteristics:
+
 - topic-centric
 - revision-oriented
 - aggregated from many CFCs
@@ -121,10 +132,12 @@ Characteristics:
 ## Step 1 — Capture Learning
 
 User uploads:
+
 - screenshot/question
 - rough notes
 
 Example:
+
 - assignment screenshot
 - rough explanation of mistake or insight
 
@@ -159,6 +172,7 @@ CFC stored in database.
 Important architecture decision:
 
 The project uses a TREE only as:
+
 1. organisational abstraction
 2. metadata format guide
 
@@ -181,11 +195,13 @@ Tauzih
 → Tutorial
 
 This acts like:
+
 - folder path
 - namespace
 - indexing scheme
 
 Used for:
+
 - insertion
 - retrieval
 - JSON formatting
@@ -197,11 +213,13 @@ NOT used as literal nested DB.
 ## Step 4 — Generate TFCs
 
 Using metadata:
+
 - sieve all CFCs by topic
 
 Example:
 
 All CFCs tagged:
+
 - Trees
 - BST
 
@@ -213,6 +231,7 @@ BST
 This creates topic summaries.
 
 Benefits:
+
 - consolidated revision
 - pattern recognition
 - recurring mistake detection
@@ -224,6 +243,7 @@ Benefits:
 From TFC metadata:
 
 Each TFC contains:
+
 - current topic
 - related topics
 
@@ -235,6 +255,7 @@ BST ↔ Recursion
 BST ↔ AVL Trees
 
 Graph:
+
 - nodes = TFCs/topics
 - edges = related topics
 
@@ -288,6 +309,7 @@ Fields:
 - metadata
 
 Types:
+
 - CFC
 - TFC
 
@@ -298,6 +320,7 @@ Types:
 Metadata represented hierarchically.
 
 Purpose:
+
 - organisation
 - querying
 - insertion
@@ -319,6 +342,7 @@ This is NOT literal DB nesting.
 Separate graph structure.
 
 Used for:
+
 - mindmap
 - AI insights
 
@@ -327,6 +351,7 @@ Example entity:
 TopicRelationship
 
 Fields:
+
 - sourceTopic
 - targetTopic
 - relationType
@@ -365,6 +390,7 @@ This is a major reason metadata fields exist.
 ## Flashcards
 
 Fields:
+
 - id
 - user_id
 - content
@@ -390,6 +416,7 @@ Use hybrid model.
 ## Users
 
 Fields:
+
 - id
 - email
 - passwordHash
@@ -399,6 +426,7 @@ Fields:
 ## Friends
 
 Fields:
+
 - user1
 - user2
 
@@ -409,6 +437,7 @@ Used for private sharing.
 ## Marketplace Items
 
 Fields:
+
 - id
 - flashcard_id
 - owner_id
@@ -417,6 +446,7 @@ Fields:
 - likes
 
 Visibility:
+
 - PRIVATE
 - PUBLIC
 
@@ -425,6 +455,7 @@ Visibility:
 ## Topic Relationships
 
 Fields:
+
 - source_topic
 - target_topic
 - relation_type
@@ -438,13 +469,16 @@ Fields:
 ## CORE FEATURES
 
 ### 1. AI-generated Coursework Flashcards
+
 - screenshot + rough notes
 - AI converts to CFC
 
 ---
 
 ### 2. Topic tagging + metadata
+
 AI extracts:
+
 - topic
 - related topics
 - assignment info
@@ -452,6 +486,7 @@ AI extracts:
 ---
 
 ### 3. TFC aggregation
+
 Combine CFCs by topic.
 
 ---
@@ -461,12 +496,14 @@ Combine CFCs by topic.
 Marketplace split into 2 sections.
 
 PRIVATE (core):
+
 - friends only
 - share notes
 - import notes
 - merge into own DB
 
 Reason core:
+
 - focused
 - realistic
 - simpler
@@ -476,9 +513,11 @@ Reason core:
 ## EXTENSIONS
 
 ### 5. Public Marketplace
+
 Public uploads.
 
 Optional:
+
 - monetisation
 - purchases
 - uploads from tuition centres
@@ -486,6 +525,7 @@ Optional:
 Still ideating incentive mechanism.
 
 Includes:
+
 - likes/upvotes
 - ratings
 - search
@@ -495,16 +535,19 @@ Not core.
 ---
 
 ### 6. Mindmap
+
 Interactive graph of TFCs.
 
 ---
 
 ### 7. Cross-topic AI insights
+
 On-demand edge insights.
 
 ---
 
 ### 8. Search + ratings
+
 Primarily for public marketplace.
 
 ---
@@ -512,17 +555,21 @@ Primarily for public marketplace.
 # Storage Strategy
 
 Local:
+
 - SQLite
 
 Stores:
+
 - personal flashcards
 - metadata
 - topic structures
 
 Server:
+
 - PostgreSQL
 
 Stores:
+
 - users
 - friends
 - marketplace
@@ -537,24 +584,31 @@ Local-first learning system with optional online collaboration.
 # Tech Stack
 
 Frontend:
+
 - React
 
 Backend:
+
 - Java Spring Boot
 
 Local DB:
+
 - SQLite
 
 Server DB:
+
 - PostgreSQL
 
 AI:
+
 - OpenAI API
 
 Graph visualisation:
+
 - React Flow (or equivalent)
 
 Version control:
+
 - Git + GitHub
 
 ---
@@ -562,12 +616,15 @@ Version control:
 # Milestone Priorities
 
 ## Liftoff
+
 Need a working frontend and backend for the sign up / login feature
 
 ## Milestone 1
+
 Technical proof of concept.
 
 Need:
+
 - sign up/login
 - frontend/backend integration
 - AI flashcard generation
@@ -577,9 +634,11 @@ Need:
 ---
 
 ## Milestone 2
+
 Core system complete.
 
 Need:
+
 - CFC generation polished
 - TFC aggregation
 - authentication
@@ -589,9 +648,11 @@ Need:
 ---
 
 ## Milestone 3
+
 Extensions.
 
 Need:
+
 - mindmap
 - AI insights
 - search
@@ -605,6 +666,7 @@ Need:
 1. Tree is NOT literal DB schema.
 
 Tree only represents:
+
 - organisation
 - metadata path
 
@@ -613,6 +675,7 @@ Tree only represents:
 2. SQL is primary retrieval mechanism.
 
 Need flexible filtering like:
+
 - all TFCs in CS2040
 - all tutorial CFCs
 - all notes tagged recursion
@@ -622,6 +685,7 @@ Need flexible filtering like:
 3. Topic graph is separate from storage.
 
 Do not mix:
+
 - hierarchy
 - graph relationships
 
@@ -636,6 +700,7 @@ Avoid precomputing all edges.
 5. Metadata is critical.
 
 Everything depends on:
+
 - topic extraction
 - related topic extraction
 - standardised metadata
@@ -687,4 +752,4 @@ Students should focus on:
 understanding concepts
 
 Not:
-managing notes manually.
+managing notes manually.    

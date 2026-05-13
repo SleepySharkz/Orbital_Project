@@ -1,5 +1,7 @@
 package com.mindmesh.backend.service;
 
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,5 +55,11 @@ public class AuthService {
     }
 
     return user;
+  }
+
+  public void logoutUser() {
+    // Super simple for now
+    // /logout is protected so no need to worry about authentication
+    SecurityContextHolder.clearContext();
   }
 }

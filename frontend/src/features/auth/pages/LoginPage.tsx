@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { SyntheticEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "../styles/authStyles.css";
 
 type RouteState = {
   message?: string;
@@ -32,6 +33,7 @@ export function LoginPage() {
 
   async function handleSubmittedForm(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSuccess("");
     setError("");
 
     if (!email.trim()) {
@@ -49,6 +51,7 @@ export function LoginPage() {
       setSuccess(`Logged in as ${loggedInUser.email}.`);
       navigate("/dashboard");
       setPassword("");
+      setEmail("");
     } catch (caughtError) {
       if (caughtError instanceof Error) {
         setError(caughtError.message);
@@ -60,39 +63,54 @@ export function LoginPage() {
   }
 
   return (
-    <div>
-      <h1>Log In</h1>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-title">Welcome Smartie!</h1>
 
-      <form onSubmit={handleSubmittedForm}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </div>
+        <form className="auth-form" onSubmit={handleSubmittedForm}>
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="email">
+              Email
+            </label>
+            <input
+              className="auth-input"
+              id="email"
+              type="email"
+              placeholder="Your Email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </div>
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="auth-input"
+              id="password"
+              type="password"
+              placeholder="Enter Password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
 
-        <button type="submit">Log In</button>
-      </form>
+          <button className="auth-button" type="submit">
+            Log In
+          </button>
+        </form>
 
-      <p>
-        Don't have an account? <Link to="/signup">Sign up</Link>
-      </p>
+        <p className="auth-switch">
+          Don't have an account?{" "}
+          <Link className="auth-link" to="/signup">
+            Sign up
+          </Link>
+        </p>
 
-      {error && <p>{error}</p>}
-      {success && <p>{success}</p>}
+        {error && <p className="auth-message auth-message-error">{error}</p>}
+        {success && <p className="auth-message auth-message-success">{success}</p>}
+      </div>
     </div>
   );
 }

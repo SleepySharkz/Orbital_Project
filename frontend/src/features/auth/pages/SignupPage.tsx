@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { type SyntheticEvent } from "react";
 import { useAuth } from "../context/AuthContext";
+import "../styles/authStyles.css"
 
 export function SignupPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,10 @@ export function SignupPage() {
   async function handleSubmittedForm(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    // Signup shouldnt clear, if incase user mistypes email
+    // setEmail("");
+    // setPassword("");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Server side already validates comprehensively, but frontend gives a quick response for surface level checks
     if (!emailRegex.test(email)) {
@@ -46,38 +51,54 @@ export function SignupPage() {
   }
 
   return (
-    <div>
-      <h1>Sign Up</h1>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-title">Get Started Now</h1>
 
-      <form onSubmit={handleSubmittedForm}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </div>
+        <form className="auth-form" onSubmit={handleSubmittedForm}>
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="email">
+              Email
+            </label>
+            <input
+              className="auth-input"
+              id="email"
+              placeholder="Your Email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </div>
+          <div className="auth-field">
+            <label className="auth-label" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="auth-input"
+              id="password"
+              type="password"
+              placeholder="Create Password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
 
-        <button type="submit">Create Account</button>
-      </form>
+          <button className="auth-button" type="submit">
+            Sign Up
+          </button>
+        </form>
 
-      <p>
-        Already have an account? <Link to="/login">Log in</Link>
-      </p>
+        <p className="auth-switch">
+          Already have an account?{" "}
+          <Link className="auth-link" to="/login">
+            Log in
+          </Link>
+        </p>
 
-      {error && <p>{error}</p>}
+        {error && <p className="auth-message auth-message-error">{error}</p>}
+      </div>
     </div>
+
   )
 }

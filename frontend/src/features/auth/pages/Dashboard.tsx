@@ -15,13 +15,28 @@ export function DashboardPage() {
   }
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Dashboard loaded! Auth verified.</p>
-      <p>Welcome, {user.email}</p>
-      <button type="button" onClick={handleLogout}>
-        Log Out
-      </button>
-    </div>
-  );
+    <div className="dashboard-page">
+      <header className="dashboard-header">
+        <div>
+          <p className="dashboard-eyebrow">MINDMESH</p>
+          <h1 className="dashboard-title">Welcome!</h1>
+          <p className="dashboard-subtitle">Dashboard loaded. Auth verified.</p>
+        </div>
+
+        <button
+          className="dashboard-logout"
+          type="button"
+          onClick={handleLogout}
+        >
+          Log Out
+        </button>
+      </header>
+
+      <main className="dashboard-content">
+        <section className="dashboard-panel">
+          <p className="dashboard-label">Signed in as</p>
+          <p className="dashboard-email">{user.email}</p>
+        </section>
+      </main>
+    </div>);
 }
