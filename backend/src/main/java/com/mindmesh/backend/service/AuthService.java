@@ -1,6 +1,5 @@
 package com.mindmesh.backend.service;
 
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,7 @@ public class AuthService {
 
   public void getUserFromSignup(SignupRequest signupRequest) { // No need to declar throws since its unchecked
     String psw = signupRequest.getPassword();
+    String username = signupRequest.getUsername();
     String pswHash = passwordEncoder.encode(psw);
     String signUpEmail = signupRequest.getEmail();
 
@@ -34,7 +34,7 @@ public class AuthService {
     }
 
     // Create User
-    User user = new User(signUpEmail, pswHash);
+    User user = new User(username, signUpEmail, pswHash);
     userRepo.save(user);
   }
 

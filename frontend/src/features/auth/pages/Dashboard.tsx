@@ -34,8 +34,9 @@ export function DashboardPage() {
 
       <main className="dashboard-content">
         <section className="dashboard-panel">
-          <p className="dashboard-label">Signed in as</p>
+          <p className="dashboard-label">Welcome</p>
           <p className="dashboard-email">{user.email}</p>
+          <p className="dashboard-username">{user.username}</p>
         </section>
       </main>
     </div>);

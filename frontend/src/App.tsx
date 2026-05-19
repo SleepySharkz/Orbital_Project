@@ -5,11 +5,12 @@ import { PublicOnlyRoute } from "./features/auth/components/PublicOnlyRoute";
 import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SignupPage } from "./features/auth/pages/SignupPage";
 import { DashboardPage } from "./features/auth/pages/Dashboard";
+import { LandingPage } from "./features/landing/pages/LandingPage";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route
         path="/signup"
         element={
@@ -34,6 +35,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

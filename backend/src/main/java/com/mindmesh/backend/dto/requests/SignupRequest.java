@@ -13,6 +13,9 @@ public class SignupRequest {
   private String password; // Note that this is the original non hashed password
                            // We only hash password after it has reached the server, for security reasons
 
+  @NotBlank(message = "Username required")
+  private String username;
+
   public SignupRequest() {
   }
 
@@ -31,4 +34,13 @@ public class SignupRequest {
   public void setPassword(String password) {
     this.password = password;
   }
+
+  public String getUsername() {
+    return this.username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
 }

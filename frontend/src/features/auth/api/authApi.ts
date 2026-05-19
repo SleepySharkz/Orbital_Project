@@ -1,5 +1,5 @@
 type User = {
-  id: number;
+  username: string;
   email: string;
 };
 
@@ -9,6 +9,7 @@ type LoginCredentials = {
 };
 
 type SignupCredentials = {
+  username: string;
   email: string;
   password: string;
 };

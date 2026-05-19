@@ -47,8 +47,7 @@ export function LoginPage() {
     }
 
     try {
-      const loggedInUser = await login({ email, password });
-      setSuccess(`Logged in as ${loggedInUser.email}.`);
+      await login({ email, password });
       navigate("/dashboard");
       setPassword("");
       setEmail("");
@@ -63,53 +62,67 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Welcome Smartie!</h1>
+    <div className="auth-shell">
+      <div className="auth-page">
+        <img className="auth-logo" src="/favicon.svg" alt="MindMesh logo" />
+        <h1 className="auth-hero-title">Welcome Back</h1>
+        <p className="auth-hero-subtitle">Sign in to continue learning</p>
 
-        <form className="auth-form" onSubmit={handleSubmittedForm}>
-          <div className="auth-field">
-            <label className="auth-label" htmlFor="email">
-              Email
-            </label>
-            <input
-              className="auth-input"
-              id="email"
-              type="email"
-              placeholder="Your Email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
+        <div className="auth-card">
+          <form className="auth-form" onSubmit={handleSubmittedForm}>
+            <div className="auth-field-group">
+              <label className="auth-label" htmlFor="email">
+                Email
+              </label>
+              <div className="auth-field">
+                <input
+                  className="auth-input"
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+            </div>
 
-          <div className="auth-field">
-            <label className="auth-label" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="auth-input"
-              id="password"
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </div>
+            <div className="auth-field-group">
+              <label className="auth-label" htmlFor="password">
+                Password
+              </label>
+              <div className="auth-field">
+                <input
+                  className="auth-input"
+                  id="password"
+                  type="password"
+                  placeholder="........"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </div>
+            </div>
 
-          <button className="auth-button" type="submit">
-            Log In
-          </button>
-        </form>
+            <button className="auth-button" type="submit">
+              Sign In
+            </button>
+          </form>
 
-        <p className="auth-switch">
-          Don't have an account?{" "}
-          <Link className="auth-link" to="/signup">
-            Sign up
-          </Link>
-        </p>
+          <p className="auth-switch">
+            Don't have an account?{" "}
+            <Link className="auth-link" to="/signup">
+              Sign up
+            </Link>
+          </p>
 
-        {error && <p className="auth-message auth-message-error">{error}</p>}
-        {success && <p className="auth-message auth-message-success">{success}</p>}
+          {error && <p className="auth-message auth-message-error">{error}</p>}
+          {success && (
+            <p className="auth-message auth-message-success">{success}</p>
+          )}
+        </div>
+
+        <Link className="auth-back-link" to="/">
+          ← Back to home
+        </Link>
       </div>
     </div>
   );

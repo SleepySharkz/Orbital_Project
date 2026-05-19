@@ -1,105 +1,160 @@
-.auth-page {
+.auth-shell {
   min-height: 100vh;
+  padding: 32px 16px 48px;
   box-sizing: border-box;
-  background: #0d1117;
-  background-image: 
-    radial-gradient(ellipse at 60% 0%, #1a2744 0%, #0d1117 70%);
+  background:
+    radial-gradient(circle at top left, rgba(109, 132, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #f8fbff 0%, #f1f4ff 100%);
+}
+
+.auth-page {
+  width: min(100%, 620px);
+  margin: 0 auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-family: 'DM Sans', sans-serif;
-  padding: 32px 16px;
+  text-align: center;
+}
+
+.auth-logo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+}
+
+.auth-hero-title {
+  margin: 0;
+  font-size: clamp(2.3rem, 4vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  color: #121c31;
+}
+
+.auth-hero-subtitle {
+  margin-top: 10px;
+  margin-bottom: 44px;
+  font-size: 1.1rem;
+  color: #44587a;
 }
 
 .auth-card {
-  background: #111827;
-  /* border: 1px solid rgba(255, 255, 255, 0.07); */
-  border-radius: 20px;
-  padding: 44px 36px 36px;
-  width: 100%;
-  max-width: 360px;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5);
-}
-
-.auth-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #e8edf5;
-  margin: 0 0 28px;
-}
-
-.auth-label {
-  display: none;
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(123, 143, 196, 0.16);
+  border-radius: 28px;
+  padding: 36px 40px 32px;
+  box-shadow: 0 22px 46px rgba(28, 37, 71, 0.12);
+  text-align: left;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.auth-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #233557;
 }
 
 .auth-field {
   display: flex;
   align-items: center;
-  background: #0d1117;
-  /* border: 1px solid rgba(255, 255, 255, 0.09); */
-  border-radius: 8px;
-  padding: 0 14px;
-  height: 46px;
-  margin-bottom: 12px;
-  gap: 10px;
+  min-height: 62px;
+  border-radius: 16px;
+  border: 1px solid rgba(150, 167, 205, 0.44);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 20px;
 }
 
 .auth-input {
+  width: 100%;
   border: none;
   background: transparent;
   outline: none;
-  font-size: 14px;
-  color: #c8d4e8;
-  flex: 1;
-  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: #1f2f4f;
+  font-family: inherit;
 }
 
 .auth-input::placeholder {
-  color: #3a4a66;
+  color: #8896ad;
 }
 
 .auth-button {
   width: 100%;
-  height: 50px;
-  background: linear-gradient(90deg, #113065 0%, #113065 100%);
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
+  min-height: 58px;
   margin-top: 8px;
-  margin-bottom: 20px;
-  font-family: 'DM Sans', sans-serif;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #598ab3 0%, #456f93 100%);
+  color: #fff;
+  font-size: 1.02rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 34px rgba(69, 111, 147, 0.22);
 }
 
 .auth-button:hover {
-  opacity: 0.92;
+  filter: brightness(1.03);
 }
 
 .auth-switch {
+  margin-top: 26px;
   text-align: center;
-  font-size: 13px;
-  color: #3a4a66;
-  margin-top: 0;
+  font-size: 1rem;
+  color: #44587a;
 }
 
 .auth-link {
-  color: #4a7fd4;
-  font-weight: 500;
+  color: #598ab3;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .auth-message {
+  margin-top: 18px;
   text-align: center;
-  font-size: 13px;
-  margin-top: 10px;
+  font-size: 0.95rem;
 }
 
 .auth-message-error {
-  color: #ef4444;
+  color: #d14343;
+}
+
+.auth-message-success {
+  color: #2f7d53;
+}
+
+.auth-back-link {
+  margin-top: 34px;
+  color: #44587a;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .auth-shell {
+    padding: 24px 14px 36px;
+  }
+
+  .auth-hero-subtitle {
+    margin-bottom: 28px;
+  }
+
+  .auth-card {
+    padding: 28px 20px 24px;
+    border-radius: 22px;
+  }
 }

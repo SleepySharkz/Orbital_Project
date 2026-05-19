@@ -14,6 +14,9 @@ public class User {
   @Column(nullable = false, unique = true)
   private String email;
 
+  @Column(nullable = false, unique = false)
+  private String username;
+
   @Column(nullable = false)
   private String passwordHash;
 
@@ -29,9 +32,10 @@ public class User {
   protected User() { // This is to be used by JPA, NOT FOR business logic
   } // JPA requires empty constructor
 
-  public User(String email, String passwordHash) {
+  public User(String username, String email, String passwordHash) {
     this.email = email;
     this.passwordHash = passwordHash;
+    this.username = username;
   }
 
   // getters and setters
@@ -57,5 +61,13 @@ public class User {
 
   public LocalDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public String getUsername() {
+    return this.username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 }
