@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "../styles/dashboardStyles.css";
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -16,11 +17,33 @@ export function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <header className="dashboard-header">
-        <div>
-          <p className="dashboard-eyebrow">MINDMESH</p>
-          <h1 className="dashboard-title">Welcome!</h1>
-          <p className="dashboard-subtitle">Dashboard loaded. Auth verified.</p>
+      <aside className="dashboard-sidebar">
+        <div className="dashboard-sidebar-top">
+          <div className="dashboard-brand-block">
+            <p className="dashboard-brand">MINDMESH</p>
+            <p className="dashboard-username">{user.username}</p>
+            <p className="dashboard-email">{user.email}</p>
+          </div>
+
+          <nav className="dashboard-nav" aria-label="Dashboard routes">
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/dashboard"
+            >
+              Dashboard
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/modules"
+            >
+              Modules
+            </NavLink>
+          </nav>
         </div>
 
         <button
@@ -30,13 +53,15 @@ export function DashboardPage() {
         >
           Log Out
         </button>
-      </header>
+      </aside>
 
-      <main className="dashboard-content">
+      <main className="dashboard-main">
         <section className="dashboard-panel">
-          <p className="dashboard-label">Welcome</p>
-          <p className="dashboard-email">{user.email}</p>
-          <p className="dashboard-username">{user.username}</p>
+          <p className="dashboard-eyebrow">Dashboard</p>
+          <h1 className="dashboard-title">Welcome Back</h1>
+          <p className="dashboard-subtitle">
+            Use the navigation on the left to move between your dashboard and modules.
+          </p>
         </section>
       </main>
     </div>);

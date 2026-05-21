@@ -15,7 +15,8 @@ public class CreateModuleRequestDto {
 
   @NotEmpty
   // Cuz every module has atleast one topic
-  private List<String> topics;
+  // Topic name must also be non blank
+  private List<@NotBlank String> topics;
 
   public CreateModuleRequestDto() {
   }
