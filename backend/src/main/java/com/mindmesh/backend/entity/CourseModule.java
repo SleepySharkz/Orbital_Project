@@ -54,7 +54,7 @@ public class CourseModule {
     this.user = user;
     this.courseCode = course_code;
     this.schoolSem = schoolSem;
-    this.setTopics(topics);
+    setTopics(topics);
   }
 
   public Long getId() {

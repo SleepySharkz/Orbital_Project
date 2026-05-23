@@ -2,17 +2,17 @@ package com.mindmesh.backend.dto.responses;
 
 public class AuthResponse {
 
-  private Long id;
+  private String username;
 
   private String email;
 
-  public AuthResponse(Long id, String email) {
-    this.id = id;
+  public AuthResponse(String username, String email) {
+    this.username = username;
     this.email = email;
   }
 
-  public Long getId() {
-    return this.id;
+  public String getUsername() {
+    return this.username;
   }
 
   public String getEmail() {

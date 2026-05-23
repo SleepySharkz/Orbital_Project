@@ -1,0 +1,238 @@
+package com.mindmesh.backend.service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
+import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
+import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCContentDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCEntryResponseDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
+import com.mindmesh.backend.dto.responses.cfc.SourceMaterialDto;
+import com.mindmesh.backend.entity.CFC;
+import com.mindmesh.backend.entity.CFCEntry;
+import com.mindmesh.backend.entity.CourseModule;
+import com.mindmesh.backend.entity.GeneratedCFCPage;
+import com.mindmesh.backend.enums.SourceType;
+import com.mindmesh.backend.repository.CFCRepository;
+import com.mindmesh.backend.repository.CourseModuleRepository;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class CFCService {
+
+  private final CFCRepository cfcRepository;
+  private final CourseModuleRepository courseModuleRepository;
+
+  public CFCService(
+      CFCRepository cfcRepository,
+      CourseModuleRepository courseModuleRepository) {
+    this.cfcRepository = cfcRepository;
+    this.courseModuleRepository = courseModuleRepository;
+  }
+
+  @Transactional
+  public CFCResponseDto createCFC(CreateCFCRequestDto requestDto, Long userId,
+      Map<String, MultipartFile> imageFileMap) {
+    Map<String, MultipartFile> uploadedFiles = imageFileMap == null ? Map.of() : imageFileMap;
+
+    Long moduleId = requestDto.getModuleId();
+    CourseModule module = courseModuleRepository
+        .findByIdAndUserId(moduleId, userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module NOT FOUND"));
+
+    List<QnNotePairDto> items = requestDto.getItems();
+    CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
+    SourceType sourceType = headerDto.getSourceType();
+    String sourceTitle = headerDto.getSourceTitle();
+
+    // TODO: Handled by checkpoint 3
+    String title = "AI GEN TITLE";
+    String summary = "AI GEN SUMMARY";
+
+    // Start validating
+    checkUniqueItemIDs(items);
+    checkTopicsBelongToModule(module, items);
+    checkEachItemHasQuestionOrImage(items, uploadedFiles);
+    checkImageKeysMappedToFiles(items, uploadedFiles);
+    checkImageCountPerItem(items);
+    checkUploadedFilesArePng(items, uploadedFiles);
+
+    CFC cfc = new CFC(
+        module,
+        sourceType,
+        sourceTitle,
+        title,
+        summary);
+
+    for (QnNotePairDto item : items) {
+      GeneratedCFCPage generatedCFCPage = buildPlaceholderGeneratedCFCPage();
+
+      new CFCEntry(
+          cfc,
+          item.getItemId(),
+          item.getTopic().trim(),
+          normalizeQuestionText(item.getQuestionText()),
+          item.getRoughNote().trim(),
+          generatedCFCPage);
+    }
+
+    CFC savedCfc = cfcRepository.save(cfc);
+    return toCFCResponseDto(savedCfc);
+  }
+
+  // Helper validators
+  private void checkUniqueItemIDs(List<QnNotePairDto> items) {
+    Set<Long> seen = new HashSet<>();
+
+    for (QnNotePairDto item : items) {
+      Long itemID = item.getItemId();
+
+      if (seen.contains(itemID)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate item ids found!");
+      }
+
+      seen.add(itemID);
+    }
+  }
+
+  private void checkTopicsBelongToModule(CourseModule module, List<QnNotePairDto> items) {
+    for (QnNotePairDto item : items) {
+      String topic = item.getTopic();
+
+      List<String> moduleTopicNames = module
+          .getTopics()
+          .stream()
+          .map(moduletopic -> moduletopic.getTopicName())
+          .toList();
+
+      if (!moduleTopicNames.contains(topic)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Topic not found in Module!");
+      }
+    }
+  }
+
+  private void checkEachItemHasQuestionOrImage(List<QnNotePairDto> items, Map<String, MultipartFile> imageFileMap) {
+    for (QnNotePairDto item : items) {
+      boolean hasText = item.getQuestionText() != null && !item.getQuestionText().isBlank();
+      boolean hasImage = item.getImageKeys() != null
+          && !item.getImageKeys().isEmpty()
+          && item
+              .getImageKeys()
+              .stream()
+              .anyMatch(key -> imageFileMap.containsKey(key) && !imageFileMap.get(key).isEmpty());
+
+      if (!hasText && !hasImage) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Item with id " + item.getItemId() + " must have a question text or an image.");
+      }
+    }
+  }
+
+  private void checkImageKeysMappedToFiles(List<QnNotePairDto> items, Map<String, MultipartFile> imageFileMap) {
+    for (QnNotePairDto item : items) {
+      List<String> imageKeys = item.getImageKeys();
+      if (imageKeys == null || imageKeys.isEmpty())
+        continue;
+
+      for (String key : imageKeys) {
+        if (!imageFileMap.containsKey(key) || imageFileMap.get(key).isEmpty()) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "Image key '" + key + "' in item " + item.getItemId() + " has no corresponding uploaded file.");
+        }
+      }
+    }
+  }
+
+  private void checkImageCountPerItem(List<QnNotePairDto> items) {
+    for (QnNotePairDto item : items) {
+      Long itemID = item.getItemId();
+      List<String> imageKeys = item.getImageKeys();
+      if (imageKeys != null && imageKeys.size() > 2)
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "More than 2 images sent in " + itemID.toString() + "th entry");
+    }
+  }
+
+  private void checkUploadedFilesArePng(List<QnNotePairDto> items, Map<String, MultipartFile> imageFileMap) {
+    for (QnNotePairDto item : items) {
+      List<String> imageKeys = item.getImageKeys();
+      if (imageKeys == null || imageKeys.isEmpty()) {
+        continue;
+      }
+
+      for (String key : imageKeys) {
+        MultipartFile file = imageFileMap.get(key);
+        String contentType = file.getContentType();
+
+        if (contentType == null || !contentType.equalsIgnoreCase("image/png")) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "Uploaded file for image key '" + key + "' must be a PNG.");
+        }
+      }
+    }
+  }
+
+  private GeneratedCFCPage buildPlaceholderGeneratedCFCPage() {
+    return new GeneratedCFCPage(
+        "Placeholder learning point",
+        "Placeholder explanation",
+        "Placeholder mistake pattern",
+        "Placeholder review prompt");
+  }
+
+  private String normalizeQuestionText(String questionText) {
+    if (questionText == null) {
+      return null;
+    }
+
+    String trimmedQuestionText = questionText.trim();
+    return trimmedQuestionText.isEmpty() ? null : trimmedQuestionText;
+  }
+
+  private CFCResponseDto toCFCResponseDto(CFC cfc) {
+    return new CFCResponseDto(
+        cfc.getId(),
+        cfc.getModule().getId(),
+        cfc.getModule().getCourseCode(),
+        cfc.getModule().getSchoolSem(),
+        cfc.getSourceType(),
+        cfc.getSourceTitle(),
+        cfc.getTitle(),
+        cfc.getSummary(),
+        cfc.getEntries().stream().map(this::toCFCEntryResponseDto).toList(),
+        cfc.getCreatedAt());
+  }
+
+  private CFCEntryResponseDto toCFCEntryResponseDto(CFCEntry entry) {
+    return new CFCEntryResponseDto(
+        entry.getId(),
+        entry.getRequestItemId(),
+        entry.getTopic(),
+        toCFCContentDto(entry.getGeneratedCFCPage()),
+        new SourceMaterialDto(
+            entry.getQuestionText(),
+            entry.getRoughNote()));
+  }
+
+  private CFCContentDto toCFCContentDto(GeneratedCFCPage generatedCFCPage) {
+    return new CFCContentDto(
+        generatedCFCPage.getLearningPoint(),
+        generatedCFCPage.getExplanation(),
+        generatedCFCPage.getMistakePattern(),
+        generatedCFCPage.getReviewPrompt());
+  }
+
+}
