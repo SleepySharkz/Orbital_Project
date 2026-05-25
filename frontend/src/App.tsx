@@ -6,6 +6,7 @@ import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SignupPage } from "./features/auth/pages/SignupPage";
 import { DashboardPage } from "./features/auth/pages/Dashboard";
 import { LandingPage } from "./features/landing/pages/LandingPage";
+import { ModulesPage } from "./features/modules/pages/ModulesPage";
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/modules"
+        element={
+          <ProtectedRoute>
+            <ModulesPage />
           </ProtectedRoute>
         }
       />
