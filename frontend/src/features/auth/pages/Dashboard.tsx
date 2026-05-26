@@ -43,6 +43,15 @@ export function DashboardPage() {
             >
               Modules
             </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/cfcs"
+            >
+              Create Flashcard (CFC)
+            </NavLink>
           </nav>
         </div>
 

@@ -16,7 +16,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
           <p className="modules-email">{user.email}</p>
         </div>
 
-        <nav className="modules-nav" aria-label="Modules routes">
+        <nav className="modules-nav" aria-label="App routes">
           <NavLink
             className={({ isActive }) =>
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
@@ -31,8 +31,17 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
             to="/modules"
+            >
+              Modules
+            </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/cfcs"
           >
-            Modules
+            Create Flashcard (CFC)
           </NavLink>
         </nav>
       </div>

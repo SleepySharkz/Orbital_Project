@@ -6,6 +6,7 @@ import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SignupPage } from "./features/auth/pages/SignupPage";
 import { DashboardPage } from "./features/auth/pages/Dashboard";
 import { LandingPage } from "./features/landing/pages/LandingPage";
+import { CFCPage } from "./features/cfc/pages/CFCPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
 
 function App() {
@@ -41,6 +42,14 @@ function App() {
         element={
           <ProtectedRoute>
             <ModulesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cfcs"
+        element={
+          <ProtectedRoute>
+            <CFCPage />
           </ProtectedRoute>
         }
       />

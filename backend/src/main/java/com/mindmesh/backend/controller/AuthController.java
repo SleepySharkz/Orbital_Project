@@ -80,10 +80,10 @@ public class AuthController {
         .getAuthentication()
         .getPrincipal();
 
-    Long myId = userDetails.getId();
-    String myEmail = userDetails.getUsername();
+    String myEmail = userDetails.getEmail();
+    String myUsername = userDetails.getUsername();
 
-    AuthResponse authResponse = new AuthResponse(myId, myEmail);
+    AuthResponse authResponse = new AuthResponse(myUsername, myEmail);
     return ResponseEntity.ok(authResponse);
   }
 }
