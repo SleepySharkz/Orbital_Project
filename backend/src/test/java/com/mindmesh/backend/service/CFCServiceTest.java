@@ -1,23 +1,22 @@
 package com.mindmesh.backend.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -27,8 +26,11 @@ import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
 import com.mindmesh.backend.entity.CFC;
+import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
+import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.ModuleTopic;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
@@ -183,6 +185,80 @@ class CFCServiceTest {
     assertTrue(exception.getReason().contains("must be a PNG"));
   }
 
+  @Test
+  void getCFCsForModule_returnsSummariesForOwnedModule() {
+    CFC cfc = buildSavedCfc(99L);
+
+    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
+    when(cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(12L, 7L)).thenReturn(List.of(cfc));
+
+    List<CFCSummaryDto> response = cfcService.getCFCsForModule(12L, 7L);
+
+    assertEquals(1, response.size());
+    assertEquals(99L, response.get(0).getId());
+    assertEquals(12L, response.get(0).getModuleId());
+    assertEquals("CS2040", response.get(0).getCourseCode());
+    assertEquals("Year 1 Sem 2", response.get(0).getSchoolSem());
+    assertEquals(SourceType.TUTORIAL, response.get(0).getSourceType());
+    assertEquals("Tutorial 5", response.get(0).getSourceTitle());
+    assertEquals("AI GEN TITLE PLACEHOLDER", response.get(0).getTitle());
+    assertEquals("AI GEN SUMMARY PLACEHOLDER", response.get(0).getSummary());
+  }
+
+  @Test
+  void getCFCsForModule_returnsEmptyListForOwnedModuleWithoutCFCs() {
+    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
+    when(cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(12L, 7L)).thenReturn(List.of());
+
+    List<CFCSummaryDto> response = cfcService.getCFCsForModule(12L, 7L);
+
+    assertTrue(response.isEmpty());
+  }
+
+  @Test
+  void getCFCsForModule_rejectsMissingOrUnownedModule() {
+    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.empty());
+
+    ResponseStatusException exception = assertThrows(
+        ResponseStatusException.class,
+        () -> cfcService.getCFCsForModule(12L, 7L));
+
+    assertEquals(404, exception.getStatusCode().value());
+    assertTrue(exception.getReason().contains("Module not found"));
+  }
+
+  @Test
+  void getCFCById_returnsFullCFCForOwner() {
+    CFC cfc = buildSavedCfc(99L);
+
+    when(cfcRepository.findByIdAndModuleUserId(99L, 7L)).thenReturn(Optional.of(cfc));
+
+    CFCResponseDto response = cfcService.getCFCById(99L, 7L);
+
+    assertEquals(99L, response.getId());
+    assertEquals(12L, response.getModuleId());
+    assertEquals("CS2040", response.getCourseCode());
+    assertEquals("Tutorial 5", response.getSourceTitle());
+    assertEquals("AI GEN TITLE PLACEHOLDER", response.getTitle());
+    assertEquals(1, response.getEntries().size());
+    assertEquals("Trees", response.getEntries().get(0).getTopic());
+    assertEquals("Explain BST deletion", response.getEntries().get(0).getSourceMaterial().getQuestionText());
+    assertEquals("I mixed up predecessor and successor.", response.getEntries().get(0).getSourceMaterial().getRoughNote());
+    assertEquals("Placeholder learning point", response.getEntries().get(0).getContent().getLearningPoint());
+  }
+
+  @Test
+  void getCFCById_rejectsMissingOrUnownedCFC() {
+    when(cfcRepository.findByIdAndModuleUserId(99L, 7L)).thenReturn(Optional.empty());
+
+    ResponseStatusException exception = assertThrows(
+        ResponseStatusException.class,
+        () -> cfcService.getCFCById(99L, 7L));
+
+    assertEquals(404, exception.getStatusCode().value());
+    assertTrue(exception.getReason().contains("CFC not found"));
+  }
+
   private CreateCFCRequestDto buildRequest(
       Long moduleId,
       SourceType sourceType,
@@ -212,5 +288,30 @@ class CFCServiceTest {
     item.setImageKeys(imageKeys);
     item.setRoughNote(roughNote);
     return item;
+  }
+
+  private CFC buildSavedCfc(Long cfcId) {
+    CFC cfc = new CFC(
+        module,
+        SourceType.TUTORIAL,
+        "Tutorial 5",
+        "AI GEN TITLE PLACEHOLDER",
+        "AI GEN SUMMARY PLACEHOLDER");
+    ReflectionTestUtils.setField(cfc, "id", cfcId);
+
+    CFCEntry entry = new CFCEntry(
+        cfc,
+        1L,
+        "Trees",
+        "Explain BST deletion",
+        "I mixed up predecessor and successor.",
+        new GeneratedCFCPage(
+            "Placeholder learning point",
+            "Placeholder explanation",
+            "Placeholder mistake pattern",
+            "Placeholder review prompt"));
+    ReflectionTestUtils.setField(entry, "id", 100L);
+
+    return cfc;
   }
 }

@@ -16,7 +16,9 @@ import com.mindmesh.backend.dto.requests.ModuleRelated.CreateModuleRequestDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleResponseDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleSummaryDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleTopicsResponseDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
 import com.mindmesh.backend.security.CustomUserDetails;
+import com.mindmesh.backend.service.CFCService;
 import com.mindmesh.backend.service.ModuleService;
 
 import jakarta.validation.Valid;
@@ -26,9 +28,11 @@ import jakarta.validation.Valid;
 public class ModuleController {
 
   private final ModuleService moduleService;
+  private final CFCService cfcService;
 
-  public ModuleController(ModuleService moduleService) {
+  public ModuleController(ModuleService moduleService, CFCService cfcService) {
     this.moduleService = moduleService;
+    this.cfcService = cfcService;
   }
 
   @PostMapping
@@ -61,4 +65,11 @@ public class ModuleController {
     ModuleTopicsResponseDto moduleTopics = moduleService.getModuleTopics(moduleId, userDetails.getId());
     return ResponseEntity.ok(moduleTopics);
   }
+  @GetMapping("/{moduleId}/cfcs")
+    public ResponseEntity<List<CFCSummaryDto>> getCFCsForModule(
+      @PathVariable Long moduleId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    List<CFCSummaryDto> cfcs = cfcService.getCFCsForModule(moduleId, userDetails.getId());
+    return ResponseEntity.ok(cfcs);
+}
 }
