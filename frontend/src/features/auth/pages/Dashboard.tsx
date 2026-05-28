@@ -52,6 +52,15 @@ export function DashboardPage() {
             >
               Create Flashcard (CFC)
             </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/my-cfcs"
+            >
+              My CFCs
+            </NavLink>
           </nav>
         </div>
 
@@ -69,7 +78,7 @@ export function DashboardPage() {
           <p className="dashboard-eyebrow">Dashboard</p>
           <h1 className="dashboard-title">Welcome Back</h1>
           <p className="dashboard-subtitle">
-            Use the navigation on the left to move between your dashboard and modules.
+            Use the navigation on the left to move between your dashboard, modules, and saved CFCs.
           </p>
         </section>
       </main>
