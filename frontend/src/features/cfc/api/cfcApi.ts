@@ -66,6 +66,7 @@ type CreatedCFCResponse = CFCResponse;
 
 type MessageResponse = {
   message: string;
+  error?: string;
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -110,6 +111,12 @@ export async function createCFCRequest(
 
   if (!response.ok) {
     const errorData = data as MessageResponse;
+
+    if (response.status === 429) {
+      const retryAfterSeconds = response.headers.get("Retry-After") ?? "60";
+      throw new Error(`Rate limit reached. Try again in ${retryAfterSeconds} seconds.`);
+    }
+
     throw new Error(errorData.message || "Could not create flashcard.");
   }
 
