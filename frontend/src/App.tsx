@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import "./App.css";
 import { ProtectedRoute } from "./features/auth/components/ProtectedRoute";
 import { PublicOnlyRoute } from "./features/auth/components/PublicOnlyRoute";
@@ -6,8 +6,21 @@ import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SignupPage } from "./features/auth/pages/SignupPage";
 import { DashboardPage } from "./features/auth/pages/Dashboard";
 import { LandingPage } from "./features/landing/pages/LandingPage";
+import { CFCDetailPage } from "./features/cfc/pages/CFCDetailPage";
 import { CFCPage } from "./features/cfc/pages/CFCPage";
+import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
+import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
+
+function CFCDetailRedirect() {
+  const { cfcId } = useParams();
+
+  if (!cfcId) {
+    return <Navigate to="/my-cfcs" replace />;
+  }
+
+  return <Navigate to={`/my-cfcs/${cfcId}`} replace />;
+}
 
 function App() {
   return (
@@ -46,10 +59,42 @@ function App() {
         }
       />
       <Route
+        path="/modules/:moduleId"
+        element={
+          <ProtectedRoute>
+            <ModuleDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/cfcs"
         element={
           <ProtectedRoute>
             <CFCPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-cfcs"
+        element={
+          <ProtectedRoute>
+            <MyCFCsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-cfcs/:cfcId"
+        element={
+          <ProtectedRoute>
+            <CFCDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cfcs/:cfcId"
+        element={
+          <ProtectedRoute>
+            <CFCDetailRedirect />
           </ProtectedRoute>
         }
       />
@@ -58,4 +103,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

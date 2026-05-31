@@ -16,6 +16,7 @@ import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCContentDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCEntryResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
+import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
 import com.mindmesh.backend.dto.responses.cfc.SourceMaterialDto;
 import com.mindmesh.backend.entity.CFC;
 import com.mindmesh.backend.entity.CFCEntry;
@@ -49,15 +50,15 @@ public class CFCService {
     CourseModule module = courseModuleRepository
         .findByIdAndUserId(moduleId, userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module NOT FOUND"));
-
+    
     List<QnNotePairDto> items = requestDto.getItems();
     CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
     SourceType sourceType = headerDto.getSourceType();
     String sourceTitle = headerDto.getSourceTitle();
 
     // TODO: Handled by checkpoint 3
-    String title = "AI GEN TITLE";
-    String summary = "AI GEN SUMMARY";
+    String title = "AI GEN TITLE PLACEHOLDER";
+    String summary = "AI GEN SUMMARY PLACEHOLDER";
 
     // Start validating
     checkUniqueItemIDs(items);
@@ -75,7 +76,7 @@ public class CFCService {
         summary);
 
     for (QnNotePairDto item : items) {
-      GeneratedCFCPage generatedCFCPage = buildPlaceholderGeneratedCFCPage();
+      GeneratedCFCPage generatedCFCPage = buildPlaceholderGeneratedCFCPage(); //TODO
 
       new CFCEntry(
           cfc,
@@ -89,6 +90,39 @@ public class CFCService {
     CFC savedCfc = cfcRepository.save(cfc);
     return toCFCResponseDto(savedCfc);
   }
+
+  @Transactional
+  public List<CFCSummaryDto> getCFCsForModule(Long moduleId, Long userId) {
+    courseModuleRepository.findByIdAndUserId(moduleId, userId)
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found"));
+
+      return cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(moduleId, userId)
+                          .stream()
+                          .map(this::toCFCSummaryDto)
+                          .toList();
+  }
+
+  //mapper for summaryDTO
+  private CFCSummaryDto toCFCSummaryDto(CFC cfc) {
+    return new CFCSummaryDto(
+        cfc.getId(),
+        cfc.getModule().getId(),
+        cfc.getModule().getCourseCode(),
+        cfc.getModule().getSchoolSem(),
+        cfc.getSourceType(),
+        cfc.getSourceTitle(),
+        cfc.getTitle(),
+        cfc.getSummary(),
+        cfc.getCreatedAt());
+}
+
+@Transactional
+public CFCResponseDto getCFCById(Long cfcId, Long userId) {
+  CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
+              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+
+  return toCFCResponseDto(cfc);
+}
 
   // Helper validators
   private void checkUniqueItemIDs(List<QnNotePairDto> items) {

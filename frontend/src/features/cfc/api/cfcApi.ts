@@ -1,5 +1,17 @@
 type SourceType = "ASSIGNMENT" | "TUTORIAL" | "PRACTICE_PAPER";
 
+type CFCContent = {
+  learningPoint: string;
+  explanation: string;
+  mistakePattern: string;
+  reviewPrompt: string;
+};
+
+type SourceMaterial = {
+  questionText: string | null;
+  roughNote: string;
+};
+
 type CreateCFCEntryPayload = {
   itemId: number;
   topic: string;
@@ -21,19 +33,23 @@ type CreatedCFCEntry = {
   id: number;
   requestItemId: number;
   topic: string;
-  content: {
-    learningPoint: string;
-    explanation: string;
-    mistakePattern: string;
-    reviewPrompt: string;
-  };
-  sourceMaterial: {
-    questionText: string | null;
-    roughNote: string;
-  };
+  content: CFCContent;
+  sourceMaterial: SourceMaterial;
 };
 
-type CreatedCFCResponse = {
+type CFCSummary = {
+  id: number;
+  moduleId: number;
+  courseCode: string;
+  schoolSem: string;
+  sourceType: SourceType;
+  sourceTitle: string;
+  title: string;
+  summary: string;
+  createdAt: string;
+};
+
+type CFCResponse = {
   id: number;
   moduleId: number;
   courseCode: string;
@@ -46,6 +62,8 @@ type CreatedCFCResponse = {
   createdAt: string;
 };
 
+type CreatedCFCResponse = CFCResponse;
+
 type MessageResponse = {
   message: string;
 };
@@ -54,6 +72,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
+}
+
+function buildAuthHeaders(token: string) {
+  return {
+    Authorization: `Bearer ${token}`,
+  };
 }
 
 export async function createCFCRequest(
@@ -92,4 +116,44 @@ export async function createCFCRequest(
   return data as CreatedCFCResponse;
 }
 
-export type { CreatedCFCResponse, SourceType };
+export async function fetchCFCsForModule(moduleId: number, token: string) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/modules/${moduleId}/cfcs`, {
+    method: "GET",
+    headers: buildAuthHeaders(token),
+  });
+
+  const data = await parseJsonResponse<CFCSummary[] | MessageResponse>(response);
+
+  if (!response.ok) {
+    const errorData = data as MessageResponse;
+    throw new Error(errorData.message || "Could not load saved flashcards.");
+  }
+
+  return data as CFCSummary[];
+}
+
+export async function fetchCFCById(cfcId: number, token: string) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/cfcs/${cfcId}`, {
+    method: "GET",
+    headers: buildAuthHeaders(token),
+  });
+
+  const data = await parseJsonResponse<CFCResponse | MessageResponse>(response);
+
+  if (!response.ok) {
+    const errorData = data as MessageResponse;
+    throw new Error(errorData.message || "Could not load saved flashcard.");
+  }
+
+  return data as CFCResponse;
+}
+
+export type {
+  CreatedCFCEntry,
+  CreatedCFCResponse,
+  CFCContent,
+  CFCResponse,
+  CFCSummary,
+  SourceMaterial,
+  SourceType,
+};

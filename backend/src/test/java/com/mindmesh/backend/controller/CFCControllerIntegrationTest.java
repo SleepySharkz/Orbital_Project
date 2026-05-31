@@ -2,6 +2,7 @@ package com.mindmesh.backend.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,7 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
+import com.mindmesh.backend.entity.CFC;
+import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
+import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.ModuleTopic;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
@@ -132,6 +136,99 @@ class CFCControllerIntegrationTest {
         .andExpect(status().isForbidden());
   }
 
+  @Test
+  void getCfcsForModule_withOwnedModule_returnsSummaries() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user);
+    CFC cfc = cfcRepository.save(buildCfc(module));
+
+    mockMvc.perform(get("/api/v1/modules/" + module.getId() + "/cfcs")
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].id").value(cfc.getId()))
+        .andExpect(jsonPath("$[0].moduleId").value(module.getId()))
+        .andExpect(jsonPath("$[0].courseCode").value("CS2040"))
+        .andExpect(jsonPath("$[0].schoolSem").value("Year 1 Sem 2"))
+        .andExpect(jsonPath("$[0].sourceType").value("TUTORIAL"))
+        .andExpect(jsonPath("$[0].sourceTitle").value("Tutorial 5"))
+        .andExpect(jsonPath("$[0].title").value("AI GEN TITLE PLACEHOLDER"))
+        .andExpect(jsonPath("$[0].summary").value("AI GEN SUMMARY PLACEHOLDER"))
+        .andExpect(jsonPath("$[0].entries").doesNotExist());
+  }
+
+  @Test
+  void getCfcsForModule_withOwnedModuleWithoutCfcs_returnsEmptyList() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user);
+
+    mockMvc.perform(get("/api/v1/modules/" + module.getId() + "/cfcs")
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+  @Test
+  void getCfcsForModule_withOtherUsersModule_returnsNotFound() throws Exception {
+    User owner = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User otherUser = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    CourseModule module = saveModule(owner);
+    cfcRepository.save(buildCfc(module));
+
+    mockMvc.perform(get("/api/v1/modules/" + module.getId() + "/cfcs")
+        .with(authentication(authFor(otherUser))))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getCfcsForModule_withoutAuthentication_isForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/modules/12/cfcs"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void getCfcById_withOwnedCfc_returnsFullCfc() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user);
+    CFC cfc = cfcRepository.save(buildCfc(module));
+
+    mockMvc.perform(get("/api/v1/cfcs/" + cfc.getId())
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(cfc.getId()))
+        .andExpect(jsonPath("$.moduleId").value(module.getId()))
+        .andExpect(jsonPath("$.courseCode").value("CS2040"))
+        .andExpect(jsonPath("$.schoolSem").value("Year 1 Sem 2"))
+        .andExpect(jsonPath("$.sourceType").value("TUTORIAL"))
+        .andExpect(jsonPath("$.sourceTitle").value("Tutorial 5"))
+        .andExpect(jsonPath("$.title").value("AI GEN TITLE PLACEHOLDER"))
+        .andExpect(jsonPath("$.summary").value("AI GEN SUMMARY PLACEHOLDER"))
+        .andExpect(jsonPath("$.entries", hasSize(1)))
+        .andExpect(jsonPath("$.entries[0].topic").value("Trees"))
+        .andExpect(jsonPath("$.entries[0].content.learningPoint").value("Placeholder learning point"))
+        .andExpect(jsonPath("$.entries[0].content.explanation").value("Placeholder explanation"))
+        .andExpect(jsonPath("$.entries[0].sourceMaterial.questionText").value("Explain BST deletion"))
+        .andExpect(jsonPath("$.entries[0].sourceMaterial.roughNote").value("I mixed up predecessor and successor."));
+  }
+
+  @Test
+  void getCfcById_withOtherUsersCfc_returnsNotFound() throws Exception {
+    User owner = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User otherUser = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    CourseModule module = saveModule(owner);
+    CFC cfc = cfcRepository.save(buildCfc(module));
+
+    mockMvc.perform(get("/api/v1/cfcs/" + cfc.getId())
+        .with(authentication(authFor(otherUser))))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getCfcById_withoutAuthentication_isForbidden() throws Exception {
+    mockMvc.perform(get("/api/v1/cfcs/99"))
+        .andExpect(status().isForbidden());
+  }
+
   private CreateCFCRequestDto buildRequest(Long moduleId) {
     CFCHeaderDto headerDto = new CFCHeaderDto();
     headerDto.setSourceType(SourceType.TUTORIAL);
@@ -156,5 +253,49 @@ class CFCControllerIntegrationTest {
     requestDto.setFlashcardHeader(headerDto);
     requestDto.setItems(List.of(itemOne, itemTwo));
     return requestDto;
+  }
+
+  private CourseModule saveModule(User user) {
+    CourseModule module = new CourseModule(user, "CS2040", "Year 1 Sem 2", List.of());
+    module.addTopic(new ModuleTopic(null, "Trees"));
+    module.addTopic(new ModuleTopic(null, "Graphs"));
+    return courseModuleRepository.save(module);
+  }
+
+  private CFC buildCfc(CourseModule module) {
+    CFC cfc = new CFC(
+        module,
+        SourceType.TUTORIAL,
+        "Tutorial 5",
+        "AI GEN TITLE PLACEHOLDER",
+        "AI GEN SUMMARY PLACEHOLDER");
+
+    new CFCEntry(
+        cfc,
+        1L,
+        "Trees",
+        "Explain BST deletion",
+        "I mixed up predecessor and successor.",
+        new GeneratedCFCPage(
+            "Placeholder learning point",
+            "Placeholder explanation",
+            "Placeholder mistake pattern",
+            "Placeholder review prompt"));
+
+    return cfc;
+  }
+
+  private UsernamePasswordAuthenticationToken authFor(User user) {
+    CustomUserDetails userDetails = new CustomUserDetails(
+        user.getId(),
+        user.getEmail(),
+        user.getUsername(),
+        user.getPasswordHash(),
+        AuthorityUtils.NO_AUTHORITIES);
+
+    return new UsernamePasswordAuthenticationToken(
+        userDetails,
+        null,
+        userDetails.getAuthorities());
   }
 }

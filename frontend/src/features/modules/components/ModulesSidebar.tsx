@@ -31,9 +31,9 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
             to="/modules"
-            >
-              Modules
-            </NavLink>
+          >
+            Modules
+          </NavLink>
 
           <NavLink
             className={({ isActive }) =>
@@ -42,6 +42,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             to="/cfcs"
           >
             Create Flashcard (CFC)
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/my-cfcs"
+          >
+            My CFCs
           </NavLink>
         </nav>
       </div>

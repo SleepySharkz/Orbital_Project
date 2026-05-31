@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,4 +44,12 @@ public class CFCController {
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
+
+  @GetMapping("/{cfcId}")
+  public ResponseEntity<CFCResponseDto> getCFCById(
+    @PathVariable Long cfcId,
+    @AuthenticationPrincipal CustomUserDetails userDetails) {
+      CFCResponseDto response = cfcService.getCFCById(cfcId, userDetails.getId());
+      return ResponseEntity.ok(response);
+    }
 }

@@ -48,21 +48,22 @@ export function ModuleCard({ module, token }: ModuleCardProps) {
   }
 
   return (
-    <article className="modules-card">
-      <div className="modules-card-top">
+    <article className={expanded ? "modules-card modules-card-expanded" : "modules-card"}>
+      <button
+        className="modules-card-toggle"
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => void handleToggleTopics()}
+      >
         <div className="modules-card-copy">
           <p className="modules-card-code">{module.courseCode}</p>
           <p className="modules-card-sem">{module.schoolSem}</p>
         </div>
 
-        <button
-          className="modules-topics-toggle"
-          type="button"
-          onClick={() => void handleToggleTopics()}
-        >
-          {expanded ? "Hide Topics" : "View Topics"}
-        </button>
-      </div>
+        <span className="modules-card-indicator" aria-hidden="true">
+          {expanded ? "-" : "+"}
+        </span>
+      </button>
 
       {expanded && (
         <div className="modules-topics-dropdown">
