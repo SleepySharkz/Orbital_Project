@@ -14,6 +14,7 @@ import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.entity.CourseModule;
 
+//Mainly used for testing to avoid excessive use of API tokens
 @Service
 @Profile("local-ai-fake")
 public class FakeAICFCGenerationService implements AICFCGenerationService {
