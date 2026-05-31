@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,10 +39,34 @@ import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
+import com.mindmesh.backend.service.AICFCGenerationService;
+import com.mindmesh.backend.service.AIGeneratedCFCEntry;
+import com.mindmesh.backend.service.AIGeneratedCFCResponse;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class CFCControllerIntegrationTest {
+
+  @TestConfiguration
+  static class TestAIConfig {
+
+    @Bean
+    AICFCGenerationService aiCFCGenerationService() {
+      return (module, requestDto, imageFileMap) -> new AIGeneratedCFCResponse(
+          "Test AI Title",
+          "Test AI Summary",
+          requestDto
+              .getItems()
+              .stream()
+              .map(item -> new AIGeneratedCFCEntry(
+                  item.getItemId(),
+                  "Test AI learning point " + item.getItemId(),
+                  "Test AI explanation " + item.getItemId(),
+                  "Test AI mistake pattern " + item.getItemId(),
+                  "Test AI review prompt " + item.getItemId()))
+              .toList());
+    }
+  }
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -114,11 +140,14 @@ class CFCControllerIntegrationTest {
         .andExpect(jsonPath("$.courseCode").value("CS2040"))
         .andExpect(jsonPath("$.sourceType").value("TUTORIAL"))
         .andExpect(jsonPath("$.sourceTitle").value("Tutorial 5"))
+        .andExpect(jsonPath("$.title").value("Test AI Title"))
+        .andExpect(jsonPath("$.summary").value("Test AI Summary"))
         .andExpect(jsonPath("$.entries", hasSize(2)))
         .andExpect(jsonPath("$.entries[0].topic").value("Trees"))
         .andExpect(jsonPath("$.entries[0].sourceMaterial.questionText").value("Explain BST deletion"))
         .andExpect(jsonPath("$.entries[1].sourceMaterial.questionText").doesNotExist())
-        .andExpect(jsonPath("$.entries[0].content.learningPoint").value("Placeholder learning point"));
+        .andExpect(jsonPath("$.entries[0].content.learningPoint").value("Test AI learning point 1"))
+        .andExpect(jsonPath("$.entries[1].content.learningPoint").value("Test AI learning point 2"));
   }
 
   @Test
