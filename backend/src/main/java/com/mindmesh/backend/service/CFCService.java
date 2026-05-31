@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,12 +35,16 @@ public class CFCService {
 
   private final CFCRepository cfcRepository;
   private final CourseModuleRepository courseModuleRepository;
+  
+  private final AICFCGenerationService aicfcGenerationService;
 
   public CFCService(
       CFCRepository cfcRepository,
-      CourseModuleRepository courseModuleRepository) {
+      CourseModuleRepository courseModuleRepository,
+      AICFCGenerationService aicfcGenerationService) {
     this.cfcRepository = cfcRepository;
     this.courseModuleRepository = courseModuleRepository;
+    this.aicfcGenerationService = aicfcGenerationService;
   }
 
   @Transactional
@@ -50,15 +56,11 @@ public class CFCService {
     CourseModule module = courseModuleRepository
         .findByIdAndUserId(moduleId, userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module NOT FOUND"));
-    
+
     List<QnNotePairDto> items = requestDto.getItems();
     CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
     SourceType sourceType = headerDto.getSourceType();
     String sourceTitle = headerDto.getSourceTitle();
-
-    // TODO: Handled by checkpoint 3
-    String title = "AI GEN TITLE PLACEHOLDER";
-    String summary = "AI GEN SUMMARY PLACEHOLDER";
 
     // Start validating
     checkUniqueItemIDs(items);
@@ -68,6 +70,23 @@ public class CFCService {
     checkImageCountPerItem(items);
     checkUploadedFilesArePng(items, uploadedFiles);
 
+    AIGeneratedCFCResponse generatedCFC = aicfcGenerationService.generateCFC(
+        module, 
+        requestDto, 
+        uploadedFiles);
+
+    // TODO: Handled by checkpoint 3
+    String title = generatedCFC.getTitle();
+    String summary = generatedCFC.getSummary();
+
+    Map<Long, AIGeneratedCFCEntry> generatedByItemId = generatedCFC.getEntries()
+      .stream()
+      .collect(Collectors.toMap(
+          AIGeneratedCFCEntry::getRequestItemId,
+          Function.identity()
+        )
+      );
+
     CFC cfc = new CFC(
         module,
         sourceType,
@@ -76,9 +95,24 @@ public class CFCService {
         summary);
 
     for (QnNotePairDto item : items) {
-      GeneratedCFCPage generatedCFCPage = buildPlaceholderGeneratedCFCPage(); //TODO
+      AIGeneratedCFCEntry generatedEntry = generatedByItemId.get(item.getItemId());
+  
+      if (generatedEntry == null) {
+        throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY,
+          "AI generation did not return content for item " + item.getItemId()
+        );
+      }
 
-      new CFCEntry(
+      GeneratedCFCPage generatedCFCPage = new GeneratedCFCPage(
+        generatedEntry.getLearningPoint(),
+        generatedEntry.getExplanation(),
+        generatedEntry.getMistakePattern(),
+        generatedEntry.getReviewPrompt()
+      );
+
+      // Gets auto added to parent CFC
+      CFCEntry cfcEntry = new CFCEntry(
           cfc,
           item.getItemId(),
           item.getTopic().trim(),
@@ -94,15 +128,22 @@ public class CFCService {
   @Transactional
   public List<CFCSummaryDto> getCFCsForModule(Long moduleId, Long userId) {
     courseModuleRepository.findByIdAndUserId(moduleId, userId)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module not found"));
 
-      return cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(moduleId, userId)
-                          .stream()
-                          .map(this::toCFCSummaryDto)
-                          .toList();
+    return cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(moduleId, userId)
+        .stream()
+        .map(this::toCFCSummaryDto)
+        .toList();
   }
 
-  //mapper for summaryDTO
+  @Transactional
+  public CFCResponseDto getCFCById(Long cfcId, Long userId) {
+    CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+
+    return toCFCResponseDto(cfc);
+  }
+
   private CFCSummaryDto toCFCSummaryDto(CFC cfc) {
     return new CFCSummaryDto(
         cfc.getId(),
@@ -114,15 +155,7 @@ public class CFCService {
         cfc.getTitle(),
         cfc.getSummary(),
         cfc.getCreatedAt());
-}
-
-@Transactional
-public CFCResponseDto getCFCById(Long cfcId, Long userId) {
-  CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
-              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
-
-  return toCFCResponseDto(cfc);
-}
+  }
 
   // Helper validators
   private void checkUniqueItemIDs(List<QnNotePairDto> items) {
@@ -219,13 +252,13 @@ public CFCResponseDto getCFCById(Long cfcId, Long userId) {
     }
   }
 
-  private GeneratedCFCPage buildPlaceholderGeneratedCFCPage() {
-    return new GeneratedCFCPage(
-        "Placeholder learning point",
-        "Placeholder explanation",
-        "Placeholder mistake pattern",
-        "Placeholder review prompt");
-  }
+  // private GeneratedCFCPage buildPlaceholderGeneratedCFCPage() {
+  //   return new GeneratedCFCPage(
+  //       "Placeholder learning point",
+  //       "Placeholder explanation",
+  //       "Placeholder mistake pattern",
+  //       "Placeholder review prompt");
+  // }
 
   private String normalizeQuestionText(String questionText) {
     if (questionText == null) {

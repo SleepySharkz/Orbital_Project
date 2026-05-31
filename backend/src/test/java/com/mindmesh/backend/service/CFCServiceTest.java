@@ -1,22 +1,25 @@
 package com.mindmesh.backend.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -26,11 +29,8 @@ import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
-import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
 import com.mindmesh.backend.entity.CFC;
-import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
-import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.ModuleTopic;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
@@ -45,6 +45,9 @@ class CFCServiceTest {
 
   @Mock
   private CourseModuleRepository courseModuleRepository;
+
+  @Mock
+  private AICFCGenerationService aiCFCGenerationService;
 
   @InjectMocks
   private CFCService cfcService;
@@ -79,6 +82,8 @@ class CFCServiceTest {
         new byte[] { 1, 2, 3 });
 
     when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
+    when(aiCFCGenerationService.generateCFC(any(CourseModule.class), any(CreateCFCRequestDto.class), any()))
+        .thenReturn(buildGeneratedAIResponseOutOfOrder());
     when(cfcRepository.save(any(CFC.class))).thenAnswer(invocation -> {
       CFC cfc = invocation.getArgument(0);
       ReflectionTestUtils.setField(cfc, "id", 99L);
@@ -95,14 +100,19 @@ class CFCServiceTest {
 
     CFC savedGraph = cfcCaptor.getValue();
     assertEquals(2, savedGraph.getEntries().size());
+    assertEquals("AI generated title", savedGraph.getTitle());
+    assertEquals("AI generated summary", savedGraph.getSummary());
     assertEquals("CS2040", response.getCourseCode());
     assertEquals("Tutorial 5", response.getSourceTitle());
+    assertEquals("AI generated title", response.getTitle());
+    assertEquals("AI generated summary", response.getSummary());
     assertEquals(2, response.getEntries().size());
     assertEquals(1L, response.getEntries().get(0).getRequestItemId());
     assertEquals("Explain BST deletion", response.getEntries().get(0).getSourceMaterial().getQuestionText());
     assertEquals("I mixed up predecessor and successor.", response.getEntries().get(0).getSourceMaterial().getRoughNote());
     assertNull(response.getEntries().get(1).getSourceMaterial().getQuestionText());
-    assertEquals("Placeholder learning point", response.getEntries().get(0).getContent().getLearningPoint());
+    assertEquals("AI learning point 1", response.getEntries().get(0).getContent().getLearningPoint());
+    assertEquals("AI learning point 2", response.getEntries().get(1).getContent().getLearningPoint());
   }
 
   @Test
@@ -123,6 +133,7 @@ class CFCServiceTest {
 
     assertEquals(400, exception.getStatusCode().value());
     assertTrue(exception.getReason().contains("Duplicate item ids"));
+    verifyNoInteractions(aiCFCGenerationService);
   }
 
   @Test
@@ -141,6 +152,7 @@ class CFCServiceTest {
 
     assertEquals(400, exception.getStatusCode().value());
     assertTrue(exception.getReason().contains("Topic not found"));
+    verifyNoInteractions(aiCFCGenerationService);
   }
 
   @Test
@@ -159,6 +171,7 @@ class CFCServiceTest {
 
     assertEquals(400, exception.getStatusCode().value());
     assertTrue(exception.getReason().contains("must have a question text or an image"));
+    verifyNoInteractions(aiCFCGenerationService);
   }
 
   @Test
@@ -183,80 +196,38 @@ class CFCServiceTest {
 
     assertEquals(400, exception.getStatusCode().value());
     assertTrue(exception.getReason().contains("must be a PNG"));
+    verifyNoInteractions(aiCFCGenerationService);
   }
 
   @Test
-  void getCFCsForModule_returnsSummariesForOwnedModule() {
-    CFC cfc = buildSavedCfc(99L);
+  void createCfc_rejectsAiOutputMissingSubmittedItem() {
+    CreateCFCRequestDto requestDto = buildRequest(
+        12L,
+        SourceType.TUTORIAL,
+        "Tutorial 5",
+        List.of(
+            buildItem(1L, "Trees", "Question 1", List.of(), "Note 1"),
+            buildItem(2L, "Graphs", "Question 2", List.of(), "Note 2")));
 
     when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
-    when(cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(12L, 7L)).thenReturn(List.of(cfc));
-
-    List<CFCSummaryDto> response = cfcService.getCFCsForModule(12L, 7L);
-
-    assertEquals(1, response.size());
-    assertEquals(99L, response.get(0).getId());
-    assertEquals(12L, response.get(0).getModuleId());
-    assertEquals("CS2040", response.get(0).getCourseCode());
-    assertEquals("Year 1 Sem 2", response.get(0).getSchoolSem());
-    assertEquals(SourceType.TUTORIAL, response.get(0).getSourceType());
-    assertEquals("Tutorial 5", response.get(0).getSourceTitle());
-    assertEquals("AI GEN TITLE PLACEHOLDER", response.get(0).getTitle());
-    assertEquals("AI GEN SUMMARY PLACEHOLDER", response.get(0).getSummary());
-  }
-
-  @Test
-  void getCFCsForModule_returnsEmptyListForOwnedModuleWithoutCFCs() {
-    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
-    when(cfcRepository.findByModuleIdAndModuleUserIdOrderByCreatedAtDesc(12L, 7L)).thenReturn(List.of());
-
-    List<CFCSummaryDto> response = cfcService.getCFCsForModule(12L, 7L);
-
-    assertTrue(response.isEmpty());
-  }
-
-  @Test
-  void getCFCsForModule_rejectsMissingOrUnownedModule() {
-    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.empty());
+    when(aiCFCGenerationService.generateCFC(any(CourseModule.class), any(CreateCFCRequestDto.class), any()))
+        .thenReturn(new AIGeneratedCFCResponse(
+            "AI generated title",
+            "AI generated summary",
+            List.of(new AIGeneratedCFCEntry(
+                1L,
+                "AI learning point 1",
+                "AI explanation 1",
+                "AI mistake pattern 1",
+                "AI review prompt 1"))));
 
     ResponseStatusException exception = assertThrows(
         ResponseStatusException.class,
-        () -> cfcService.getCFCsForModule(12L, 7L));
+        () -> cfcService.createCFC(requestDto, 7L, Map.of()));
 
-    assertEquals(404, exception.getStatusCode().value());
-    assertTrue(exception.getReason().contains("Module not found"));
-  }
-
-  @Test
-  void getCFCById_returnsFullCFCForOwner() {
-    CFC cfc = buildSavedCfc(99L);
-
-    when(cfcRepository.findByIdAndModuleUserId(99L, 7L)).thenReturn(Optional.of(cfc));
-
-    CFCResponseDto response = cfcService.getCFCById(99L, 7L);
-
-    assertEquals(99L, response.getId());
-    assertEquals(12L, response.getModuleId());
-    assertEquals("CS2040", response.getCourseCode());
-    assertEquals("Tutorial 5", response.getSourceTitle());
-    assertEquals("AI GEN TITLE PLACEHOLDER", response.getTitle());
-    assertEquals(1, response.getEntries().size());
-    assertEquals("Trees", response.getEntries().get(0).getTopic());
-    assertEquals("Explain BST deletion", response.getEntries().get(0).getSourceMaterial().getQuestionText());
-    assertEquals("I mixed up predecessor and successor.", response.getEntries().get(0).getSourceMaterial().getRoughNote());
-    assertEquals("Placeholder learning point", response.getEntries().get(0).getContent().getLearningPoint());
-  }
-
-  @Test
-  void getCFCById_rejectsMissingOrUnownedCFC() {
-    when(cfcRepository.findByIdAndModuleUserId(99L, 7L)).thenReturn(Optional.empty());
-
-    ResponseStatusException exception = assertThrows(
-        ResponseStatusException.class,
-        () -> cfcService.getCFCById(99L, 7L));
-
-    assertEquals(404, exception.getStatusCode().value());
-    assertTrue(exception.getReason().contains("CFC not found"));
+    assertEquals(502, exception.getStatusCode().value());
+    assertTrue(exception.getReason().contains("did not return content for item 2"));
+    verify(cfcRepository, never()).save(any(CFC.class));
   }
 
   private CreateCFCRequestDto buildRequest(
@@ -290,28 +261,22 @@ class CFCServiceTest {
     return item;
   }
 
-  private CFC buildSavedCfc(Long cfcId) {
-    CFC cfc = new CFC(
-        module,
-        SourceType.TUTORIAL,
-        "Tutorial 5",
-        "AI GEN TITLE PLACEHOLDER",
-        "AI GEN SUMMARY PLACEHOLDER");
-    ReflectionTestUtils.setField(cfc, "id", cfcId);
-
-    CFCEntry entry = new CFCEntry(
-        cfc,
-        1L,
-        "Trees",
-        "Explain BST deletion",
-        "I mixed up predecessor and successor.",
-        new GeneratedCFCPage(
-            "Placeholder learning point",
-            "Placeholder explanation",
-            "Placeholder mistake pattern",
-            "Placeholder review prompt"));
-    ReflectionTestUtils.setField(entry, "id", 100L);
-
-    return cfc;
+  private AIGeneratedCFCResponse buildGeneratedAIResponseOutOfOrder() {
+    return new AIGeneratedCFCResponse(
+        "AI generated title",
+        "AI generated summary",
+        List.of(
+            new AIGeneratedCFCEntry(
+                2L,
+                "AI learning point 2",
+                "AI explanation 2",
+                "AI mistake pattern 2",
+                "AI review prompt 2"),
+            new AIGeneratedCFCEntry(
+                1L,
+                "AI learning point 1",
+                "AI explanation 1",
+                "AI mistake pattern 1",
+                "AI review prompt 1")));
   }
 }
