@@ -35,7 +35,7 @@ public class CFCService {
 
   private final CFCRepository cfcRepository;
   private final CourseModuleRepository courseModuleRepository;
-  
+
   private final AICFCGenerationService aicfcGenerationService;
 
   public CFCService(
@@ -71,21 +71,18 @@ public class CFCService {
     checkUploadedFilesArePng(items, uploadedFiles);
 
     AIGeneratedCFCResponse generatedCFC = aicfcGenerationService.generateCFC(
-        module, 
-        requestDto, 
+        module,
+        requestDto,
         uploadedFiles);
 
-    // TODO: Handled by checkpoint 3
     String title = generatedCFC.getTitle();
     String summary = generatedCFC.getSummary();
 
     Map<Long, AIGeneratedCFCEntry> generatedByItemId = generatedCFC.getEntries()
-      .stream()
-      .collect(Collectors.toMap(
-          AIGeneratedCFCEntry::getRequestItemId,
-          Function.identity()
-        )
-      );
+        .stream()
+        .collect(Collectors.toMap(
+            AIGeneratedCFCEntry::getRequestItemId,
+            Function.identity()));
 
     CFC cfc = new CFC(
         module,
@@ -96,20 +93,18 @@ public class CFCService {
 
     for (QnNotePairDto item : items) {
       AIGeneratedCFCEntry generatedEntry = generatedByItemId.get(item.getItemId());
-  
+
       if (generatedEntry == null) {
         throw new ResponseStatusException(
-          HttpStatus.BAD_GATEWAY,
-          "AI generation did not return content for item " + item.getItemId()
-        );
+            HttpStatus.BAD_GATEWAY,
+            "AI generation did not return content for item " + item.getItemId());
       }
 
       GeneratedCFCPage generatedCFCPage = new GeneratedCFCPage(
-        generatedEntry.getLearningPoint(),
-        generatedEntry.getExplanation(),
-        generatedEntry.getMistakePattern(),
-        generatedEntry.getReviewPrompt()
-      );
+          generatedEntry.getLearningPoint(),
+          generatedEntry.getExplanation(),
+          generatedEntry.getMistakePattern(),
+          generatedEntry.getReviewPrompt());
 
       // Gets auto added to parent CFC
       CFCEntry cfcEntry = new CFCEntry(
@@ -253,11 +248,11 @@ public class CFCService {
   }
 
   // private GeneratedCFCPage buildPlaceholderGeneratedCFCPage() {
-  //   return new GeneratedCFCPage(
-  //       "Placeholder learning point",
-  //       "Placeholder explanation",
-  //       "Placeholder mistake pattern",
-  //       "Placeholder review prompt");
+  // return new GeneratedCFCPage(
+  // "Placeholder learning point",
+  // "Placeholder explanation",
+  // "Placeholder mistake pattern",
+  // "Placeholder review prompt");
   // }
 
   private String normalizeQuestionText(String questionText) {

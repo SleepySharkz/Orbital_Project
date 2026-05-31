@@ -34,13 +34,11 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfigSource))
         .formLogin(a -> a.disable())
         .httpBasic(basic -> basic.disable())
-        .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // Gotta allow h2-console frames
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(
                 "/auth/signup",
                 "/auth/login",
-                "/error",
-                "/h2-console/**")
+                "/error")
             .permitAll() // signup and login
             // are public
             // But dont exist yet, so still cant access
