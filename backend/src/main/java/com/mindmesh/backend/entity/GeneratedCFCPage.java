@@ -48,4 +48,16 @@ public class GeneratedCFCPage {
   public String getReviewPrompt() {
     return reviewPrompt;
   }
+
+  public void updateContent(
+      String learningPoint,
+      String explanation,
+      String mistakePattern,
+      String reviewPrompt) {
+
+    this.learningPoint = learningPoint;
+    this.explanation = explanation;
+    this.mistakePattern = mistakePattern;
+    this.reviewPrompt = reviewPrompt;
+  }
 }

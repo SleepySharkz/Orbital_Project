@@ -4,6 +4,12 @@ type CreateModulePayload = {
   topics: string[];
 };
 
+type UpdateModulePayload = {
+  courseCode: string;
+  schoolSem: string;
+  topics: string[];
+};
+
 type ModuleSummary = {
   id: number;
   courseCode: string;
@@ -99,6 +105,27 @@ export async function fetchModuleById(moduleId: number, token: string) {
   return data as ModuleResponse;
 }
 
+export async function updateModuleRequest(
+  moduleId: number,
+  payload: UpdateModulePayload,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/modules/${moduleId}`, {
+    method: "PUT",
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonResponse<ModuleResponse | MessageResponse>(response);
+
+  if (!response.ok) {
+    const errorData = data as MessageResponse;
+    throw new Error(errorData.message || "Could not update module.");
+  }
+
+  return data as ModuleResponse;
+}
+
 export async function fetchModuleTopics(moduleId: number, token: string) {
   const response = await fetch(`${API_BASE_URL}/api/v1/modules/${moduleId}/topics`, {
     method: "GET",
@@ -122,4 +149,5 @@ export type {
   ModuleResponse,
   ModuleSummary,
   ModuleTopicsResponse,
+  UpdateModulePayload,
 };

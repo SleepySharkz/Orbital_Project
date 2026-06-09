@@ -25,6 +25,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCEntry;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCResponse;
 import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
@@ -36,6 +38,7 @@ import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.service.ai.AICFCGenerationService;
 
 @ExtendWith(MockitoExtension.class)
 class CFCServiceTest {

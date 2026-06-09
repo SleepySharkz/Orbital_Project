@@ -222,7 +222,10 @@
 
 .modules-add-topic-button,
 .modules-remove-topic-button,
-.modules-submit-button {
+.modules-submit-button,
+.modules-edit-button,
+.modules-cancel-button,
+.modules-save-button {
   border: 0;
   border-radius: 12px;
   font: inherit;
@@ -230,17 +233,25 @@
 }
 
 .modules-add-topic-button,
-.modules-remove-topic-button {
+.modules-remove-topic-button,
+.modules-edit-button,
+.modules-cancel-button {
   padding: 10px 14px;
   background: #eaf0fb;
   color: #23324d;
 }
 
-.modules-submit-button {
+.modules-submit-button,
+.modules-save-button {
   justify-self: start;
   padding: 12px 18px;
   background: #162033;
   color: #ffffff;
+}
+
+.modules-cancel-button {
+  background: #f2e8e8;
+  color: #7a271a;
 }
 
 .modules-primary-link,
@@ -265,7 +276,8 @@
   color: #23324d;
 }
 
-.modules-submit-button:disabled {
+.modules-submit-button:disabled,
+.modules-save-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -291,12 +303,19 @@
   box-shadow: 0 10px 24px rgba(21, 31, 50, 0.08);
 }
 
+.modules-card-header {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding-right: 12px;
+}
+
 .modules-card-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: 100%;
+  flex: 1;
   border: 0;
   padding: 16px 18px;
   background: transparent;
@@ -310,9 +329,23 @@
   background: #edf2ff;
 }
 
+.modules-card-toggle:disabled {
+  cursor: default;
+}
+
+.modules-card-toggle:disabled:hover {
+  background: transparent;
+}
+
 .modules-card-toggle:focus-visible {
   outline: 3px solid #dbe6ff;
   outline-offset: -3px;
+}
+
+.modules-edit-button,
+.modules-cancel-button {
+  align-self: center;
+  flex: 0 0 auto;
 }
 
 .modules-card-copy {
@@ -361,6 +394,14 @@
 
 .modules-card > .modules-error-message {
   padding: 0 18px 16px;
+}
+
+.modules-card-message {
+  padding: 0 18px 16px;
+}
+
+.modules-edit-form {
+  gap: 16px;
 }
 
 .modules-topics-message {
@@ -515,7 +556,8 @@
   }
 
   .modules-topic-header,
-  .modules-card-toggle {
+  .modules-card-toggle,
+  .modules-card-header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -534,6 +576,12 @@
 
   .modules-card-indicator {
     align-self: flex-start;
+  }
+
+  .modules-edit-button,
+  .modules-cancel-button {
+    margin-left: 18px;
+    margin-bottom: 14px;
   }
 }
 
@@ -559,7 +607,9 @@
 
   .modules-primary-link,
   .modules-secondary-link,
-  .modules-topics-toggle {
+  .modules-topics-toggle,
+  .modules-edit-button,
+  .modules-cancel-button {
     width: 100%;
   }
 }

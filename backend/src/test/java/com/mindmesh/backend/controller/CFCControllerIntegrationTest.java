@@ -25,6 +25,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCEntry;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCResponse;
 import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
@@ -39,9 +41,7 @@ import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
-import com.mindmesh.backend.service.AICFCGenerationService;
-import com.mindmesh.backend.service.AIGeneratedCFCEntry;
-import com.mindmesh.backend.service.AIGeneratedCFCResponse;
+import com.mindmesh.backend.service.ai.AICFCGenerationService;
 
 @SpringBootTest
 @ActiveProfiles("test")

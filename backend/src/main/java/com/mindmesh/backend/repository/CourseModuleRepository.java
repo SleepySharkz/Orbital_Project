@@ -17,4 +17,10 @@ public interface CourseModuleRepository extends JpaRepository<CourseModule, Long
       Long userId,
       String courseCode,
       String schoolSem);
+
+  boolean existsByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCaseAndIdNot(
+      Long userId,
+      String courseCode,
+      String schoolSem,
+      Long id);
 }

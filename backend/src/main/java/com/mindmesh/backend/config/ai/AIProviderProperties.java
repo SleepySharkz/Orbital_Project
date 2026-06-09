@@ -1,4 +1,4 @@
-package com.mindmesh.backend.service;
+package com.mindmesh.backend.config.ai;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

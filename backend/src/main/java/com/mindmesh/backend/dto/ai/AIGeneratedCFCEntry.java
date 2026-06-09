@@ -1,4 +1,4 @@
-package com.mindmesh.backend.service;
+package com.mindmesh.backend.dto.ai;
 
 public class AIGeneratedCFCEntry {
     //this is temporary, we will change the fields according to the shape

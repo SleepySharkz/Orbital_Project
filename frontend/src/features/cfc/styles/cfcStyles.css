@@ -449,6 +449,95 @@
   line-height: 1.6;
 }
 
+.cfc-detail-summary-block,
+.cfc-edit-form,
+.cfc-edit-field {
+  display: grid;
+}
+
+.cfc-detail-summary-block {
+  justify-items: start;
+  gap: 14px;
+}
+
+.cfc-edit-form {
+  gap: 14px;
+}
+
+.cfc-edit-field {
+  gap: 8px;
+}
+
+.cfc-edit-label {
+  color: #33415c;
+  font-weight: 800;
+}
+
+.cfc-edit-textarea {
+  width: 100%;
+  min-height: 110px;
+  border: 1px solid #cfd7e6;
+  border-radius: 14px;
+  padding: 13px 14px;
+  background: #ffffff;
+  color: #162033;
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.cfc-edit-textarea-summary {
+  min-height: 150px;
+}
+
+.cfc-edit-textarea:focus {
+  outline: 2px solid #dbe6ff;
+  border-color: #6a86c6;
+}
+
+.cfc-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cfc-edit-button,
+.cfc-save-button,
+.cfc-cancel-button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cfc-edit-button,
+.cfc-cancel-button {
+  background: #e8eefc;
+  color: #23324d;
+}
+
+.cfc-save-button {
+  background: #162033;
+  color: #ffffff;
+}
+
+.cfc-edit-button:disabled,
+.cfc-save-button:disabled,
+.cfc-cancel-button:disabled,
+.cfc-edit-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cfc-edit-error {
+  margin: 0;
+  color: #b42318;
+  font-weight: 600;
+}
+
 .cfc-detail-meta-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -664,6 +753,7 @@
 
   .cfc-entry-shell-header,
   .cfc-actions,
+  .cfc-edit-actions,
   .cfc-detail-entries-header,
   .cfc-detail-entry-header {
     flex-direction: column;

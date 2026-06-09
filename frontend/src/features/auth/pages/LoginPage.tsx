@@ -36,7 +36,9 @@ export function LoginPage() {
     setSuccess("");
     setError("");
 
-    if (!email.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
       setError("Email is required.");
       return;
     }
@@ -47,7 +49,7 @@ export function LoginPage() {
     }
 
     try {
-      await login({ email, password });
+      await login({ email: normalizedEmail, password });
       navigate("/dashboard");
       setPassword("");
       setEmail("");

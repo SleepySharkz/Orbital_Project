@@ -74,6 +74,7 @@ export function ModulesPage() {
             token={token}
             isModulesLoading={isModulesLoading}
             modulesError={modulesError}
+            onModuleUpdated={loadModulesPageData}
           />
         </div>
       </main>

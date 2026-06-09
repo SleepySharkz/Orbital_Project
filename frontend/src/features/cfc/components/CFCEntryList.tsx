@@ -1,11 +1,12 @@
-import type { CreatedCFCEntry } from "../api/cfcApi";
+import type { CFCContent, CreatedCFCEntry } from "../api/cfcApi";
 import { CFCEntryCard } from "./CFCEntryCard";
 
 type CFCEntryListProps = {
   entries: CreatedCFCEntry[];
+  onEntryContentSave: (entryId: number, content: CFCContent) => Promise<void>;
 };
 
-export function CFCEntryList({ entries }: CFCEntryListProps) {
+export function CFCEntryList({ entries, onEntryContentSave }: CFCEntryListProps) {
   return (
     <section className="cfc-detail-entries-panel">
       <div className="cfc-detail-entries-header">
@@ -21,7 +22,11 @@ export function CFCEntryList({ entries }: CFCEntryListProps) {
       ) : (
         <div className="cfc-detail-entry-list">
           {entries.map((entry) => (
-            <CFCEntryCard entry={entry} key={entry.id} />
+            <CFCEntryCard
+              entry={entry}
+              key={entry.id}
+              onEntryContentSave={onEntryContentSave}
+            />
           ))}
         </div>
       )}
