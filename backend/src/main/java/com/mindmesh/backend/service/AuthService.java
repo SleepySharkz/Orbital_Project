@@ -1,5 +1,7 @@
 package com.mindmesh.backend.service;
 
+import java.util.Locale;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,7 @@ public class AuthService {
     String pswHash = passwordEncoder.encode(psw);
     String signUpEmail = signupRequest.getEmail();
 
-    if (userRepo.findByEmail(signUpEmail).isPresent()) {
+    if (userRepo.findByEmailIgnoreCase(signUpEmail).isPresent()) {
       throw new EmailAlreadyExistsException(signUpEmail);
     }
 
@@ -40,10 +42,11 @@ public class AuthService {
 
   public User getUserFromLogin(LoginRequest loginRequest) {
     String loginEmail = loginRequest.getEmail();
+    loginEmail = loginEmail.trim().toLowerCase(Locale.ROOT);
     String loginPsw = loginRequest.getPassword();
 
     User user = userRepo
-        .findByEmail(loginEmail) // returns an Optional<User>
+        .findByEmailIgnoreCase(loginEmail) // returns an Optional<User>
         .orElseThrow(() -> new InvalidCredentials());
 
     String trueHash = user.getPasswordHash();

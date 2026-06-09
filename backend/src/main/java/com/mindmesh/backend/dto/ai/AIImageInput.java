@@ -1,4 +1,4 @@
-package com.mindmesh.backend.service;
+package com.mindmesh.backend.dto.ai;
 
 import java.io.IOException;
 import java.util.Base64;

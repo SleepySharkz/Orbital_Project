@@ -1,4 +1,4 @@
-package com.mindmesh.backend.service;
+package com.mindmesh.backend.service.ai;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mindmesh.backend.dto.ai.AICFCGenerationRequest;
+import com.mindmesh.backend.dto.ai.AICFCGenerationRequestItem;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCEntry;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCResponse;
+import com.mindmesh.backend.dto.ai.AIImageInput;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.entity.CourseModule;

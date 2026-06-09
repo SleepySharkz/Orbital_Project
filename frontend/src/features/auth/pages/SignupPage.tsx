@@ -27,8 +27,9 @@ export function SignupPage() {
       return;
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Server side already validates comprehensively, but frontend gives a quick response for surface level checks
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       setError("Please enter a valid email.");
       return;
     }
@@ -39,7 +40,7 @@ export function SignupPage() {
     }
 
     try {
-      const message = await signup({ username, email, password });
+      const message = await signup({ username, email: normalizedEmail, password });
 
       setEmail("");
       setPassword("");

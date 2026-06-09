@@ -6,6 +6,7 @@ type ModulesListProps = {
   token: string;
   isModulesLoading: boolean;
   modulesError: string;
+  onModuleUpdated: () => Promise<void>;
 };
 
 export function ModulesList({
@@ -13,6 +14,7 @@ export function ModulesList({
   token,
   isModulesLoading,
   modulesError,
+  onModuleUpdated,
 }: ModulesListProps) {
   return (
     <section className="modules-panel">
@@ -31,7 +33,12 @@ export function ModulesList({
       {!isModulesLoading && !modulesError && modules.length > 0 && (
         <div className="modules-list">
           {modules.map((module) => (
-            <ModuleCard key={module.id} module={module} token={token} />
+            <ModuleCard
+              key={module.id}
+              module={module}
+              token={token}
+              onModuleUpdated={onModuleUpdated}
+            />
           ))}
         </div>
       )}

@@ -12,9 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCEntry;
+import com.mindmesh.backend.dto.ai.AIGeneratedCFCResponse;
 import com.mindmesh.backend.dto.requests.cfc.CFCHeaderDto;
 import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
+import com.mindmesh.backend.dto.requests.cfc.UpdateCFCEntryContentRequestDto;
+import com.mindmesh.backend.dto.requests.cfc.UpdateCFCSummaryRequestDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCContentDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCEntryResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
@@ -27,6 +31,7 @@ import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.service.ai.AICFCGenerationService;
 
 import jakarta.transaction.Transactional;
 
@@ -151,6 +156,51 @@ public class CFCService {
         cfc.getSummary(),
         cfc.getCreatedAt());
   }
+
+  @Transactional
+  public CFCResponseDto updateCFCSummary(
+    Long cfcId,
+    Long userId,
+    UpdateCFCSummaryRequestDto requestDto
+  ) {
+      CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
+        .orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+
+      cfc.setSummary(requestDto.getSummary().trim());
+
+    CFC savedCfc = cfcRepository.save(cfc);
+    return toCFCResponseDto(savedCfc);
+  }
+
+  @Transactional
+  public CFCEntryResponseDto updateCFCEntryContent(
+    Long cfcId,
+    Long entryId,
+    Long userId,
+    UpdateCFCEntryContentRequestDto requestDto
+  ) {
+    CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
+        .orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+
+    CFCEntry entry = cfc.getEntries()
+        .stream()
+        .filter(currentEntry -> currentEntry.getId().equals(entryId))
+        .findFirst()
+        .orElseThrow(() ->
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC entry not found."));
+
+    entry.getGeneratedCFCPage().updateContent(
+        requestDto.getLearningPoint().trim(),
+        requestDto.getExplanation().trim(),
+        requestDto.getMistakePattern().trim(),
+        requestDto.getReviewPrompt().trim());
+
+    cfcRepository.save(cfc);
+    return toCFCEntryResponseDto(entry);
+}
+
 
   // Helper validators
   private void checkUniqueItemIDs(List<QnNotePairDto> items) {

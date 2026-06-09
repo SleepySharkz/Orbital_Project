@@ -1,4 +1,4 @@
-package com.mindmesh.backend.service;
+package com.mindmesh.backend.service.ai;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,11 @@ import java.util.Map;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+
+import com.mindmesh.backend.config.ai.AIProviderProperties;
+import com.mindmesh.backend.dto.ai.AICFCGenerationRequest;
+import com.mindmesh.backend.dto.ai.AICFCGenerationRequestItem;
+import com.mindmesh.backend.dto.ai.AIImageInput;
 
 @Service
 @Profile("real-ai")

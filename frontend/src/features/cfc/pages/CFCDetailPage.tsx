@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/context/AuthContext";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
-import { fetchCFCById, type CFCResponse } from "../api/cfcApi";
+import {
+  fetchCFCById,
+  updateCFCEntryContent,
+  updateCFCSummary,
+  type CFCContent,
+  type CFCResponse,
+} from "../api/cfcApi";
 import { CFCDetailHeader } from "../components/CFCDetailHeader";
 import { CFCEntryList } from "../components/CFCEntryList";
 import "../styles/cfcStyles.css";
@@ -56,6 +62,36 @@ export function CFCDetailPage() {
     navigate("/login");
   }
 
+  async function handleSummarySave(summary: string) {
+    if (!token || !cfc) {
+      return;
+    }
+
+    const updatedCFC = await updateCFCSummary(cfc.id, { summary }, token);
+    setCFC(updatedCFC);
+  }
+
+  async function handleEntryContentSave(entryId: number, content: CFCContent) {
+    if (!token || !cfc) {
+      return;
+    }
+
+    const updatedEntry = await updateCFCEntryContent(cfc.id, entryId, content, token);
+
+    setCFC((currentCFC) => {
+      if (!currentCFC) {
+        return currentCFC;
+      }
+
+      return {
+        ...currentCFC,
+        entries: currentCFC.entries.map((entry) =>
+          entry.id === updatedEntry.id ? updatedEntry : entry,
+        ),
+      };
+    });
+  }
+
   if (!user || !token) {
     return null;
   }
@@ -79,8 +115,11 @@ export function CFCDetailPage() {
 
         {!isLoading && !error && cfc && (
           <div className="cfc-detail-content">
-            <CFCDetailHeader cfc={cfc} />
-            <CFCEntryList entries={cfc.entries} />
+            <CFCDetailHeader cfc={cfc} onSummarySave={handleSummarySave} />
+            <CFCEntryList
+              entries={cfc.entries}
+              onEntryContentSave={handleEntryContentSave}
+            />
           </div>
         )}
       </main>

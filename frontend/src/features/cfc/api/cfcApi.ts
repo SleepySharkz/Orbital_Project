@@ -64,6 +64,12 @@ type CFCResponse = {
 
 type CreatedCFCResponse = CFCResponse;
 
+type UpdateCFCSummaryPayload = {
+  summary: string;
+};
+
+type UpdateCFCEntryContentPayload = CFCContent;
+
 type MessageResponse = {
   message: string;
   error?: string;
@@ -77,6 +83,13 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
 function buildAuthHeaders(token: string) {
   return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function buildJsonAuthHeaders(token: string) {
+  return {
+    "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
 }
@@ -155,6 +168,52 @@ export async function fetchCFCById(cfcId: number, token: string) {
   return data as CFCResponse;
 }
 
+export async function updateCFCSummary(
+  cfcId: number,
+  payload: UpdateCFCSummaryPayload,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/cfcs/${cfcId}/summary`, {
+    method: "PATCH",
+    headers: buildJsonAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonResponse<CFCResponse | MessageResponse>(response);
+
+  if (!response.ok) {
+    const errorData = data as MessageResponse;
+    throw new Error(errorData.message || "Could not update CFC summary.");
+  }
+
+  return data as CFCResponse;
+}
+
+export async function updateCFCEntryContent(
+  cfcId: number,
+  entryId: number,
+  payload: UpdateCFCEntryContentPayload,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/cfcs/${cfcId}/entries/${entryId}/content`,
+    {
+      method: "PATCH",
+      headers: buildJsonAuthHeaders(token),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const data = await parseJsonResponse<CreatedCFCEntry | MessageResponse>(response);
+
+  if (!response.ok) {
+    const errorData = data as MessageResponse;
+    throw new Error(errorData.message || "Could not update CFC entry.");
+  }
+
+  return data as CreatedCFCEntry;
+}
+
 export type {
   CreatedCFCEntry,
   CreatedCFCResponse,
@@ -163,4 +222,6 @@ export type {
   CFCSummary,
   SourceMaterial,
   SourceType,
+  UpdateCFCEntryContentPayload,
+  UpdateCFCSummaryPayload,
 };
