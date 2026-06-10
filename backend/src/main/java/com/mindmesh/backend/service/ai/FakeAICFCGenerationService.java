@@ -37,11 +37,10 @@ public class FakeAICFCGenerationService implements AICFCGenerationService {
 
                 return new AIGeneratedCFCEntry(
                     item.getItemId(),
-                    "Fake learning point for " + item.getTopic(),
-                    "Fake explanation generated from the submitted question, rough note, and "
-                        + images.size() + " image(s).",
-                    "Fake mistake pattern for " + item.getTopic(),
-                    "Fake review prompt for " + item.getTopic());
+                    "What should you remember about " + item.getTopic() + "?",
+                    "- Fake note generated from the submitted question, rough note, and "
+                        + images.size() + " image(s).\n"
+                        + "- This is placeholder point-form content for local development.");
             })
             .toList();
 

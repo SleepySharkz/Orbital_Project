@@ -6,58 +6,36 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class GeneratedCFCPage {
 
-  @Column(name = "learning_point", columnDefinition = "TEXT")
-  private String learningPoint;
+  @Column(name = "flashcard_question", columnDefinition = "TEXT")
+  private String flashcardQuestion;
 
-  @Column(name = "explanation", columnDefinition = "TEXT")
-  private String explanation;
-
-  @Column(name = "mistake_pattern", columnDefinition = "TEXT")
-  private String mistakePattern;
-
-  @Column(name = "review_prompt", columnDefinition = "TEXT")
-  private String reviewPrompt;
+  @Column(name = "flashcard_note_content", columnDefinition = "TEXT")
+  private String flashcardNoteContent;
 
   protected GeneratedCFCPage() {
   }
 
   public GeneratedCFCPage(
-      String learningPoint,
-      String explanation,
-      String mistakePattern,
-      String reviewPrompt) {
+      String flashcardQuestion,
+      String flashcardNoteContent) {
 
-    this.learningPoint = learningPoint;
-    this.explanation = explanation;
-    this.mistakePattern = mistakePattern;
-    this.reviewPrompt = reviewPrompt;
+    this.flashcardQuestion = flashcardQuestion;
+    this.flashcardNoteContent = flashcardNoteContent;
   }
 
-  public String getLearningPoint() {
-    return learningPoint;
+  public String getFlashcardQuestion() {
+    return flashcardQuestion;
   }
 
-  public String getExplanation() {
-    return explanation;
-  }
-
-  public String getMistakePattern() {
-    return mistakePattern;
-  }
-
-  public String getReviewPrompt() {
-    return reviewPrompt;
+  public String getFlashcardNoteContent() {
+    return flashcardNoteContent;
   }
 
   public void updateContent(
-      String learningPoint,
-      String explanation,
-      String mistakePattern,
-      String reviewPrompt) {
+      String flashcardQuestion,
+      String flashcardNoteContent) {
 
-    this.learningPoint = learningPoint;
-    this.explanation = explanation;
-    this.mistakePattern = mistakePattern;
-    this.reviewPrompt = reviewPrompt;
+    this.flashcardQuestion = flashcardQuestion;
+    this.flashcardNoteContent = flashcardNoteContent;
   }
 }

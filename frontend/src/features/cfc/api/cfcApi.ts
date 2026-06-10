@@ -1,10 +1,8 @@
 type SourceType = "ASSIGNMENT" | "TUTORIAL" | "PRACTICE_PAPER";
 
 type CFCContent = {
-  learningPoint: string;
-  explanation: string;
-  mistakePattern: string;
-  reviewPrompt: string;
+  flashcardQuestion: string;
+  flashcardNoteContent: string;
 };
 
 type SourceMaterial = {
@@ -33,7 +31,8 @@ type CreatedCFCEntry = {
   id: number;
   requestItemId: number;
   topic: string;
-  content: CFCContent;
+  flashcardQuestion: string;
+  flashcardNoteContent: string;
   sourceMaterial: SourceMaterial;
 };
 
