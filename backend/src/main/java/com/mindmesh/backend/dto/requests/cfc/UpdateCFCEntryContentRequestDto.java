@@ -3,50 +3,28 @@ package com.mindmesh.backend.dto.requests.cfc;
 import jakarta.validation.constraints.NotBlank;
 
 public class UpdateCFCEntryContentRequestDto {
-    @NotBlank(message = "Learning point is required")
-    private String learningPoint;
+    @NotBlank(message = "Flashcard question is required")
+    private String flashcardQuestion;
 
-    @NotBlank(message = "Explanation is required")
-    private String explanation;
-
-    @NotBlank(message = "Mistake pattern is required")
-    private String mistakePattern;
-
-    @NotBlank(message = "Review prompt is required")
-    private String reviewPrompt;
+    @NotBlank(message = "Flashcard note content is required")
+    private String flashcardNoteContent;
 
     public UpdateCFCEntryContentRequestDto() {
     }
 
-    public String getLearningPoint() {
-        return this.learningPoint;
+    public String getFlashcardQuestion() {
+        return this.flashcardQuestion;
     }
 
-    public void setLearningPoint(String learningPoint) {
-        this.learningPoint = learningPoint;
+    public void setFlashcardQuestion(String flashcardQuestion) {
+        this.flashcardQuestion = flashcardQuestion;
     }
 
-    public String getExplanation() {
-        return this.explanation;
+    public String getFlashcardNoteContent() {
+        return this.flashcardNoteContent;
     }
 
-    public void setExplanation(String explanation) {
-        this.explanation = explanation;
-    }
-
-    public String getMistakePattern() {
-        return this.mistakePattern;
-    }
-
-    public void setMistakePattern(String mistakePattern) {
-        this.mistakePattern = mistakePattern;
-    }
-
-    public String getReviewPrompt() {
-        return this.reviewPrompt;
-    }
-
-    public void setReviewPrompt(String reviewPrompt) {
-        this.reviewPrompt = reviewPrompt;
+    public void setFlashcardNoteContent(String flashcardNoteContent) {
+        this.flashcardNoteContent = flashcardNoteContent;
     }
 }

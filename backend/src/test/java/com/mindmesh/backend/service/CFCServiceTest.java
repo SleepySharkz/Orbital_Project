@@ -114,8 +114,8 @@ class CFCServiceTest {
     assertEquals("Explain BST deletion", response.getEntries().get(0).getSourceMaterial().getQuestionText());
     assertEquals("I mixed up predecessor and successor.", response.getEntries().get(0).getSourceMaterial().getRoughNote());
     assertNull(response.getEntries().get(1).getSourceMaterial().getQuestionText());
-    assertEquals("AI learning point 1", response.getEntries().get(0).getContent().getLearningPoint());
-    assertEquals("AI learning point 2", response.getEntries().get(1).getContent().getLearningPoint());
+    assertEquals("AI flashcard question 1", response.getEntries().get(0).getFlashcardQuestion());
+    assertEquals("AI flashcard question 2", response.getEntries().get(1).getFlashcardQuestion());
   }
 
   @Test
@@ -219,10 +219,8 @@ class CFCServiceTest {
             "AI generated summary",
             List.of(new AIGeneratedCFCEntry(
                 1L,
-                "AI learning point 1",
-                "AI explanation 1",
-                "AI mistake pattern 1",
-                "AI review prompt 1"))));
+                "AI flashcard question 1",
+                "AI flashcard note content 1"))));
 
     ResponseStatusException exception = assertThrows(
         ResponseStatusException.class,
@@ -271,15 +269,11 @@ class CFCServiceTest {
         List.of(
             new AIGeneratedCFCEntry(
                 2L,
-                "AI learning point 2",
-                "AI explanation 2",
-                "AI mistake pattern 2",
-                "AI review prompt 2"),
+                "AI flashcard question 2",
+                "AI flashcard note content 2"),
             new AIGeneratedCFCEntry(
                 1L,
-                "AI learning point 1",
-                "AI explanation 1",
-                "AI mistake pattern 1",
-                "AI review prompt 1")));
+                "AI flashcard question 1",
+                "AI flashcard note content 1")));
   }
 }

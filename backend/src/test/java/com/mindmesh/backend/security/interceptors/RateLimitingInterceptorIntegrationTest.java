@@ -60,10 +60,8 @@ class RateLimitingInterceptorIntegrationTest {
               .stream()
               .map(item -> new AIGeneratedCFCEntry(
                   item.getItemId(),
-                  "Test AI learning point " + item.getItemId(),
-                  "Test AI explanation " + item.getItemId(),
-                  "Test AI mistake pattern " + item.getItemId(),
-                  "Test AI review prompt " + item.getItemId()))
+                  "Test AI flashcard question " + item.getItemId(),
+                  "Test AI flashcard note content " + item.getItemId()))
               .toList());
     }
   }

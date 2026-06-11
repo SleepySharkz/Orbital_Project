@@ -5,19 +5,22 @@ public class CFCEntryResponseDto {
   private Long id;
   private Long requestItemId;
   private String topic;
-  private CFCContentDto content;
+  private String flashcardQuestion;
+  private String flashcardNoteContent;
   private SourceMaterialDto sourceMaterial;
 
   public CFCEntryResponseDto(
       Long id,
       Long requestItemId,
       String topic,
-      CFCContentDto content,
+      String flashcardQuestion,
+      String flashcardNoteContent,
       SourceMaterialDto sourceMaterial) {
     this.id = id;
     this.requestItemId = requestItemId;
     this.topic = topic;
-    this.content = content;
+    this.flashcardQuestion = flashcardQuestion;
+    this.flashcardNoteContent = flashcardNoteContent;
     this.sourceMaterial = sourceMaterial;
   }
 
@@ -33,8 +36,12 @@ public class CFCEntryResponseDto {
     return topic;
   }
 
-  public CFCContentDto getContent() {
-    return content;
+  public String getFlashcardQuestion() {
+    return flashcardQuestion;
+  }
+
+  public String getFlashcardNoteContent() {
+    return flashcardNoteContent;
   }
 
   public SourceMaterialDto getSourceMaterial() {

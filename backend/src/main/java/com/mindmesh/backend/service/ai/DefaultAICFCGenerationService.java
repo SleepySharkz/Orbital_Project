@@ -119,19 +119,32 @@ public class DefaultAICFCGenerationService implements AICFCGenerationService {
     prompt.append("  \"entries\": [\n");
     prompt.append("    {\n");
     prompt.append("      \"requestItemId\": 1,\n");
-    prompt.append("      \"learningPoint\": \"Main learning point\",\n");
-    prompt.append("      \"explanation\": \"Clear explanation for the student\",\n");
-    prompt.append("      \"mistakePattern\": \"Likely misconception or mistake pattern\",\n");
-    prompt.append("      \"reviewPrompt\": \"Short self-test prompt\"\n");
+    prompt.append("      \"flashcardQuestion\": \"Concise study question\",\n");
+    prompt.append("      \"flashcardNoteContent\": \"- Point-form note content with short explanatory sentences\\n- Include extra learning points only when helpful\"\n");
     prompt.append("    }\n");
     prompt.append("  ]\n");
     prompt.append("}\n\n");
     prompt.append("Rules:\n");
     prompt.append("- Include exactly one entry for every requestItemId below.\n");
     prompt.append("- Do not invent or omit requestItemIds.\n");
-    prompt.append("- Use the rough note to infer what the student misunderstood.\n");
+    prompt.append("- Use the rough note to infer what the student misunderstood or needs to remember.\n");
     prompt.append("- If images are attached, inspect them as source material for that requestItemId.\n");
-    prompt.append("- Keep the content concise but useful for revision.\n\n");
+    prompt.append("- flashcardQuestion must be a concise revision-style question that targets the core concept being tested.\n");
+    prompt.append("- Rewrite unclear raw submissions into a cleaner study question, but preserve the original technical meaning.\n");
+    prompt.append("- Avoid vague questions and avoid yes/no questions unless the concept genuinely requires them.\n");
+    prompt.append("- flashcardNoteContent must be in point form.\n");
+    prompt.append("- Write 3 to 6 bullet points unless the material is extremely small.\n");
+    prompt.append("- Each bullet should usually be a short explanatory sentence, not isolated keywords.\n");
+    prompt.append("- The notes should be concise, but not skeletal or overly compressed.\n");
+    prompt.append("- Include the main reasoning, edge cases, clarifications, or common traps only when they improve revision value.\n");
+    prompt.append("- Keep terminology technically accurate to the course topic.\n");
+    prompt.append("- The note content should read like the answer to the flashcardQuestion.\n");
+    prompt.append("- Do not output labeled subsections such as Learning Point, Explanation, Mistake Pattern, or Review Prompt.\n\n");
+    prompt.append("Quality examples:\n");
+    prompt.append("- Good flashcardQuestion: \"Why is the inorder successor used during BST deletion in this case?\"\n");
+    prompt.append("- Bad flashcardQuestion: \"BST deletion\"\n");
+    prompt.append("- Good flashcardNoteContent bullet: \"Handle the empty-tree base case first so deletion logic does not recurse into a null subtree.\"\n");
+    prompt.append("- Bad flashcardNoteContent bullet: \"empty tree case\"\n\n");
     prompt.append("Course: ").append(request.getCourseCode()).append("\n");
     prompt.append("Semester: ").append(request.getSchoolSem()).append("\n");
     prompt.append("Source type: ").append(request.getSourceType()).append("\n");
@@ -233,10 +246,8 @@ public class DefaultAICFCGenerationService implements AICFCGenerationService {
         throw invalidAIResponse("AI generation returned duplicate requestItemIds.");
       }
 
-      if (isBlank(entry.getLearningPoint())
-          || isBlank(entry.getExplanation())
-          || isBlank(entry.getMistakePattern())
-          || isBlank(entry.getReviewPrompt())) {
+      if (isBlank(entry.getFlashcardQuestion())
+          || isBlank(entry.getFlashcardNoteContent())) {
         throw invalidAIResponse("AI generation returned blank entry content.");
       }
     }

@@ -19,7 +19,6 @@ import com.mindmesh.backend.dto.requests.cfc.CreateCFCRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.QnNotePairDto;
 import com.mindmesh.backend.dto.requests.cfc.UpdateCFCEntryContentRequestDto;
 import com.mindmesh.backend.dto.requests.cfc.UpdateCFCSummaryRequestDto;
-import com.mindmesh.backend.dto.responses.cfc.CFCContentDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCEntryResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
@@ -106,10 +105,8 @@ public class CFCService {
       }
 
       GeneratedCFCPage generatedCFCPage = new GeneratedCFCPage(
-          generatedEntry.getLearningPoint(),
-          generatedEntry.getExplanation(),
-          generatedEntry.getMistakePattern(),
-          generatedEntry.getReviewPrompt());
+          generatedEntry.getFlashcardQuestion(),
+          generatedEntry.getFlashcardNoteContent());
 
       // Gets auto added to parent CFC
       CFCEntry cfcEntry = new CFCEntry(
@@ -192,10 +189,8 @@ public class CFCService {
             new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC entry not found."));
 
     entry.getGeneratedCFCPage().updateContent(
-        requestDto.getLearningPoint().trim(),
-        requestDto.getExplanation().trim(),
-        requestDto.getMistakePattern().trim(),
-        requestDto.getReviewPrompt().trim());
+        requestDto.getFlashcardQuestion().trim(),
+        requestDto.getFlashcardNoteContent().trim());
 
     cfcRepository.save(cfc);
     return toCFCEntryResponseDto(entry);
@@ -299,10 +294,8 @@ public class CFCService {
 
   // private GeneratedCFCPage buildPlaceholderGeneratedCFCPage() {
   // return new GeneratedCFCPage(
-  // "Placeholder learning point",
-  // "Placeholder explanation",
-  // "Placeholder mistake pattern",
-  // "Placeholder review prompt");
+  // "Placeholder flashcard question",
+  // "Placeholder flashcard note content");
   // }
 
   private String normalizeQuestionText(String questionText) {
@@ -333,18 +326,11 @@ public class CFCService {
         entry.getId(),
         entry.getRequestItemId(),
         entry.getTopic(),
-        toCFCContentDto(entry.getGeneratedCFCPage()),
+        entry.getGeneratedCFCPage().getFlashcardQuestion(),
+        entry.getGeneratedCFCPage().getFlashcardNoteContent(),
         new SourceMaterialDto(
             entry.getQuestionText(),
             entry.getRoughNote()));
-  }
-
-  private CFCContentDto toCFCContentDto(GeneratedCFCPage generatedCFCPage) {
-    return new CFCContentDto(
-        generatedCFCPage.getLearningPoint(),
-        generatedCFCPage.getExplanation(),
-        generatedCFCPage.getMistakePattern(),
-        generatedCFCPage.getReviewPrompt());
   }
 
 }

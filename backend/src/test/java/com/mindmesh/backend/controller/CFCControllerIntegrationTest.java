@@ -60,10 +60,8 @@ class CFCControllerIntegrationTest {
               .stream()
               .map(item -> new AIGeneratedCFCEntry(
                   item.getItemId(),
-                  "Test AI learning point " + item.getItemId(),
-                  "Test AI explanation " + item.getItemId(),
-                  "Test AI mistake pattern " + item.getItemId(),
-                  "Test AI review prompt " + item.getItemId()))
+                  "Test AI flashcard question " + item.getItemId(),
+                  "Test AI flashcard note content " + item.getItemId()))
               .toList());
     }
   }
@@ -146,8 +144,10 @@ class CFCControllerIntegrationTest {
         .andExpect(jsonPath("$.entries[0].topic").value("Trees"))
         .andExpect(jsonPath("$.entries[0].sourceMaterial.questionText").value("Explain BST deletion"))
         .andExpect(jsonPath("$.entries[1].sourceMaterial.questionText").doesNotExist())
-        .andExpect(jsonPath("$.entries[0].content.learningPoint").value("Test AI learning point 1"))
-        .andExpect(jsonPath("$.entries[1].content.learningPoint").value("Test AI learning point 2"));
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Test AI flashcard question 1"))
+        .andExpect(jsonPath("$.entries[1].flashcardQuestion").value("Test AI flashcard question 2"))
+        .andExpect(jsonPath("$.entries[0].flashcardNoteContent").value("Test AI flashcard note content 1"))
+        .andExpect(jsonPath("$.entries[1].flashcardNoteContent").value("Test AI flashcard note content 2"));
   }
 
   @Test
@@ -234,8 +234,8 @@ class CFCControllerIntegrationTest {
         .andExpect(jsonPath("$.summary").value("AI GEN SUMMARY PLACEHOLDER"))
         .andExpect(jsonPath("$.entries", hasSize(1)))
         .andExpect(jsonPath("$.entries[0].topic").value("Trees"))
-        .andExpect(jsonPath("$.entries[0].content.learningPoint").value("Placeholder learning point"))
-        .andExpect(jsonPath("$.entries[0].content.explanation").value("Placeholder explanation"))
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Placeholder flashcard question"))
+        .andExpect(jsonPath("$.entries[0].flashcardNoteContent").value("Placeholder flashcard note content"))
         .andExpect(jsonPath("$.entries[0].sourceMaterial.questionText").value("Explain BST deletion"))
         .andExpect(jsonPath("$.entries[0].sourceMaterial.roughNote").value("I mixed up predecessor and successor."));
   }
@@ -306,10 +306,8 @@ class CFCControllerIntegrationTest {
         "Explain BST deletion",
         "I mixed up predecessor and successor.",
         new GeneratedCFCPage(
-            "Placeholder learning point",
-            "Placeholder explanation",
-            "Placeholder mistake pattern",
-            "Placeholder review prompt"));
+            "Placeholder flashcard question",
+            "Placeholder flashcard note content"));
 
     return cfc;
   }

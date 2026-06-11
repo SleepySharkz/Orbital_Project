@@ -16,7 +16,10 @@ function textOrFallback(value: string | null, fallback: string) {
 
 export function CFCEntryCard({ entry, onEntryContentSave }: CFCEntryCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [contentDraft, setContentDraft] = useState<CFCContent>(entry.content);
+  const [contentDraft, setContentDraft] = useState<CFCContent>({
+    flashcardQuestion: entry.flashcardQuestion,
+    flashcardNoteContent: entry.flashcardNoteContent,
+  });
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -28,25 +31,21 @@ export function CFCEntryCard({ entry, onEntryContentSave }: CFCEntryCardProps) {
   }
 
   function handleCancelEdit() {
-    setContentDraft(entry.content);
+    setContentDraft({
+      flashcardQuestion: entry.flashcardQuestion,
+      flashcardNoteContent: entry.flashcardNoteContent,
+    });
     setSaveError("");
     setIsEditing(false);
   }
 
   async function handleSaveContent() {
     const nextContent = {
-      learningPoint: contentDraft.learningPoint.trim(),
-      explanation: contentDraft.explanation.trim(),
-      mistakePattern: contentDraft.mistakePattern.trim(),
-      reviewPrompt: contentDraft.reviewPrompt.trim(),
+      flashcardQuestion: contentDraft.flashcardQuestion.trim(),
+      flashcardNoteContent: contentDraft.flashcardNoteContent.trim(),
     };
 
-    if (
-      !nextContent.learningPoint ||
-      !nextContent.explanation ||
-      !nextContent.mistakePattern ||
-      !nextContent.reviewPrompt
-    ) {
+    if (!nextContent.flashcardQuestion || !nextContent.flashcardNoteContent) {
       setSaveError("All generated content fields are required.");
       return;
     }
@@ -79,7 +78,10 @@ export function CFCEntryCard({ entry, onEntryContentSave }: CFCEntryCardProps) {
             className="cfc-edit-button"
             type="button"
             onClick={() => {
-              setContentDraft(entry.content);
+              setContentDraft({
+                flashcardQuestion: entry.flashcardQuestion,
+                flashcardNoteContent: entry.flashcardNoteContent,
+              });
               setSaveError("");
               setIsEditing(true);
             }}
@@ -96,41 +98,21 @@ export function CFCEntryCard({ entry, onEntryContentSave }: CFCEntryCardProps) {
           {isEditing ? (
             <div className="cfc-edit-form">
               <label className="cfc-edit-field">
-                <span className="cfc-edit-label">Learning Point</span>
+                <span className="cfc-edit-label">Flashcard Question</span>
                 <textarea
                   className="cfc-edit-textarea"
-                  value={contentDraft.learningPoint}
-                  onChange={(event) => updateDraft("learningPoint", event.target.value)}
+                  value={contentDraft.flashcardQuestion}
+                  onChange={(event) => updateDraft("flashcardQuestion", event.target.value)}
                   disabled={isSaving}
                 />
               </label>
 
               <label className="cfc-edit-field">
-                <span className="cfc-edit-label">Explanation</span>
+                <span className="cfc-edit-label">Flashcard Note Content</span>
                 <textarea
                   className="cfc-edit-textarea"
-                  value={contentDraft.explanation}
-                  onChange={(event) => updateDraft("explanation", event.target.value)}
-                  disabled={isSaving}
-                />
-              </label>
-
-              <label className="cfc-edit-field">
-                <span className="cfc-edit-label">Mistake Pattern</span>
-                <textarea
-                  className="cfc-edit-textarea"
-                  value={contentDraft.mistakePattern}
-                  onChange={(event) => updateDraft("mistakePattern", event.target.value)}
-                  disabled={isSaving}
-                />
-              </label>
-
-              <label className="cfc-edit-field">
-                <span className="cfc-edit-label">Review Prompt</span>
-                <textarea
-                  className="cfc-edit-textarea"
-                  value={contentDraft.reviewPrompt}
-                  onChange={(event) => updateDraft("reviewPrompt", event.target.value)}
+                  value={contentDraft.flashcardNoteContent}
+                  onChange={(event) => updateDraft("flashcardNoteContent", event.target.value)}
                   disabled={isSaving}
                 />
               </label>
@@ -159,20 +141,12 @@ export function CFCEntryCard({ entry, onEntryContentSave }: CFCEntryCardProps) {
           ) : (
             <dl className="cfc-detail-content-list">
               <div>
-                <dt>Learning Point</dt>
-                <dd>{entry.content.learningPoint}</dd>
+                <dt>Flashcard Question</dt>
+                <dd>{entry.flashcardQuestion}</dd>
               </div>
               <div>
-                <dt>Explanation</dt>
-                <dd>{entry.content.explanation}</dd>
-              </div>
-              <div>
-                <dt>Mistake Pattern</dt>
-                <dd>{entry.content.mistakePattern}</dd>
-              </div>
-              <div>
-                <dt>Review Prompt</dt>
-                <dd>{entry.content.reviewPrompt}</dd>
+                <dt>Flashcard Note Content</dt>
+                <dd>{entry.flashcardNoteContent}</dd>
               </div>
             </dl>
           )}

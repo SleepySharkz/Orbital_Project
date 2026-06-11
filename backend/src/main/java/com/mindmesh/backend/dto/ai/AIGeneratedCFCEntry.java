@@ -1,28 +1,20 @@
 package com.mindmesh.backend.dto.ai;
 
 public class AIGeneratedCFCEntry {
-    //this is temporary, we will change the fields according to the shape
-    //we want the output to be
     private Long requestItemId;
-    private String learningPoint;
-    private String explanation;
-    private String mistakePattern;
-    private String reviewPrompt;
+    private String flashcardQuestion;
+    private String flashcardNoteContent;
 
     public AIGeneratedCFCEntry() {
     }
 
     public AIGeneratedCFCEntry(
         Long requestItemId,
-        String learningPoint,
-        String explanation,
-        String mistakePattern,
-        String reviewPrompt) {
+        String flashcardQuestion,
+        String flashcardNoteContent) {
             this.requestItemId = requestItemId;
-            this.learningPoint = learningPoint;
-            this.explanation = explanation;
-            this.mistakePattern = mistakePattern;
-            this.reviewPrompt = reviewPrompt;
+            this.flashcardQuestion = flashcardQuestion;
+            this.flashcardNoteContent = flashcardNoteContent;
         }
     
     //Getters
@@ -30,20 +22,12 @@ public class AIGeneratedCFCEntry {
         return this.requestItemId;
     }
 
-    public String getLearningPoint() {
-        return this.learningPoint;
+    public String getFlashcardQuestion() {
+        return this.flashcardQuestion;
     }
 
-    public String getExplanation() {
-        return this.explanation;
-    }
-
-    public String getMistakePattern() {
-        return this.mistakePattern;
-    }
-
-    public String getReviewPrompt() {
-        return this.reviewPrompt;
+    public String getFlashcardNoteContent() {
+        return this.flashcardNoteContent;
     }
 
     //Setters
@@ -51,19 +35,11 @@ public class AIGeneratedCFCEntry {
         this.requestItemId = requestItemId;
     }
 
-    public void setLearningPoint(String newLearningPoint) {
-        this.learningPoint = newLearningPoint;
+    public void setFlashcardQuestion(String newFlashcardQuestion) {
+        this.flashcardQuestion = newFlashcardQuestion;
     }
 
-    public void setExplanation(String newExplanation) {
-        this.explanation = newExplanation;
-    }
-
-    public void setMistakePattern(String newMistakePattern) {
-        this.mistakePattern = newMistakePattern;
-    }
-
-    public void setReviewPrompt(String newReviewPrompt) {
-        this.reviewPrompt = newReviewPrompt;
+    public void setFlashcardNoteContent(String newFlashcardNoteContent) {
+        this.flashcardNoteContent = newFlashcardNoteContent;
     }
 }
