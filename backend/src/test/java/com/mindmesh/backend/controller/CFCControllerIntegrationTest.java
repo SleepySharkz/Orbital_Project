@@ -39,6 +39,7 @@ import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.TFCRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.ai.AICFCGenerationService;
@@ -80,6 +81,9 @@ class CFCControllerIntegrationTest {
   @Autowired
   private CFCRepository cfcRepository;
 
+  @Autowired
+  private TFCRepository tfcRepository;
+
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
@@ -90,6 +94,7 @@ class CFCControllerIntegrationTest {
         .build();
 
     cfcRepository.deleteAll();
+    tfcRepository.deleteAll();
     courseModuleRepository.deleteAll();
     userRepository.deleteAll();
   }

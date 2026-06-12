@@ -27,6 +27,7 @@ import com.mindmesh.backend.entity.CFC;
 import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
 import com.mindmesh.backend.entity.GeneratedCFCPage;
+import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
@@ -41,14 +42,17 @@ public class CFCService {
   private final CourseModuleRepository courseModuleRepository;
 
   private final AICFCGenerationService aicfcGenerationService;
+  private final TFCService tfcService;
 
   public CFCService(
       CFCRepository cfcRepository,
       CourseModuleRepository courseModuleRepository,
-      AICFCGenerationService aicfcGenerationService) {
+      AICFCGenerationService aicfcGenerationService,
+      TFCService tfcService) {
     this.cfcRepository = cfcRepository;
     this.courseModuleRepository = courseModuleRepository;
     this.aicfcGenerationService = aicfcGenerationService;
+    this.tfcService = tfcService;
   }
 
   @Transactional
@@ -60,6 +64,7 @@ public class CFCService {
     CourseModule module = courseModuleRepository
         .findByIdAndUserId(moduleId, userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Module NOT FOUND"));
+    User owner = module.getUser();
 
     List<QnNotePairDto> items = requestDto.getItems();
     CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
@@ -119,7 +124,20 @@ public class CFCService {
     }
 
     CFC savedCfc = cfcRepository.save(cfc);
+
+    List<String> distinctTopics = savedCfc
+        .getEntries()
+        .stream()
+        .map(entry -> entry.getTopic())
+        .distinct()
+        .toList();
+
+    for (String topic : distinctTopics) {
+      tfcService.syncTFCForTopic(module, owner, topic);
+    }
+
     return toCFCResponseDto(savedCfc);
+
   }
 
   @Transactional
@@ -156,15 +174,13 @@ public class CFCService {
 
   @Transactional
   public CFCResponseDto updateCFCSummary(
-    Long cfcId,
-    Long userId,
-    UpdateCFCSummaryRequestDto requestDto
-  ) {
-      CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
-        .orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+      Long cfcId,
+      Long userId,
+      UpdateCFCSummaryRequestDto requestDto) {
+    CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
 
-      cfc.setSummary(requestDto.getSummary().trim());
+    cfc.setSummary(requestDto.getSummary().trim());
 
     CFC savedCfc = cfcRepository.save(cfc);
     return toCFCResponseDto(savedCfc);
@@ -172,21 +188,18 @@ public class CFCService {
 
   @Transactional
   public CFCEntryResponseDto updateCFCEntryContent(
-    Long cfcId,
-    Long entryId,
-    Long userId,
-    UpdateCFCEntryContentRequestDto requestDto
-  ) {
+      Long cfcId,
+      Long entryId,
+      Long userId,
+      UpdateCFCEntryContentRequestDto requestDto) {
     CFC cfc = cfcRepository.findByIdAndModuleUserId(cfcId, userId)
-        .orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC not found."));
 
     CFCEntry entry = cfc.getEntries()
         .stream()
         .filter(currentEntry -> currentEntry.getId().equals(entryId))
         .findFirst()
-        .orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC entry not found."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CFC entry not found."));
 
     entry.getGeneratedCFCPage().updateContent(
         requestDto.getFlashcardQuestion().trim(),
@@ -194,8 +207,7 @@ public class CFCService {
 
     cfcRepository.save(cfc);
     return toCFCEntryResponseDto(entry);
-}
-
+  }
 
   // Helper validators
   private void checkUniqueItemIDs(List<QnNotePairDto> items) {

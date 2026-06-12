@@ -52,6 +52,9 @@ class CFCServiceTest {
   @Mock
   private AICFCGenerationService aiCFCGenerationService;
 
+  @Mock
+  private TFCService tfcService;
+
   @InjectMocks
   private CFCService cfcService;
 
@@ -116,6 +119,8 @@ class CFCServiceTest {
     assertNull(response.getEntries().get(1).getSourceMaterial().getQuestionText());
     assertEquals("AI flashcard question 1", response.getEntries().get(0).getFlashcardQuestion());
     assertEquals("AI flashcard question 2", response.getEntries().get(1).getFlashcardQuestion());
+    verify(tfcService).syncTFCForTopic(module, module.getUser(), "Trees");
+    verify(tfcService).syncTFCForTopic(module, module.getUser(), "Graphs");
   }
 
   @Test
