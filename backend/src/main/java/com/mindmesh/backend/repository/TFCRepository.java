@@ -13,6 +13,8 @@ public interface TFCRepository extends JpaRepository<TFC, Long> {
 
   Optional<TFC> findByOwnerIdAndModuleIdAndTopic(Long ownerId, Long moduleId, String topic);
 
+  List<TFC> findAllByOwnerIdAndModuleIdOrderByUpdatedAtDesc(Long ownerId, Long moduleId);
+
   List<TFC> findAllByModuleId(Long moduleId);
 
   List<TFC> findAllByOwnerId(Long userId);
