@@ -4,6 +4,7 @@ type TFCSummaryCardProps = {
   tfc: TfcSummary;
   isSelected: boolean;
   onOpen: (tfcId: number) => void;
+  currentUsername: string;
 };
 
 function formatUpdatedAt(value: string) {
@@ -18,7 +19,12 @@ function formatUpdatedAt(value: string) {
   });
 }
 
-export function TFCSummaryCard({ tfc, isSelected, onOpen }: TFCSummaryCardProps) {
+export function TFCSummaryCard({ tfc, isSelected, onOpen, currentUsername }: TFCSummaryCardProps) {
+  const ownerLabel =
+    tfc.ownerUsername.trim().toLowerCase() === currentUsername.trim().toLowerCase()
+      ? "You"
+      : tfc.ownerUsername;
+
   return (
     <button
       className={isSelected ? "tfc-card tfc-card-selected" : "tfc-card"}
@@ -35,13 +41,13 @@ export function TFCSummaryCard({ tfc, isSelected, onOpen }: TFCSummaryCardProps)
 
         <div className="tfc-card-meta">
           <span>{tfc.entryCount} linked {tfc.entryCount === 1 ? "entry" : "entries"}</span>
-          <span>Owner: {tfc.ownerUsername}</span>
+          <span>Owner: {ownerLabel}</span>
           <span>Updated {formatUpdatedAt(tfc.updatedAt)}</span>
         </div>
       </div>
 
       <span className="tfc-open-link">
-        {isSelected ? "Viewing Sheet" : "Open Sheet"}
+        {isSelected ? "Viewing Cheatsheet" : "Open Cheatsheet"}
       </span>
     </button>
   );

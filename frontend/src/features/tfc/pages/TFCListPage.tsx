@@ -112,32 +112,49 @@ export function TFCListPage() {
 
       <main className="tfc-main">
         <header className="tfc-header">
-          <p className="tfc-eyebrow">Topic Sheets</p>
-          <h1 className="tfc-title">Topical Flashcards</h1>
+          <h1 className="tfc-title">Topical Cheatsheets</h1>
           <p className="tfc-subtitle">
-            Browse topic-level study sheets generated from linked coursework flashcard entries.
+            Select a cheatsheet to open it.
           </p>
         </header>
 
         <div className="tfc-workspace">
           <aside className="tfc-list-column">
-            <div className="tfc-list-column-header">
-              <p className="tfc-list-label">All Topic Sheets</p>
-              <p className="tfc-list-copy">
-                Keep a quick reference list on the left and open the full sheet on the right.
-              </p>
-            </div>
-
             <TFCSummaryList
               tfcs={tfcs}
               isLoading={isListLoading}
               error={listError}
               selectedTfcId={parsedTfcId}
               onOpenTfc={handleOpenTfc}
+              currentUsername={user.username}
             />
           </aside>
+        </div>
 
-          <section className="tfc-detail-column">
+        {(isDetailLoading || detailError || selectedTfc) && (
+          <div
+            aria-hidden="true"
+            className="tfc-overlay-backdrop"
+            onClick={() => navigate("/topic-sheets")}
+          />
+        )}
+
+        {(isDetailLoading || detailError || selectedTfc) && (
+          <section
+            aria-label="Cheatsheet overlay"
+            className="tfc-overlay"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="tfc-overlay-header">
+              <button
+                className="tfc-overlay-close"
+                onClick={() => navigate("/topic-sheets")}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+
             {isDetailLoading && (
               <div className="tfc-panel">
                 <p className="tfc-helper-copy">Loading topic sheet...</p>
@@ -150,17 +167,6 @@ export function TFCListPage() {
               </div>
             )}
 
-            {!isDetailLoading && !detailError && !selectedTfc && (
-              <div className="tfc-empty-state">
-                <p className="tfc-eyebrow">Select A Sheet</p>
-                <h2 className="tfc-empty-title">Open a topic from the left column.</h2>
-                <p className="tfc-subtitle">
-                  The right side becomes your study surface, with linked entries presented as one
-                  continuous topic notebook.
-                </p>
-              </div>
-            )}
-
             {!isDetailLoading && !detailError && selectedTfc && (
               <div className="tfc-detail-content">
                 <TFCDetailHeader tfc={selectedTfc} />
@@ -168,7 +174,7 @@ export function TFCListPage() {
               </div>
             )}
           </section>
-        </div>
+        )}
       </main>
     </div>
   );

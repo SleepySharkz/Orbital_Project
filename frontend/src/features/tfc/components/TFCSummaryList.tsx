@@ -7,6 +7,7 @@ type TFCSummaryListProps = {
   error: string;
   selectedTfcId: number | null;
   onOpenTfc: (tfcId: number) => void;
+  currentUsername: string;
 };
 
 export function TFCSummaryList({
@@ -15,6 +16,7 @@ export function TFCSummaryList({
   error,
   selectedTfcId,
   onOpenTfc,
+  currentUsername,
 }: TFCSummaryListProps) {
   return (
     <section className="tfc-section">
@@ -44,6 +46,7 @@ export function TFCSummaryList({
               tfc={tfc}
               isSelected={selectedTfcId === tfc.id}
               onOpen={onOpenTfc}
+              currentUsername={currentUsername}
             />
           ))}
         </div>

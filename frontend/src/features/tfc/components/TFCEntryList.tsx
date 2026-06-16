@@ -4,31 +4,13 @@ type TFCEntryListProps = {
   entries: TfcEntryView[];
 };
 
-function formatCreatedAt(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
 export function TFCEntryList({ entries }: TFCEntryListProps) {
   return (
-    <section className="tfc-entry-list">
-      {entries.map((entry, index) => (
-        <article className="tfc-entry-card" key={entry.entryId}>
+    <section className="tfc-sheet">
+      {entries.map((entry) => (
+        <article className="tfc-sheet-entry" key={entry.entryId}>
           <div className="tfc-entry-header">
-            <div>
-              <p className="tfc-entry-kicker">Entry {index + 1}</p>
-              <h2 className="tfc-entry-question">{entry.flashcardQuestion}</h2>
-            </div>
-
-            <p className="tfc-entry-created-at">{formatCreatedAt(entry.createdAt)}</p>
+            <h2 className="tfc-entry-question">{entry.flashcardQuestion}</h2>
           </div>
 
           <div className="tfc-note-block">

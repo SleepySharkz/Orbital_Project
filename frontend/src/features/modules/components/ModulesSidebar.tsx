@@ -59,7 +59,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/topic-sheets"
           >
-            Topic Sheets
+            Topical CheatSheets
           </NavLink>
         </nav>
       </div>
