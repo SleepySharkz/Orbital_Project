@@ -52,6 +52,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
           >
             My CFCs
           </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/topic-sheets"
+          >
+            Topic Sheets
+          </NavLink>
         </nav>
       </div>
 
