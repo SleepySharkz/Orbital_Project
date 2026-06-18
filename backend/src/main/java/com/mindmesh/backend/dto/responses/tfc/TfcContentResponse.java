@@ -10,6 +10,7 @@ public class TfcContentResponse {
   private String courseCode;
   private String schoolSem;
   private String topic;
+  private Boolean isStale;
   private LocalDateTime updatedAt;
   private List<TfcEntryView> entries;
 
@@ -19,6 +20,7 @@ public class TfcContentResponse {
       String courseCode,
       String schoolSem,
       String topic,
+      Boolean isStale,
       LocalDateTime updatedAt,
       List<TfcEntryView> entries) {
     this.id = id;
@@ -26,6 +28,7 @@ public class TfcContentResponse {
     this.courseCode = courseCode;
     this.schoolSem = schoolSem;
     this.topic = topic;
+    this.isStale = isStale;
     this.updatedAt = updatedAt;
     this.entries = entries;
   }
@@ -48,6 +51,10 @@ public class TfcContentResponse {
 
   public String getTopic() {
     return topic;
+  }
+
+  public Boolean getIsStale() {
+    return isStale;
   }
 
   public LocalDateTime getUpdatedAt() {

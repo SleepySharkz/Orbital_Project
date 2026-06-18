@@ -173,9 +173,29 @@ class TFCServiceTest {
     assertEquals("Graphs", responses.get(0).getTopic());
     assertEquals("Tauzih", responses.get(0).getOwnerUsername());
     assertEquals(1, responses.get(0).getEntryCount());
+    assertEquals(false, responses.get(0).getIsStale());
     assertEquals(70L, responses.get(1).getId());
     assertEquals("Trees", responses.get(1).getTopic());
     assertEquals(2, responses.get(1).getEntryCount());
+    assertEquals(false, responses.get(1).getIsStale());
+  }
+
+  @Test
+  void getTfcsByModule_marksTfcStaleWhenTopicNoLongerExistsOnModule() {
+    TFC staleTfc = new TFC(module, owner, "Trees");
+    ReflectionTestUtils.setField(staleTfc, "id", 90L);
+    ReflectionTestUtils.setField(staleTfc, "updatedAt", java.time.LocalDateTime.of(2026, 6, 18, 10, 0));
+
+    module.removeTopic(module.getTopics().get(0));
+
+    when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
+    when(tfcRepository.findAllByOwnerIdAndModuleIdOrderByUpdatedAtDesc(7L, 12L))
+        .thenReturn(List.of(staleTfc));
+
+    List<TfcSummaryResponse> responses = tfcService.getTFCsByModule(12L, 7L);
+
+    assertEquals(1, responses.size());
+    assertEquals(true, responses.get(0).getIsStale());
   }
 
   @Test
@@ -213,6 +233,7 @@ class TFCServiceTest {
     assertEquals(12L, response.getModuleId());
     assertEquals("CS2040", response.getCourseCode());
     assertEquals("Trees", response.getTopic());
+    assertEquals(false, response.getIsStale());
     assertEquals(2, response.getEntries().size());
     assertEquals(402L, response.getEntries().get(0).getEntryId());
     assertEquals("Flashcard question 402", response.getEntries().get(0).getFlashcardQuestion());
@@ -220,6 +241,20 @@ class TFCServiceTest {
     assertEquals("Question 402", response.getEntries().get(0).getQuestionText());
     assertEquals("Note 402", response.getEntries().get(0).getRoughNote());
     assertEquals(401L, response.getEntries().get(1).getEntryId());
+  }
+
+  @Test
+  void getTfcById_returnsStaleFlagWhenTopicNoLongerExistsOnModule() {
+    TFC tfc = new TFC(module, owner, "Trees");
+    ReflectionTestUtils.setField(tfc, "id", 82L);
+    ReflectionTestUtils.setField(tfc, "updatedAt", java.time.LocalDateTime.of(2026, 6, 18, 12, 0));
+    module.removeTopic(module.getTopics().get(0));
+
+    when(tfcRepository.findByIdAndOwnerId(82L, 7L)).thenReturn(Optional.of(tfc));
+
+    TfcContentResponse response = tfcService.getTFCById(82L, 7L);
+
+    assertEquals(true, response.getIsStale());
   }
 
   @Test

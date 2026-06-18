@@ -190,6 +190,17 @@
   font-weight: 600;
 }
 
+.tfc-stale-badge {
+  justify-self: start;
+  margin: 2px 0 0;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #fff1e7;
+  color: #9a3412;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .tfc-open-link,
 .tfc-secondary-link {
   display: inline-flex;
@@ -284,6 +295,15 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.tfc-stale-warning {
+  margin: 10px 0 0;
+  border-left: 3px solid #d97706;
+  padding: 12px 0 12px 14px;
+  color: #7c3a10;
+  background: #fffbeb;
+  line-height: 1.6;
 }
 
 .tfc-entry-header {

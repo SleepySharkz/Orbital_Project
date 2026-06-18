@@ -44,6 +44,10 @@ export function TFCSummaryCard({ tfc, isSelected, onOpen, currentUsername }: TFC
           <span>Owner: {ownerLabel}</span>
           <span>Updated {formatUpdatedAt(tfc.updatedAt)}</span>
         </div>
+
+        {tfc.isStale && (
+          <p className="tfc-stale-badge">Historical topic</p>
+        )}
       </div>
 
       <span className="tfc-open-link">

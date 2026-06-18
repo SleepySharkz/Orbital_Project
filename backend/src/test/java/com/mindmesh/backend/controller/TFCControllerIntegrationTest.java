@@ -89,7 +89,24 @@ class TFCControllerIntegrationTest {
         .andExpect(jsonPath("$[*].courseCode", hasItems("CS2040", "CS2040")))
         .andExpect(jsonPath("$[*].schoolSem", hasItems("Year 1 Sem 2", "Year 1 Sem 2")))
         .andExpect(jsonPath("$[*].topic", hasItems("Trees", "Graphs")))
-        .andExpect(jsonPath("$[*].entryCount", hasItems(1, 1)));
+        .andExpect(jsonPath("$[*].entryCount", hasItems(1, 1)))
+        .andExpect(jsonPath("$[*].isStale", hasItems(false, false)));
+  }
+
+  @Test
+  void getTfcsByModule_marksStaleSummaryWhenTopicWasRemovedFromModule() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user, "Trees");
+    saveTfcWithEntries(module, user, "Trees", 1);
+    module.removeTopic(module.getTopics().get(0));
+    courseModuleRepository.save(module);
+
+    mockMvc.perform(get("/api/v1/modules/" + module.getId() + "/tfcs")
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].topic").value("Trees"))
+        .andExpect(jsonPath("$[0].isStale").value(true));
   }
 
   @Test
@@ -124,6 +141,7 @@ class TFCControllerIntegrationTest {
         .andExpect(jsonPath("$.courseCode").value("CS2040"))
         .andExpect(jsonPath("$.schoolSem").value("Year 1 Sem 2"))
         .andExpect(jsonPath("$.topic").value("Trees"))
+        .andExpect(jsonPath("$.isStale").value(false))
         .andExpect(jsonPath("$.entries", hasSize(2)))
         .andExpect(jsonPath("$.entries[0].topic").value("Trees"))
         .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Flashcard question 2"))
@@ -134,6 +152,22 @@ class TFCControllerIntegrationTest {
         .andExpect(jsonPath("$.entries[1].flashcardNoteContent").value("Flashcard note content 1"))
         .andExpect(jsonPath("$.entries[1].questionText").value("Question 1"))
         .andExpect(jsonPath("$.entries[1].roughNote").value("Rough note 1"));
+  }
+
+  @Test
+  void getTfcById_withStaleTfc_stillReturnsReadableDetail() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user, "Trees");
+    TFC tfc = saveTfcWithEntries(module, user, "Trees", 1);
+    module.removeTopic(module.getTopics().get(0));
+    courseModuleRepository.save(module);
+
+    mockMvc.perform(get("/api/v1/tfcs/" + tfc.getId())
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.topic").value("Trees"))
+        .andExpect(jsonPath("$.isStale").value(true))
+        .andExpect(jsonPath("$.entries", hasSize(1)));
   }
 
   @Test

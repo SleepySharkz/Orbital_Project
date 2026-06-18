@@ -3,6 +3,7 @@ package com.mindmesh.backend.service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -99,6 +100,7 @@ public class TFCService {
   public TfcContentResponse getTFCById(Long tfcId, Long userId) {
     TFC tfc = tfcRepository.findByIdAndOwnerId(tfcId, userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "TFC not found."));
+    Boolean isStale = isTfcStale(tfc);
 
     List<TfcContentResponse.TfcEntryView> entries = tfc.getEntries()
         .stream()
@@ -112,6 +114,7 @@ public class TFCService {
         tfc.getModule().getCourseCode(),
         tfc.getModule().getSchoolSem(),
         tfc.getTopic(),
+        isStale,
         tfc.getUpdatedAt(),
         entries);
   }
@@ -126,7 +129,17 @@ public class TFCService {
         tfc.getTopic(),
         tfc.getEntries().size(),
         tfc.getUpdatedAt(),
-        null);
+        isTfcStale(tfc));
+  }
+
+  private Boolean isTfcStale(TFC tfc) {
+    String tfcTopic = tfc.getTopic().trim().toLowerCase(Locale.ROOT);
+
+    return tfc.getModule()
+        .getTopics()
+        .stream()
+        .map(moduleTopic -> moduleTopic.getTopicName().trim().toLowerCase(Locale.ROOT))
+        .noneMatch(topicName -> topicName.equals(tfcTopic));
   }
 
   private TfcContentResponse.TfcEntryView toTfcEntryView(CFCEntry entry) {

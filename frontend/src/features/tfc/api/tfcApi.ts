@@ -26,6 +26,7 @@ type TfcContentResponse = {
   courseCode: string;
   schoolSem: string;
   topic: string;
+  isStale: boolean;
   updatedAt: string;
   entries: TfcEntryView[];
 };
