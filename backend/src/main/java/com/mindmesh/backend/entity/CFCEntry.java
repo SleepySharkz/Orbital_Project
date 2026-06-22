@@ -32,6 +32,10 @@ public class CFCEntry {
   @Embedded // Actual note content users will be studying out of
   private GeneratedCFCPage generatedCFCPage;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tfc_id")
+  private TFC tfc;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 
@@ -107,6 +111,14 @@ public class CFCEntry {
 
   public void setGeneratedCFCPage(GeneratedCFCPage cfcEntryContent) {
     this.generatedCFCPage = cfcEntryContent;
+  }
+
+  public TFC getTfc() {
+    return tfc;
+  }
+
+  public void setTfc(TFC tfc) {
+    this.tfc = tfc;
   }
 
   public LocalDateTime getCreatedAt() {

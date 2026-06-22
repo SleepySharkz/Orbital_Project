@@ -11,6 +11,7 @@ import { CFCPage } from "./features/cfc/pages/CFCPage";
 import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
 import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
+import { TFCListPage } from "./features/tfc/pages/TFCListPage";
 
 function CFCDetailRedirect() {
   const { cfcId } = useParams();
@@ -95,6 +96,22 @@ function App() {
         element={
           <ProtectedRoute>
             <CFCDetailRedirect />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/topic-sheets"
+        element={
+          <ProtectedRoute>
+            <TFCListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/topic-sheets/:tfcId"
+        element={
+          <ProtectedRoute>
+            <TFCListPage />
           </ProtectedRoute>
         }
       />

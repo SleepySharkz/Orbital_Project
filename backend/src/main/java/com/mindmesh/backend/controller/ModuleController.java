@@ -21,9 +21,11 @@ import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleResponseDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleSummaryDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleTopicsResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
+import com.mindmesh.backend.dto.responses.tfc.TfcSummaryResponse;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.CFCService;
 import com.mindmesh.backend.service.ModuleService;
+import com.mindmesh.backend.service.TFCService;
 
 import jakarta.validation.Valid;
 
@@ -33,10 +35,12 @@ public class ModuleController {
 
   private final ModuleService moduleService;
   private final CFCService cfcService;
+  private final TFCService tfcService;
 
-  public ModuleController(ModuleService moduleService, CFCService cfcService) {
+  public ModuleController(ModuleService moduleService, CFCService cfcService, TFCService tfcService) {
     this.moduleService = moduleService;
     this.cfcService = cfcService;
+    this.tfcService = tfcService;
   }
 
   @PostMapping
@@ -80,7 +84,7 @@ public class ModuleController {
   }
 
   @GetMapping("/{moduleId}/cfcs")
-    public ResponseEntity<List<CFCSummaryDto>> getCFCsForModule(
+  public ResponseEntity<List<CFCSummaryDto>> getCFCsForModule(
       @PathVariable Long moduleId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     List<CFCSummaryDto> cfcs = cfcService.getCFCsForModule(moduleId, userDetails.getId());
@@ -88,31 +92,35 @@ public class ModuleController {
   }
 
   @PostMapping("/{moduleId}/topics")
-    public ResponseEntity<ModuleTopicsResponseDto> addModuleTopic(
+  public ResponseEntity<ModuleTopicsResponseDto> addModuleTopic(
       @PathVariable Long moduleId,
       @Valid @RequestBody ModuleTopicDto request,
-      @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-      ModuleTopicsResponseDto updatedTopics = moduleService.addTopicToModule(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    ModuleTopicsResponseDto updatedTopics = moduleService.addTopicToModule(
         moduleId,
         userDetails.getId(),
-        request.getTopic()
-      );
-      return ResponseEntity.ok(updatedTopics);
-    }
-  
+        request.getTopic());
+    return ResponseEntity.ok(updatedTopics);
+  }
+
   @DeleteMapping("/{moduleId}/topics")
-    public ResponseEntity<ModuleTopicsResponseDto> removeModuleTopic(
+  public ResponseEntity<ModuleTopicsResponseDto> removeModuleTopic(
       @PathVariable Long moduleId,
       @Valid @RequestBody ModuleTopicDto request,
-      @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-      ModuleTopicsResponseDto updatedTopics = moduleService.removeTopicFromModule(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    ModuleTopicsResponseDto updatedTopics = moduleService.removeTopicFromModule(
         moduleId,
         userDetails.getId(),
-        request.getTopic()
-      );
-      return ResponseEntity.ok(updatedTopics);
-    }
-  
+        request.getTopic());
+    return ResponseEntity.ok(updatedTopics);
+  }
+
+  @GetMapping("/{moduleId}/tfcs")
+  public ResponseEntity<List<TfcSummaryResponse>> getTfcsByModule(
+      @PathVariable Long moduleId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    List<TfcSummaryResponse> tfcs = tfcService.getTFCsByModule(moduleId, userDetails.getId());
+    return ResponseEntity.ok(tfcs);
+  }
+
 }
