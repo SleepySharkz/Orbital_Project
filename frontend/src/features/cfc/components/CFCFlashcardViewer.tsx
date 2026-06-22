@@ -315,11 +315,11 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
         onKeyDown={
           isInteractive
             ? (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  toggleCardSide();
-                }
+              if (event.key === "Enter") {
+                event.preventDefault();
+                toggleCardSide();
               }
+            }
             : undefined
         }
         onAnimationEnd={onAnimationEnd}
@@ -340,7 +340,7 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
           )}
           {renderCardFace(
             "Learning point",
-            entry.content.learningPoint,
+            entry.flashcardNoteContent,
             "cfc-flashcard-face cfc-flashcard-face-answer",
           )}
         </div>
@@ -435,12 +435,10 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
             renderKey: `moving-${deckAnimation.id}-${deckAnimation.direction}-${deckAnimation.speed}`,
             className:
               deckAnimation.direction === "forward"
-                ? `cfc-flashcard-card cfc-flashcard-card-layer cfc-flashcard-card-moving cfc-flashcard-card-moving-forward ${
-                    deckAnimation.speed === "skip" ? "cfc-flashcard-card-moving-skip" : ""
-                  }`
-                : `cfc-flashcard-card cfc-flashcard-card-layer cfc-flashcard-card-moving cfc-flashcard-card-moving-backward ${
-                    deckAnimation.speed === "skip" ? "cfc-flashcard-card-moving-skip" : ""
-                  }`,
+                ? `cfc-flashcard-card cfc-flashcard-card-layer cfc-flashcard-card-moving cfc-flashcard-card-moving-forward ${deckAnimation.speed === "skip" ? "cfc-flashcard-card-moving-skip" : ""
+                }`
+                : `cfc-flashcard-card cfc-flashcard-card-layer cfc-flashcard-card-moving cfc-flashcard-card-moving-backward ${deckAnimation.speed === "skip" ? "cfc-flashcard-card-moving-skip" : ""
+                }`,
             showAnswer:
               deckAnimation.direction === "forward"
                 ? deckAnimation.outgoingWasAnswer
