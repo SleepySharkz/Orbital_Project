@@ -43,7 +43,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       filterChain.doFilter(request, response);
       return;
     }
-
+    
+    //first 7 chars are Bearer, token is after that
     String token = authHeader.substring(7);
 
     // validateToken
@@ -59,7 +60,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
       // Now need to tell spring that this fella's request is authenticated
 
-      // create an authentication object with the user's identity
+      // create a Spring authentication interface object with the user's identity
       UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
           userDetails, // Pass in userDetails object, as it carries more info, and for future role
                        // assignment

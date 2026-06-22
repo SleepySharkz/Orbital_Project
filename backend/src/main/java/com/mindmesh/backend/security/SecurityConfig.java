@@ -35,7 +35,7 @@ public class SecurityConfig {
         .formLogin(a -> a.disable())
         .httpBasic(basic -> basic.disable())
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers(
+            .requestMatchers(                // this is the public paths
                 "/auth/signup",
                 "/auth/login",
                 "/error")
@@ -45,7 +45,7 @@ public class SecurityConfig {
             // .requestMatchers("/admin").hasRole("ADMIN") // IDK some admin endpoint later
             // on, for testing or override
             .anyRequest().authenticated())
-        .addFilterBefore(
+        .addFilterBefore(        //use these custom filters before using springs own securty filters
             jwtAuthFilter,
             UsernamePasswordAuthenticationFilter.class);
 

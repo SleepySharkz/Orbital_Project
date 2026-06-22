@@ -90,15 +90,18 @@ public class CourseModule {
   }
 
   public void setTopics(List<ModuleTopic> topics) {
-    // Deepcopy of the list of topics
+    // ShallowCopy of the list of topics. Need to improve to also clone ModuleTopics objects
+    // if want a deepcopy
     List<ModuleTopic> incomingTopics = new ArrayList<>(topics);
-    this.topics.clear();
+    this.topics.clear(); 
+    // this does not set the old topic's courseModule references to null. should do that too
     for (ModuleTopic topic : incomingTopics) {
       addTopic(topic);
     }
   }
 
   public void addTopic(ModuleTopic topic) {
+    // add check for if module is null? CFC has this already and so should this
     topics.add(topic);
 
     // Setting on both sides so the bidirectional relationship is in sync

@@ -15,6 +15,8 @@ public class GeneratedCFCPage {
   protected GeneratedCFCPage() {
   }
 
+  // didnt we change the style of output of the Ai. why do we still have the OG fields?
+  // can prolly condense them now right?
   public GeneratedCFCPage(
       String flashcardQuestion,
       String flashcardNoteContent) {
