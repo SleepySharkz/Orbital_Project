@@ -20,6 +20,7 @@ type TfcEntryView = {
   createdAt: string;
 };
 
+// Summary level response
 type TfcContentResponse = {
   id: number;
   moduleId: number;
