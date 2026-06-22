@@ -100,6 +100,7 @@ public class CFCEntry {
     return roughNote;
   }
 
+  // Original rough note
   public void setRoughNote(String roughNote) {
     this.roughNote = roughNote;
   }

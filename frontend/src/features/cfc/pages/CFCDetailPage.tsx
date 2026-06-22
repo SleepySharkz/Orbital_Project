@@ -4,13 +4,11 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import {
   fetchCFCById,
-  updateCFCEntryContent,
   updateCFCSummary,
-  type CFCContent,
   type CFCResponse,
 } from "../api/cfcApi";
 import { CFCDetailHeader } from "../components/CFCDetailHeader";
-import { CFCEntryList } from "../components/CFCEntryList";
+import { CFCFlashcardViewer } from "../components/CFCFlashcardViewer";
 import "../styles/cfcStyles.css";
 
 export function CFCDetailPage() {
@@ -71,27 +69,6 @@ export function CFCDetailPage() {
     setCFC(updatedCFC);
   }
 
-  async function handleEntryContentSave(entryId: number, content: CFCContent) {
-    if (!token || !cfc) {
-      return;
-    }
-
-    const updatedEntry = await updateCFCEntryContent(cfc.id, entryId, content, token);
-
-    setCFC((currentCFC) => {
-      if (!currentCFC) {
-        return currentCFC;
-      }
-
-      return {
-        ...currentCFC,
-        entries: currentCFC.entries.map((entry) =>
-          entry.id === updatedEntry.id ? updatedEntry : entry,
-        ),
-      };
-    });
-  }
-
   if (!user || !token) {
     return null;
   }
@@ -116,10 +93,7 @@ export function CFCDetailPage() {
         {!isLoading && !error && cfc && (
           <div className="cfc-detail-content">
             <CFCDetailHeader cfc={cfc} onSummarySave={handleSummarySave} />
-            <CFCEntryList
-              entries={cfc.entries}
-              onEntryContentSave={handleEntryContentSave}
-            />
+            <CFCFlashcardViewer key={cfc.id} entries={cfc.entries} title={cfc.title} />
           </div>
         )}
       </main>

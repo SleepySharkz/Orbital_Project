@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+data/*.db
+data/*.db-*
 
 ### STS ###
 .apt_generated

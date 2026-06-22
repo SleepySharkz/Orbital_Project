@@ -416,6 +416,347 @@
   gap: 20px;
 }
 
+.cfc-flashcard-viewer {
+  display: grid;
+  gap: 22px;
+}
+
+.cfc-flashcard-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cfc-flashcard-heading,
+.cfc-flashcard-topic,
+.cfc-flashcard-side-label,
+.cfc-flashcard-position,
+.cfc-flashcard-copy {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.cfc-flashcard-heading {
+  font-size: 1.7rem;
+  line-height: 1.2;
+  color: #162033;
+}
+
+.cfc-flashcard-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cfc-flashcard-card-button,
+.cfc-flashcard-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cfd7e6;
+  background: #ffffff;
+  color: #23324d;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cfc-flashcard-card-button {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.08);
+  color: #f8fafc;
+  font-size: 1.2rem;
+}
+
+.cfc-flashcard-card-button:hover,
+.cfc-flashcard-nav:hover {
+  border-color: #8193b5;
+  background: rgba(248, 250, 252, 0.16);
+}
+
+.cfc-flashcard-card-button:focus-visible,
+.cfc-flashcard-nav:focus-visible,
+.cfc-flashcard-card:focus-visible {
+  outline: 3px solid #c7d6ff;
+  outline-offset: 3px;
+}
+
+.cfc-flashcard-stage {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 760px) 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 470px;
+  perspective: 1600px;
+}
+
+.cfc-flashcard-nav {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  box-shadow: 0 14px 28px rgba(18, 28, 45, 0.1);
+  z-index: 8;
+}
+
+.cfc-flashcard-nav:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
+.cfc-flashcard-deck {
+  position: relative;
+  width: 100%;
+  min-height: 430px;
+  transform-style: preserve-3d;
+}
+
+.cfc-flashcard-card {
+  width: 100%;
+  min-height: 390px;
+  border-radius: 24px;
+  color: #f8fafc;
+  cursor: pointer;
+  user-select: none;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  background: transparent;
+}
+
+.cfc-flashcard-card:hover .cfc-flashcard-face {
+  border-color: #53627c;
+}
+
+.cfc-flashcard-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: inherit;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(0.22, 0.75, 0.18, 1);
+  will-change: transform;
+}
+
+.cfc-flashcard-card-answer-visible .cfc-flashcard-card-inner {
+  transform: rotateY(180deg);
+}
+
+.cfc-flashcard-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 28px;
+  border: 1px solid #354156;
+  border-radius: inherit;
+  padding: 28px;
+  background: #202735;
+  color: #f8fafc;
+  box-shadow: 0 26px 58px rgba(18, 28, 45, 0.22);
+  backface-visibility: hidden;
+  transform: rotateY(0deg);
+}
+
+.cfc-flashcard-face-answer {
+  background: #1f2a38;
+  transform: rotateY(180deg);
+}
+
+.cfc-flashcard-card-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.cfc-flashcard-card-front {
+  z-index: 5;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 42px);
+}
+
+.cfc-flashcard-card-second {
+  z-index: 4;
+  transform: translate3d(18px, 15px, 24px) rotate(1.6deg) scale(0.98);
+  opacity: 0.98;
+}
+
+.cfc-flashcard-card-rear {
+  z-index: 3;
+  transform: translate3d(34px, 30px, 8px) rotate(3.1deg) scale(0.96);
+  opacity: 0.9;
+}
+
+.cfc-flashcard-card-moving {
+  pointer-events: none;
+}
+
+.cfc-flashcard-card-moving-forward {
+  z-index: 7;
+  animation: cfc-card-cycle-forward 560ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
+}
+
+.cfc-flashcard-card-moving-backward {
+  z-index: 7;
+  animation: cfc-card-cycle-backward 620ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
+}
+
+.cfc-flashcard-card-moving-skip {
+  animation-duration: 90ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes cfc-card-cycle-forward {
+  0% {
+    z-index: 7;
+    transform: translate3d(0, 0, 48px) rotate(0deg) scale(1);
+  }
+
+  42% {
+    z-index: 7;
+    transform: translate3d(150px, -22px, 90px) rotate(8deg) scale(1.01);
+  }
+
+  64% {
+    z-index: 2;
+    transform: translate3d(185px, 24px, 12px) rotate(5deg) scale(0.97);
+  }
+
+  100% {
+    z-index: 2;
+    transform: translate3d(38px, 32px, 0) rotate(3deg) scale(0.95);
+  }
+}
+
+@keyframes cfc-card-cycle-backward {
+  0% {
+    z-index: 2;
+    transform: translate3d(38px, 32px, 0) rotate(3deg) scale(0.95);
+  }
+
+  34% {
+    z-index: 2;
+    transform: translate3d(178px, 24px, 20px) rotate(7deg) scale(0.97);
+  }
+
+  58% {
+    z-index: 7;
+    transform: translate3d(152px, -22px, 92px) rotate(8deg) scale(1.01);
+  }
+
+  100% {
+    z-index: 7;
+    transform: translate3d(0, 0, 48px) rotate(0deg) scale(1);
+  }
+}
+
+.cfc-flashcard-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cfc-flashcard-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.cfc-flashcard-side-label,
+.cfc-flashcard-position {
+  color: #aeb8c9;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.cfc-flashcard-topic {
+  margin-top: 8px;
+  color: #ffffff;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.cfc-flashcard-position {
+  flex: 0 0 auto;
+}
+
+.cfc-flashcard-copy-shell {
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  overflow: auto;
+}
+
+.cfc-flashcard-copy {
+  width: 100%;
+  color: #ffffff;
+  font-size: 1.9rem;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.cfc-flashcard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.cfc-flashcard-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(10, 15, 23, 0.58);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transform: translateZ(0);
+}
+
+.cfc-flashcard-overlay-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(1120px, calc(100vw - 48px));
+  contain: layout style;
+  isolation: isolate;
+}
+
+.cfc-flashcard-stage-overlay {
+  grid-template-columns: 66px minmax(0, 920px) 66px;
+  min-height: 72vh;
+}
+
+.cfc-flashcard-deck-overlay {
+  min-height: 70vh;
+}
+
+.cfc-flashcard-card-overlay {
+  min-height: 68vh;
+}
+
+.cfc-flashcard-card-overlay .cfc-flashcard-face {
+  padding: 34px;
+  box-shadow: 0 18px 38px rgba(5, 10, 18, 0.24);
+}
+
+.cfc-flashcard-card-overlay .cfc-flashcard-copy {
+  font-size: 2.25rem;
+}
+
+.cfc-flashcard-deck-overlay .cfc-flashcard-card-second .cfc-flashcard-face,
+.cfc-flashcard-deck-overlay .cfc-flashcard-card-rear .cfc-flashcard-face {
+  box-shadow: 0 10px 24px rgba(5, 10, 18, 0.18);
+}
+
 .cfc-detail-header-panel,
 .cfc-detail-entries-panel,
 .cfc-detail-entry-card {
@@ -727,6 +1068,53 @@
   .cfc-detail-entry-sections {
     grid-template-columns: 1fr;
   }
+
+  .cfc-flashcard-toolbar {
+    flex-direction: column;
+  }
+
+  .cfc-flashcard-stage {
+    grid-template-columns: 50px minmax(0, 1fr) 50px;
+    gap: 12px;
+    min-height: 420px;
+  }
+
+  .cfc-flashcard-nav {
+    width: 50px;
+    height: 50px;
+  }
+
+  .cfc-flashcard-card {
+    min-height: 340px;
+  }
+
+  .cfc-flashcard-face {
+    padding: 24px;
+  }
+
+  .cfc-flashcard-deck {
+    min-height: 380px;
+  }
+
+  .cfc-flashcard-copy {
+    font-size: 1.55rem;
+  }
+
+  .cfc-flashcard-stage-overlay {
+    min-height: 70vh;
+  }
+
+  .cfc-flashcard-deck-overlay {
+    min-height: 68vh;
+  }
+
+  .cfc-flashcard-card-overlay {
+    min-height: 64vh;
+  }
+
+  .cfc-flashcard-card-overlay .cfc-flashcard-copy {
+    font-size: 1.8rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -767,5 +1155,63 @@
   .cfc-secondary-link,
   .cfc-collection-open-link {
     width: 100%;
+  }
+
+  .cfc-flashcard-toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cfc-flashcard-stage,
+  .cfc-flashcard-stage-overlay {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 8px;
+    min-height: 370px;
+  }
+
+  .cfc-flashcard-nav {
+    width: 42px;
+    height: 42px;
+    font-size: 0.9rem;
+  }
+
+  .cfc-flashcard-card,
+  .cfc-flashcard-card-overlay {
+    min-height: 300px;
+    border-radius: 20px;
+  }
+
+  .cfc-flashcard-face,
+  .cfc-flashcard-card-overlay .cfc-flashcard-face {
+    padding: 20px;
+  }
+
+  .cfc-flashcard-deck {
+    min-height: 340px;
+  }
+
+  .cfc-flashcard-deck-overlay {
+    min-height: 64vh;
+  }
+
+  .cfc-flashcard-card-header {
+    gap: 10px;
+  }
+
+  .cfc-flashcard-topic {
+    font-size: 0.95rem;
+  }
+
+  .cfc-flashcard-copy,
+  .cfc-flashcard-card-overlay .cfc-flashcard-copy {
+    font-size: 1.25rem;
+  }
+
+  .cfc-flashcard-overlay {
+    padding: 16px;
+  }
+
+  .cfc-flashcard-overlay-content {
+    width: calc(100vw - 24px);
   }
 }
