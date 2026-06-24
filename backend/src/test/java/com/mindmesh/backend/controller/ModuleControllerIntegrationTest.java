@@ -29,6 +29,8 @@ import com.mindmesh.backend.entity.ModuleTopic;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
 
@@ -50,6 +52,12 @@ class ModuleControllerIntegrationTest {
   @Autowired
   private CFCRepository cfcRepository;
 
+  @Autowired
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
   @BeforeEach
   void cleanDatabase() {
     mockMvc = MockMvcBuilders
@@ -59,6 +67,8 @@ class ModuleControllerIntegrationTest {
 
     cfcRepository.deleteAll();
     courseModuleRepository.deleteAll();
+    friendRequestRepository.deleteAll();
+    friendshipRepository.deleteAll();
     userRepository.deleteAll();
   }
 

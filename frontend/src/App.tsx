@@ -11,6 +11,7 @@ import { CFCPage } from "./features/cfc/pages/CFCPage";
 import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
 import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
+import { FriendsPage } from "./features/friends/pages/FriendsPage";
 import { TFCListPage } from "./features/tfc/pages/TFCListPage";
 
 function CFCDetailRedirect() {
@@ -88,6 +89,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CFCDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/friends"
+        element={
+          <ProtectedRoute>
+            <FriendsPage />
           </ProtectedRoute>
         }
       />

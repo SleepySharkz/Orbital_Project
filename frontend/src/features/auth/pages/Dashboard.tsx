@@ -61,6 +61,15 @@ export function DashboardPage() {
             >
               My CFCs
             </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/friends"
+            >
+              Friends
+            </NavLink>
           </nav>
         </div>
 

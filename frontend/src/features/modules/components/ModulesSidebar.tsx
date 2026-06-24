@@ -61,6 +61,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
           >
             Topical CheatSheets
           </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/friends"
+          >
+            Friends
+          </NavLink>
         </nav>
       </div>
 
