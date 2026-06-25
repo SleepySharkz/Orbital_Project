@@ -195,7 +195,7 @@ export function FriendsPage() {
             <p className="friends-eyebrow">Friends</p>
             <h1>Build your learning network</h1>
             <p>
-              Connect with people you trust. Share and Build your knowledge together
+              Connect with people you trust. Build knowledge through private sharing.
             </p>
           </div>
           <div className="friends-header-stat">

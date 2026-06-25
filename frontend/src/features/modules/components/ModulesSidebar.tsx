@@ -70,6 +70,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
           >
             Friends
           </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/sharing"
+          >
+            Sharing
+          </NavLink>
         </nav>
       </div>
 

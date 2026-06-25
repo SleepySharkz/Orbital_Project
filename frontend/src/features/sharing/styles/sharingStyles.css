@@ -1,0 +1,128 @@
+.sharing-main {
+  background: #f5f7fb;
+}
+
+.sharing-compose-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.sharing-compose-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.sharing-field {
+  display: grid;
+  gap: 8px;
+}
+
+.sharing-field-label {
+  color: #33415c;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.sharing-selected-count {
+  display: grid;
+  min-width: 120px;
+  border: 1px solid #d8e0ef;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #f9fbff;
+  text-align: center;
+}
+
+.sharing-selected-count strong {
+  color: #3c48ff;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.sharing-selected-count span {
+  margin-top: 4px;
+  color: #66728a;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.sharing-tfc-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sharing-tfc-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 13px;
+  align-items: center;
+  border: 1px solid #dce3ef;
+  border-radius: 14px;
+  padding: 14px;
+  background: #f9fbff;
+  cursor: pointer;
+}
+
+.sharing-tfc-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #3c48ff;
+}
+
+.sharing-tfc-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sharing-tfc-copy strong {
+  overflow: hidden;
+  color: #1c2840;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sharing-tfc-copy span {
+  overflow: hidden;
+  color: #66728a;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sharing-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 960px) {
+  .sharing-tfc-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .sharing-compose-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sharing-selected-count {
+    min-width: 0;
+  }
+
+  .sharing-tfc-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .sharing-tfc-row .friends-status-pill {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+
+  .sharing-compose-actions {
+    display: grid;
+  }
+}
