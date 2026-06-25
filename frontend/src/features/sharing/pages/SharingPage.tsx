@@ -312,6 +312,7 @@ export function SharingPage() {
         {selectedRequest && (
           <TFCSharingDetailModal
             request={selectedRequest}
+            viewerUserId={getViewerUserId(selectedRequest, user.email)}
             onClose={() => setSelectedRequest(null)}
           />
         )}
@@ -340,4 +341,14 @@ function safeTime(value: string) {
 
 function toErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function getViewerUserId(request: TFCSharingRequestDetail, viewerEmail: string) {
+  const normalizedViewerEmail = viewerEmail.toLowerCase();
+
+  if (request.recipientEmail.toLowerCase() === normalizedViewerEmail) {
+    return request.recipientUserId;
+  }
+
+  return request.senderUserId;
 }

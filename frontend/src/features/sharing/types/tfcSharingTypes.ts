@@ -4,6 +4,11 @@ type TFCSharingRequestStatus =
   | "DECLINED"
   | "CANCELLED";
 
+type TFCSharingCompatibilityStatus =
+  | "READY"
+  | "MISSING_MODULE"
+  | "MISSING_TOPIC";
+
 type TFCSharingRequestSummary = {
   id: number;
   senderUserId: number;
@@ -38,6 +43,11 @@ type TFCSharingRequestItem = {
   topic: string;
   sourceWasStaleAtSendTime: boolean;
   sourceUpdatedAt: string | null;
+  matchingRecipientModuleId: number | null;
+  hasMatchingModule: boolean | null;
+  hasMatchingTopic: boolean | null;
+  compatibilityStatus: TFCSharingCompatibilityStatus | null;
+  blockingReason: string | null;
   entryCount: number;
   entries: TFCSharingRequestEntrySnapshot[];
 };
@@ -53,10 +63,13 @@ type TFCSharingRequestDetail = {
   status: TFCSharingRequestStatus;
   createdAt: string;
   respondedAt: string | null;
+  canAccept: boolean;
+  blockingReasons: string[];
   items: TFCSharingRequestItem[];
 };
 
 export type {
+  TFCSharingCompatibilityStatus,
   TFCSharingRequestDetail,
   TFCSharingRequestEntrySnapshot,
   TFCSharingRequestItem,

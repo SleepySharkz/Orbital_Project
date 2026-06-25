@@ -18,6 +18,8 @@ public class TFCSharingRequestDetailDto {
     private final Instant createdAt;
     private final Instant respondedAt;
     private final List<TFCSharingRequestItemDto> items;
+    private final Boolean canAccept;
+    private final List<String> blockingReasons;
 
     public TFCSharingRequestDetailDto(
         Long id,
@@ -30,7 +32,9 @@ public class TFCSharingRequestDetailDto {
         TFCSharingRequestStatus status,
         Instant createdAt,
         Instant respondedAt,
-        List<TFCSharingRequestItemDto> items
+        List<TFCSharingRequestItemDto> items,
+        Boolean canAccept,
+        List<String> blockingReasons
     ) {
         this.id = id;
         this.senderUserId = senderUserId;
@@ -43,49 +47,59 @@ public class TFCSharingRequestDetailDto {
         this.createdAt = createdAt;
         this.respondedAt = respondedAt;
         this.items = items;
+        this.canAccept = canAccept;
+        this.blockingReasons = blockingReasons;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public Long getSenderUserId() {
-        return senderUserId;
+        return this.senderUserId;
     }
 
     public String getSenderUsername() {
-        return senderUsername;
+        return this.senderUsername;
     }
 
     public String getSenderEmail() {
-        return senderEmail;
+        return this.senderEmail;
     }
 
     public Long getRecipientUserId() {
-        return recipientUserId;
+        return this.recipientUserId;
     }
 
     public String getRecipientUsername() {
-        return recipientUsername;
+        return this.recipientUsername;
     }
 
     public String getRecipientEmail() {
-        return recipientEmail;
+        return this.recipientEmail;
     }
 
     public TFCSharingRequestStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public Instant getCreatedAt() {
-        return createdAt;
+        return this.createdAt;
     }
 
     public Instant getRespondedAt() {
-        return respondedAt;
+        return this.respondedAt;
     }
 
     public List<TFCSharingRequestItemDto> getItems() {
-        return items;
+        return this.items;
+    }
+    
+    public Boolean getCanAccept() {
+        return this.canAccept;
+    }
+
+    public List<String> getBlockingReasons() {
+        return this.blockingReasons;
     }
 }

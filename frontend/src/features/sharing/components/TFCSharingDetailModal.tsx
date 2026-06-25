@@ -1,7 +1,12 @@
-import type { TFCSharingRequestDetail } from "../types/tfcSharingTypes";
+import { useEffect } from "react";
+import type {
+  TFCSharingCompatibilityStatus,
+  TFCSharingRequestDetail,
+} from "../types/tfcSharingTypes";
 
 type TFCSharingDetailModalProps = {
   request: TFCSharingRequestDetail;
+  viewerUserId: number;
   onClose: () => void;
 };
 
@@ -22,12 +27,48 @@ function formatDateTime(value: string | null) {
   });
 }
 
+function compatibilityLabel(status: TFCSharingCompatibilityStatus | null) {
+  switch (status) {
+    case "READY":
+      return "Ready";
+    case "MISSING_MODULE":
+      return "Missing module";
+    case "MISSING_TOPIC":
+      return "Missing topic";
+    default:
+      return "";
+  }
+}
+
 export function TFCSharingDetailModal({
   request,
+  viewerUserId,
   onClose,
 }: TFCSharingDetailModalProps) {
+  const viewerIsRecipient = request.recipientUserId === viewerUserId;
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="friends-modal-backdrop" role="presentation">
+    <div
+      className="friends-modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <section
         aria-labelledby="tfc-sharing-detail-title"
         aria-modal="true"
@@ -58,7 +99,33 @@ export function TFCSharingDetailModal({
             {request.items.length}{" "}
             {request.items.length === 1 ? "topic sheet" : "topic sheets"}
           </span>
+          {viewerIsRecipient && (
+            <span className="friends-status-pill">
+              {request.canAccept ? "Ready to accept" : "Blocked"}
+            </span>
+          )}
         </div>
+
+        {viewerIsRecipient && request.blockingReasons.length > 0 && (
+          <div className="tfc-sharing-blockers">
+            <p className="friends-label">Blockers</p>
+            <ul>
+              {request.blockingReasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {viewerIsRecipient && (
+          <div className="tfc-sharing-accept-row">
+            <button className="friends-primary-button" type="button" disabled>
+              {request.canAccept
+                ? "Accept all (next checkpoint)"
+                : "Accept all"}
+            </button>
+          </div>
+        )}
 
         <div className="tfc-sharing-detail-list">
           {request.items.map((item) => (
@@ -71,10 +138,23 @@ export function TFCSharingDetailModal({
                     {item.entryCount === 1 ? "entry" : "entries"}
                   </p>
                 </div>
-                {item.sourceWasStaleAtSendTime && (
-                  <span className="friends-status-pill">Stale at send</span>
-                )}
+                <div className="tfc-sharing-status-stack">
+                  {item.sourceWasStaleAtSendTime && (
+                    <span className="friends-status-pill">Stale at send</span>
+                  )}
+                  {viewerIsRecipient && item.compatibilityStatus && (
+                    <span className="friends-status-pill">
+                      {compatibilityLabel(item.compatibilityStatus)}
+                    </span>
+                  )}
+                </div>
               </header>
+
+              {viewerIsRecipient && item.blockingReason && (
+                <p className="tfc-sharing-item-blocker">
+                  {item.blockingReason}
+                </p>
+              )}
 
               {item.entries.length === 0 ? (
                 <p className="friends-empty">No entries were captured.</p>

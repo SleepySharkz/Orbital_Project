@@ -1,6 +1,7 @@
 package com.mindmesh.backend.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -304,6 +305,166 @@ class TFCSharingRequestControllerIntegrationTest {
             }
             """))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void detailForRecipient_reportsCanAcceptWhenAllItemsMatchRecipientModules()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees", "Graphs");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    TFC graphs = saveTfcWithEntries(aliceModule, alice, "Graphs", 1);
+    CourseModule bobModule = saveModule(bob, "Trees", "Graphs");
+
+    sendSharingRequest(alice, bob, trees.getId(), graphs.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(true))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(0)))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("READY"))
+        .andExpect(jsonPath("$.items[0].hasMatchingModule").value(true))
+        .andExpect(jsonPath("$.items[0].hasMatchingTopic").value(true))
+        .andExpect(jsonPath("$.items[0].matchingRecipientModuleId").value(bobModule.getId()))
+        .andExpect(jsonPath("$.items[1].compatibilityStatus").value("READY"))
+        .andExpect(jsonPath("$.items[1].hasMatchingModule").value(true))
+        .andExpect(jsonPath("$.items[1].hasMatchingTopic").value(true));
+  }
+
+  @Test
+  void detailForRecipient_reportsMissingModuleBlocker() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(false))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(1)))
+        .andExpect(jsonPath("$.blockingReasons[0]").value("Missing module CS2040 / Year 1 Sem 2."))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("MISSING_MODULE"))
+        .andExpect(jsonPath("$.items[0].hasMatchingModule").value(false))
+        .andExpect(jsonPath("$.items[0].hasMatchingTopic").value(false))
+        .andExpect(jsonPath("$.items[0].matchingRecipientModuleId").value(nullValue()))
+        .andExpect(jsonPath("$.items[0].blockingReason").value("Missing module CS2040 / Year 1 Sem 2."));
+  }
+
+  @Test
+  void detailForRecipient_reportsMissingTopicBlocker() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    CourseModule bobModule = saveModule(bob, "Graphs");
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(false))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(1)))
+        .andExpect(jsonPath("$.blockingReasons[0]").value(
+            "Module CS2040 / Year 1 Sem 2 exists, but topic Trees is missing."))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("MISSING_TOPIC"))
+        .andExpect(jsonPath("$.items[0].hasMatchingModule").value(true))
+        .andExpect(jsonPath("$.items[0].hasMatchingTopic").value(false))
+        .andExpect(jsonPath("$.items[0].matchingRecipientModuleId").value(bobModule.getId()))
+        .andExpect(jsonPath("$.items[0].blockingReason").value(
+            "Module CS2040 / Year 1 Sem 2 exists, but topic Trees is missing."));
+  }
+
+  @Test
+  void detailForRecipient_reportsMixedBatchBlockers() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees", "Graphs");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    TFC graphs = saveTfcWithEntries(aliceModule, alice, "Graphs", 1);
+    saveModule(bob, "Trees");
+
+    sendSharingRequest(alice, bob, trees.getId(), graphs.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(false))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("READY"))
+        .andExpect(jsonPath("$.items[0].blockingReason").value(nullValue()))
+        .andExpect(jsonPath("$.items[1].compatibilityStatus").value("MISSING_TOPIC"))
+        .andExpect(jsonPath("$.items[1].blockingReason").value(
+            "Module CS2040 / Year 1 Sem 2 exists, but topic Graphs is missing."));
+  }
+
+  @Test
+  void detailForRecipient_recomputesCompatibilityAtReadTime() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(false))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("MISSING_MODULE"));
+
+    saveModule(bob, "Trees");
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(true))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(0)))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value("READY"));
+  }
+
+  @Test
+  void detailForSender_doesNotExposeRecipientCompatibility() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/tfc-sharing-requests/" + request.getId())
+        .with(authentication(authFor(alice))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canAccept").value(false))
+        .andExpect(jsonPath("$.blockingReasons", hasSize(0)))
+        .andExpect(jsonPath("$.items[0].compatibilityStatus").value(nullValue()))
+        .andExpect(jsonPath("$.items[0].hasMatchingModule").value(nullValue()))
+        .andExpect(jsonPath("$.items[0].hasMatchingTopic").value(nullValue()))
+        .andExpect(jsonPath("$.items[0].matchingRecipientModuleId").value(nullValue()))
+        .andExpect(jsonPath("$.items[0].blockingReason").value(nullValue()));
   }
 
   private void cleanDatabaseState() {

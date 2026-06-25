@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,7 +30,9 @@ import com.mindmesh.backend.entity.TFCSharingRequest;
 import com.mindmesh.backend.entity.TFCSharingRequestEntrySnapshot;
 import com.mindmesh.backend.entity.TFCSharingRequestItem;
 import com.mindmesh.backend.entity.User;
+import com.mindmesh.backend.enums.TFCSharingCompatibilityStatus;
 import com.mindmesh.backend.enums.TFCSharingRequestStatus;
+import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.TFCRepository;
 import com.mindmesh.backend.repository.TFCSharingRequestRepository;
 import com.mindmesh.backend.repository.UserRepository;
@@ -40,17 +43,20 @@ public class TFCSharingRequestService {
     private final UserRepository userRepository;
     private final TFCRepository tfcRepository;
     private final TFCSharingRequestRepository tfcSharingRequestRepository;
+    private final CourseModuleRepository courseModuleRepository;
     private final FriendshipService friendshipService;
 
     public TFCSharingRequestService(
         UserRepository userRepository,
         TFCRepository tfcRepository,
         TFCSharingRequestRepository tfcSharingRequestRepository,
+        CourseModuleRepository courseModuleRepository,
         FriendshipService friendshipService
     ) {
         this.userRepository = userRepository;
         this.tfcRepository = tfcRepository;
         this.tfcSharingRequestRepository = tfcSharingRequestRepository;
+        this.courseModuleRepository = courseModuleRepository;
         this.friendshipService = friendshipService;
     }
 
@@ -104,7 +110,7 @@ public class TFCSharingRequestService {
         }
 
         TFCSharingRequest savedRequest = tfcSharingRequestRepository.save(sharingRequest);
-        return toDetailDto(savedRequest);
+        return toDetailDto(savedRequest, senderId);
     }
 
     @Transactional(readOnly = true)
@@ -140,7 +146,7 @@ public class TFCSharingRequestService {
                 "TFC sharing request not found.")
             );
 
-        return toDetailDto(sharingRequest);
+        return toDetailDto(sharingRequest, userId);
     }
 
     private void validateRecipientId(Long senderId, Long recipientId) {
@@ -291,7 +297,22 @@ public class TFCSharingRequestService {
         );
     }
 
-    private TFCSharingRequestDetailDto toDetailDto(TFCSharingRequest request) {
+    private TFCSharingRequestDetailDto toDetailDto(TFCSharingRequest request, Long viewerUserId) {
+    
+        boolean viewerIsRecipient = request.getRecipient().getId().equals(viewerUserId);
+        CompatibilityEvaluation compatibility = viewerIsRecipient
+            ? evaluateCompatibility(request)
+            : CompatibilityEvaluation.hidden();
+
+        List<TFCSharingRequestItemDto> items = sortedItems(request)
+            .stream()
+            .map(item -> toItemDto(item, compatibility.forItem(item.getId())))
+            .toList();
+
+        boolean canAccept = viewerIsRecipient
+            && request.getStatus() == TFCSharingRequestStatus.PENDING
+            && compatibility.canAccept();
+
         return new TFCSharingRequestDetailDto(
             request.getId(),
             request.getSender().getId(),
@@ -303,11 +324,65 @@ public class TFCSharingRequestService {
             request.getStatus(),
             request.getCreatedAt(),
             request.getRespondedAt(),
-            sortedItems(request).stream().map(this::toItemDto).toList()
+            items,
+            canAccept,
+            compatibility.blockingReasons()
         );
     }
+    
+    private CompatibilityEvaluation evaluateCompatibility(TFCSharingRequest request) {
+        List<ItemCompatibility> itemResults = sortedItems(request)
+            .stream()
+            .map(item -> evaluateItemCompatibility(item, request.getRecipient().getId()))
+            .toList();
 
-    private TFCSharingRequestItemDto toItemDto(TFCSharingRequestItem item) {
+        return new CompatibilityEvaluation(itemResults);
+    }
+
+    private ItemCompatibility evaluateItemCompatibility(
+        TFCSharingRequestItem item,
+        Long recipientId
+    ) {
+        Optional<CourseModule> matchingModule =
+            courseModuleRepository.findByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCase(
+                recipientId,
+                item.getCourseCode(),
+                item.getSchoolSem()
+            );
+
+        if (matchingModule.isEmpty()) {
+            return ItemCompatibility.missingModule(
+                item.getId(),
+                "Missing module " + item.getCourseCode() + " / " + item.getSchoolSem() + "."
+            );
+        }
+
+        CourseModule module = matchingModule.get();
+        boolean hasTopic = module
+            .getTopics()
+            .stream()
+            .map(ModuleTopic::getTopicName)
+            .map(this::normalizeTopic)
+            .anyMatch(topic -> topic.equals(normalizeTopic(item.getTopic())));
+
+        if (!hasTopic) {
+            return ItemCompatibility.missingTopic(
+                item.getId(),
+                module.getId(),
+                "Module " + item.getCourseCode() + " / " + item.getSchoolSem()
+                    + " exists, but topic " + item.getTopic() + " is missing."
+            );
+        }
+
+        return ItemCompatibility.ready(item.getId(), module.getId());
+    }
+
+
+
+    private TFCSharingRequestItemDto toItemDto(
+        TFCSharingRequestItem item,
+        ItemCompatibility compatibility
+    ) {
         List<TFCSharingRequestEntrySnapshotDto> entries = sortedEntrySnapshots(item)
             .stream()
             .map(this::toEntryDto)
@@ -324,7 +399,12 @@ public class TFCSharingRequestService {
             item.getSourceWasStaleAtSendTime(),
             item.getSourceUpdatedAt(),
             entries.size(),
-            entries
+            entries,
+            compatibility.matchingRecipientModuleId(),
+            compatibility.hasMatchingModule(),
+            compatibility.hasMatchingTopic(),
+            compatibility.status(),
+            compatibility.blockingReason()
         );
     }
 
@@ -356,5 +436,87 @@ public class TFCSharingRequestService {
             .stream()
             .sorted(Comparator.comparing(TFCSharingRequestEntrySnapshot::getDisplayOrder))
             .toList();
+    }
+
+    //helper classes
+    private record CompatibilityEvaluation(List<ItemCompatibility> itemResults) {
+        static CompatibilityEvaluation hidden() {
+            return new CompatibilityEvaluation(List.of());
+        }
+
+        ItemCompatibility forItem(Long itemId) {
+            return itemResults
+                .stream()
+                .filter(result -> result.itemId().equals(itemId))
+                .findFirst()
+                .orElse(ItemCompatibility.hidden());
+        }
+
+        boolean canAccept() {
+            return !itemResults.isEmpty()
+                && itemResults.stream().allMatch(ItemCompatibility::isReady);
+        }
+
+        List<String> blockingReasons() {
+            return itemResults
+                .stream()
+                .map(ItemCompatibility::blockingReason)
+                .filter(reason -> reason != null && !reason.isBlank())
+                .toList();
+        }
+    }
+
+    private record ItemCompatibility(
+        Long itemId,
+        Long matchingRecipientModuleId,
+        Boolean hasMatchingModule,
+        Boolean hasMatchingTopic,
+        TFCSharingCompatibilityStatus status,
+        String blockingReason
+    ) {
+        static ItemCompatibility hidden() {
+            return new ItemCompatibility(null, null, null, null, null, null);
+        }
+
+        static ItemCompatibility ready(Long itemId, Long matchingRecipientModuleId) {
+            return new ItemCompatibility(
+                itemId,
+                matchingRecipientModuleId,
+                true,
+                true,
+                TFCSharingCompatibilityStatus.READY,
+                null
+            );
+        }
+
+        static ItemCompatibility missingModule(Long itemId, String reason) {
+            return new ItemCompatibility(
+                itemId,
+                null,
+                false,
+                false,
+                TFCSharingCompatibilityStatus.MISSING_MODULE,
+                reason
+            );
+        }
+
+        static ItemCompatibility missingTopic(
+            Long itemId,
+            Long matchingRecipientModuleId,
+            String reason
+        ) {
+            return new ItemCompatibility(
+                itemId,
+                matchingRecipientModuleId,
+                true,
+                false,
+                TFCSharingCompatibilityStatus.MISSING_TOPIC,
+                reason
+            );
+        }
+
+        boolean isReady() {
+            return status == TFCSharingCompatibilityStatus.READY;
+        }
     }
 }

@@ -66,9 +66,27 @@ export function DashboardPage() {
               className={({ isActive }) =>
                 isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
               }
+              to="/topic-sheets"
+            >
+              Topical CheatSheets
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
               to="/friends"
             >
               Friends
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/sharing"
+            >
+              Sharing
             </NavLink>
           </nav>
         </div>
