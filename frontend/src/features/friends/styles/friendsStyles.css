@@ -520,6 +520,7 @@
 .tfc-sharing-accept-row {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .tfc-sharing-detail-list,

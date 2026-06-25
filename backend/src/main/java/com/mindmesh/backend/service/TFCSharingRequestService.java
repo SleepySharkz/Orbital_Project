@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,9 @@ import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.TFCRepository;
 import com.mindmesh.backend.repository.TFCSharingRequestRepository;
 import com.mindmesh.backend.repository.UserRepository;
+import com.mindmesh.backend.entity.SharedTFC;
+import com.mindmesh.backend.entity.SharedTFCEntry;
+import com.mindmesh.backend.repository.SharedTFCRepository;
 
 @Service
 public class TFCSharingRequestService {
@@ -45,18 +50,21 @@ public class TFCSharingRequestService {
     private final TFCSharingRequestRepository tfcSharingRequestRepository;
     private final CourseModuleRepository courseModuleRepository;
     private final FriendshipService friendshipService;
+    private final SharedTFCRepository sharedTfcRepository;
 
     public TFCSharingRequestService(
         UserRepository userRepository,
         TFCRepository tfcRepository,
         TFCSharingRequestRepository tfcSharingRequestRepository,
         CourseModuleRepository courseModuleRepository,
+        SharedTFCRepository sharedTfcRepository,
         FriendshipService friendshipService
     ) {
         this.userRepository = userRepository;
         this.tfcRepository = tfcRepository;
         this.tfcSharingRequestRepository = tfcSharingRequestRepository;
         this.courseModuleRepository = courseModuleRepository;
+        this.sharedTfcRepository = sharedTfcRepository;
         this.friendshipService = friendshipService;
     }
 
@@ -436,6 +444,159 @@ public class TFCSharingRequestService {
             .stream()
             .sorted(Comparator.comparing(TFCSharingRequestEntrySnapshot::getDisplayOrder))
             .toList();
+    }
+
+    @Transactional
+    public TFCSharingRequestDetailDto acceptTfcSharingRequest(Long requestId, Long recipientId) {
+        TFCSharingRequest sharingRequest = loadRecipientSharingRequest(requestId, recipientId);
+        ensurePending(sharingRequest);
+        ensureSourceTfcsStillExist(sharingRequest);
+
+        CompatibilityEvaluation compatibility = evaluateCompatibility(sharingRequest);
+        if (!compatibility.canAccept()) {
+            String reason = compatibility.blockingReasons().isEmpty()
+                ? "TFC sharing request is not compatible with your modules."
+                : String.join(" ", compatibility.blockingReasons());
+
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "TFC sharing request cannot be accepted: " + reason
+            );
+        }
+
+        Instant acceptedAt = Instant.now();
+
+        for (TFCSharingRequestItem item : sortedItems(sharingRequest)) {
+            CourseModule recipientModule = findRecipientModuleForAcceptedItem(item, recipientId);
+            SharedTFC sharedTfc = copySharedTfc(
+                sharingRequest,
+                item,
+                recipientModule,
+                acceptedAt
+            );
+            sharedTfcRepository.save(sharedTfc);
+        }
+
+        sharingRequest.accept(acceptedAt);
+        TFCSharingRequest savedRequest = tfcSharingRequestRepository.save(sharingRequest);
+
+        return toDetailDto(savedRequest, recipientId);
+    }
+
+    @Transactional
+    public TFCSharingRequestDetailDto declineTfcSharingRequest(Long requestId, Long recipientId) {
+        TFCSharingRequest sharingRequest = loadRecipientSharingRequest(requestId, recipientId);
+        ensurePending(sharingRequest);
+
+        sharingRequest.decline(Instant.now());
+        TFCSharingRequest savedRequest = tfcSharingRequestRepository.save(sharingRequest);
+
+        return toDetailDto(savedRequest, recipientId);
+    }
+
+    private TFCSharingRequest loadRecipientSharingRequest(Long requestId, Long recipientId) {
+        TFCSharingRequest sharingRequest = tfcSharingRequestRepository
+            .findVisibleDetailById(requestId, recipientId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "TFC sharing request not found.")
+            );
+
+        if (!sharingRequest.getRecipient().getId().equals(recipientId)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "TFC sharing request not found."
+            );
+        }
+
+        return sharingRequest;
+    }
+
+    private void ensurePending(TFCSharingRequest sharingRequest) {
+        if (sharingRequest.getStatus() != TFCSharingRequestStatus.PENDING) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Only pending TFC sharing requests can be resolved."
+            );
+        }
+    }
+
+    private void ensureSourceTfcsStillExist(TFCSharingRequest sharingRequest) {
+        List<Long> sourceTfcIds = sortedItems(sharingRequest)
+            .stream()
+            .map(TFCSharingRequestItem::getSourceTfcId)
+            .distinct()
+            .toList();
+
+        List<TFC> existingSourceTfcs = tfcRepository.findAllOwnedByIdIn(
+            sharingRequest.getSender().getId(),
+            sourceTfcIds
+        );
+
+        if (existingSourceTfcs.size() != sourceTfcIds.size()) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "One or more source TFCs no longer exist."
+            );
+        }
+    }
+
+    private CourseModule findRecipientModuleForAcceptedItem(
+        TFCSharingRequestItem item,
+        Long recipientId
+    ) {
+        return courseModuleRepository
+            .findByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCase(
+                recipientId,
+                item.getCourseCode(),
+                item.getSchoolSem()
+            )
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Recipient module no longer matches this TFC sharing request.")
+            );
+    }
+
+    private SharedTFC copySharedTfc(
+        TFCSharingRequest sharingRequest,
+        TFCSharingRequestItem item,
+        CourseModule recipientModule,
+        Instant acceptedAt
+    ) {
+        SharedTFC sharedTfc = new SharedTFC(
+            sharingRequest.getRecipient(),
+            sharingRequest.getSender(),
+            sharingRequest,
+            item.getId(),
+            recipientModule,
+            item.getCourseCode(),
+            item.getSchoolSem(),
+            item.getTopic(),
+            item.getSourceOwnerUsername(),
+            acceptedAt
+        );
+
+        for (TFCSharingRequestEntrySnapshot snapshot : sortedEntrySnapshots(item)) {
+            copySharedTfcEntry(sharedTfc, snapshot);
+        }
+
+        return sharedTfc;
+    }
+
+    private SharedTFCEntry copySharedTfcEntry(
+        SharedTFC sharedTfc,
+        TFCSharingRequestEntrySnapshot snapshot
+    ) {
+        return new SharedTFCEntry(
+            sharedTfc,
+            snapshot.getDisplayOrder(),
+            snapshot.getSourceEntryId(),
+            snapshot.getFlashcardQuestion(),
+            snapshot.getFlashcardNoteContent(),
+            snapshot.getQuestionText(),
+            snapshot.getRoughNote(),
+            snapshot.getSourceEntryCreatedAt()
+        );
     }
 
     //helper classes

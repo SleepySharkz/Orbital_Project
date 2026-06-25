@@ -31,15 +31,18 @@ import com.mindmesh.backend.entity.CourseModule;
 import com.mindmesh.backend.entity.Friendship;
 import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.ModuleTopic;
+import com.mindmesh.backend.entity.SharedTFC;
 import com.mindmesh.backend.entity.TFC;
 import com.mindmesh.backend.entity.TFCSharingRequest;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
+import com.mindmesh.backend.enums.TFCSharingRequestStatus;
 import com.mindmesh.backend.repository.CFCEntryRepository;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.FriendRequestRepository;
 import com.mindmesh.backend.repository.FriendshipRepository;
+import com.mindmesh.backend.repository.SharedTFCRepository;
 import com.mindmesh.backend.repository.TFCRepository;
 import com.mindmesh.backend.repository.TFCSharingRequestRepository;
 import com.mindmesh.backend.repository.UserRepository;
@@ -75,6 +78,9 @@ class TFCSharingRequestControllerIntegrationTest {
 
   @Autowired
   private FriendshipRepository friendshipRepository;
+
+  @Autowired
+  private SharedTFCRepository sharedTfcRepository;
 
   private MockMvc mockMvc;
 
@@ -305,6 +311,9 @@ class TFCSharingRequestControllerIntegrationTest {
             }
             """))
         .andExpect(status().isForbidden());
+
+    mockMvc.perform(get("/api/v1/shared-tfcs"))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -467,7 +476,209 @@ class TFCSharingRequestControllerIntegrationTest {
         .andExpect(jsonPath("$.items[0].blockingReason").value(nullValue()));
   }
 
+  @Test
+  void acceptSharingRequest_createsSharedTfcCopiesForRecipient()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees", "Graphs");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 2);
+    TFC graphs = saveTfcWithEntries(aliceModule, alice, "Graphs", 1);
+    saveModule(bob, "Trees", "Graphs");
+
+    sendSharingRequest(alice, bob, trees.getId(), graphs.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("ACCEPTED"))
+        .andExpect(jsonPath("$.respondedAt").isNotEmpty());
+
+    assertEquals(2L, sharedTfcRepository.count());
+    TFCSharingRequest acceptedRequest =
+        tfcSharingRequestRepository.findById(request.getId()).orElseThrow();
+    assertEquals(TFCSharingRequestStatus.ACCEPTED, acceptedRequest.getStatus());
+
+    mockMvc.perform(get("/api/v1/shared-tfcs")
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].sharedByUsername").value("Alice"))
+        .andExpect(jsonPath("$[0].entryCount").isNumber());
+  }
+
+  @Test
+  void acceptSharingRequest_copiesSnapshotInsteadOfCurrentSourceContent()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    saveModule(bob, "Trees");
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    CFCEntry sourceEntry = cfcEntryRepository.findAll().get(0);
+    sourceEntry.setQuestionText("Changed question");
+    sourceEntry.setRoughNote("Changed rough note");
+    sourceEntry.getGeneratedCFCPage().updateContent(
+        "Changed flashcard question",
+        "Changed flashcard note content");
+    cfcEntryRepository.save(sourceEntry);
+
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isOk());
+
+    SharedTFC sharedTfc = sharedTfcRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/shared-tfcs/" + sharedTfc.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.topic").value("Trees"))
+        .andExpect(jsonPath("$.sharedByUsername").value("Alice"))
+        .andExpect(jsonPath("$.entries", hasSize(1)))
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Flashcard question 1"))
+        .andExpect(jsonPath("$.entries[0].flashcardNoteContent").value("Flashcard note content 1"))
+        .andExpect(jsonPath("$.entries[0].questionText").value("Question 1"))
+        .andExpect(jsonPath("$.entries[0].roughNote").value("Rough note 1"));
+  }
+
+  @Test
+  void declineSharingRequest_createsNoSharedCopies()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    declineSharingRequest(bob, request.getId())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("DECLINED"))
+        .andExpect(jsonPath("$.respondedAt").isNotEmpty());
+
+    assertEquals(0L, sharedTfcRepository.count());
+    TFCSharingRequest declinedRequest =
+        tfcSharingRequestRepository.findById(request.getId()).orElseThrow();
+    assertEquals(TFCSharingRequestStatus.DECLINED, declinedRequest.getStatus());
+  }
+
+  @Test
+  void nonRecipientCannotAcceptOrDeclineSharingRequest()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    User carol = saveUser("Carol", "carol@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    acceptSharingRequest(carol, request.getId())
+        .andExpect(status().isNotFound());
+
+    declineSharingRequest(carol, request.getId())
+        .andExpect(status().isNotFound());
+
+    assertEquals(0L, sharedTfcRepository.count());
+  }
+
+  @Test
+  void acceptedSharingRequestCannotBeAcceptedAgain()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    saveModule(bob, "Trees");
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isOk());
+
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isConflict());
+
+    assertEquals(1L, sharedTfcRepository.count());
+  }
+
+  @Test
+  void sourceDeletionBeforeAcceptanceBlocksAccept()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    saveModule(bob, "Trees");
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+
+    for (CFCEntry entry : cfcEntryRepository.findAll()) {
+      if (entry.getTfc() != null && entry.getTfc().getId().equals(trees.getId())) {
+        entry.setTfc(null);
+        cfcEntryRepository.save(entry);
+      }
+    }
+    cfcEntryRepository.flush();
+    tfcRepository.delete(trees);
+    tfcRepository.flush();
+
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isConflict());
+
+    assertEquals(0L, sharedTfcRepository.count());
+    TFCSharingRequest pendingRequest =
+        tfcSharingRequestRepository.findById(request.getId()).orElseThrow();
+    assertEquals(TFCSharingRequestStatus.PENDING, pendingRequest.getStatus());
+  }
+
+  @Test
+  void acceptedSharedTfcsRemainReadableAfterFriendshipRemoval()
+      throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    CourseModule aliceModule = saveModule(alice, "Trees");
+    TFC trees = saveTfcWithEntries(aliceModule, alice, "Trees", 1);
+    saveModule(bob, "Trees");
+
+    sendSharingRequest(alice, bob, trees.getId())
+        .andExpect(status().isCreated());
+    TFCSharingRequest request = tfcSharingRequestRepository.findAll().get(0);
+    acceptSharingRequest(bob, request.getId())
+        .andExpect(status().isOk());
+
+    SharedTFC sharedTfc = sharedTfcRepository.findAll().get(0);
+    friendshipRepository.deleteAll();
+
+    mockMvc.perform(get("/api/v1/shared-tfcs/" + sharedTfc.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.topic").value("Trees"))
+        .andExpect(jsonPath("$.sharedByUsername").value("Alice"));
+  }
+
   private void cleanDatabaseState() {
+    sharedTfcRepository.deleteAll();
     tfcSharingRequestRepository.deleteAll();
     cfcRepository.deleteAll();
     tfcRepository.deleteAll();
@@ -536,6 +747,20 @@ class TFCSharingRequestControllerIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(tfcIdsBody(tfcIds))
         .with(authentication(authFor(sender))));
+  }
+
+  private ResultActions acceptSharingRequest(User recipient, Long requestId)
+      throws Exception {
+    return mockMvc.perform(post(
+        "/api/v1/tfc-sharing-requests/" + requestId + "/accept")
+        .with(authentication(authFor(recipient))));
+  }
+
+  private ResultActions declineSharingRequest(User recipient, Long requestId)
+      throws Exception {
+    return mockMvc.perform(post(
+        "/api/v1/tfc-sharing-requests/" + requestId + "/decline")
+        .with(authentication(authFor(recipient))));
   }
 
   private String tfcIdsBody(Long... tfcIds) {

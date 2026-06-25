@@ -79,6 +79,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
           >
             Sharing
           </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/shared-tfcs"
+          >
+            Shared TFCs
+          </NavLink>
         </nav>
       </div>
 

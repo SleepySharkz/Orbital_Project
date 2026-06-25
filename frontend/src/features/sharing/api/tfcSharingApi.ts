@@ -1,4 +1,6 @@
 import type {
+  SharedTFCDetail,
+  SharedTFCSummary,
   TFCSharingRequestDetail,
   TFCSharingRequestSummary,
 } from "../types/tfcSharingTypes";
@@ -124,4 +126,79 @@ export async function fetchTFCSharingRequestDetail(
   }
 
   return parseJson<TFCSharingRequestDetail>(response);
+}
+
+export async function acceptTFCSharingRequest(
+  requestId: number,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/tfc-sharing-requests/${requestId}/accept`,
+    {
+      method: "POST",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not accept TFC sharing request."),
+    );
+  }
+
+  return parseJson<TFCSharingRequestDetail>(response);
+}
+
+export async function declineTFCSharingRequest(
+  requestId: number,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/tfc-sharing-requests/${requestId}/decline`,
+    {
+      method: "POST",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not decline TFC sharing request."),
+    );
+  }
+
+  return parseJson<TFCSharingRequestDetail>(response);
+}
+
+export async function fetchSharedTFCs(token: string) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/shared-tfcs`, {
+    method: "GET",
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not load shared TFCs."),
+    );
+  }
+
+  return parseJson<SharedTFCSummary[]>(response);
+}
+
+export async function fetchSharedTFCById(sharedTfcId: number, token: string) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/shared-tfcs/${sharedTfcId}`,
+    {
+      method: "GET",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not load shared TFC."),
+    );
+  }
+
+  return parseJson<SharedTFCDetail>(response);
 }

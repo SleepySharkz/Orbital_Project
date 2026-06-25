@@ -68,7 +68,44 @@ type TFCSharingRequestDetail = {
   items: TFCSharingRequestItem[];
 };
 
+type SharedTFCEntry = {
+  id: number;
+  sourceEntryId: number;
+  flashcardQuestion: string;
+  flashcardNoteContent: string;
+  questionText: string | null;
+  roughNote: string;
+  sourceEntryCreatedAt: string | null;
+};
+
+type SharedTFCSummary = {
+  id: number;
+  moduleId: number;
+  courseCode: string;
+  schoolSem: string;
+  topic: string;
+  entryCount: number;
+  sharedByUserId: number;
+  sharedByUsername: string;
+  acceptedAt: string;
+};
+
+type SharedTFCDetail = {
+  id: number;
+  moduleId: number;
+  courseCode: string;
+  schoolSem: string;
+  topic: string;
+  sharedByUserId: number;
+  sharedByUsername: string;
+  acceptedAt: string;
+  entries: SharedTFCEntry[];
+};
+
 export type {
+  SharedTFCDetail,
+  SharedTFCEntry,
+  SharedTFCSummary,
   TFCSharingCompatibilityStatus,
   TFCSharingRequestDetail,
   TFCSharingRequestEntrySnapshot,

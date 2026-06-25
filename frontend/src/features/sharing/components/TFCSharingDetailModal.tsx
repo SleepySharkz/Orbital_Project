@@ -7,6 +7,9 @@ import type {
 type TFCSharingDetailModalProps = {
   request: TFCSharingRequestDetail;
   viewerUserId: number;
+  isResponding: boolean;
+  onAccept: (requestId: number) => Promise<void>;
+  onDecline: (requestId: number) => Promise<void>;
   onClose: () => void;
 };
 
@@ -43,6 +46,9 @@ function compatibilityLabel(status: TFCSharingCompatibilityStatus | null) {
 export function TFCSharingDetailModal({
   request,
   viewerUserId,
+  isResponding,
+  onAccept,
+  onDecline,
   onClose,
 }: TFCSharingDetailModalProps) {
   const viewerIsRecipient = request.recipientUserId === viewerUserId;
@@ -117,12 +123,23 @@ export function TFCSharingDetailModal({
           </div>
         )}
 
-        {viewerIsRecipient && (
+        {viewerIsRecipient && request.status === "PENDING" && (
           <div className="tfc-sharing-accept-row">
-            <button className="friends-primary-button" type="button" disabled>
-              {request.canAccept
-                ? "Accept all (next checkpoint)"
-                : "Accept all"}
+            <button
+              className="friends-secondary-button"
+              type="button"
+              disabled={isResponding}
+              onClick={() => void onDecline(request.id)}
+            >
+              {isResponding ? "Resolving..." : "Decline"}
+            </button>
+            <button
+              className="friends-primary-button"
+              type="button"
+              disabled={isResponding || !request.canAccept}
+              onClick={() => void onAccept(request.id)}
+            >
+              {isResponding ? "Resolving..." : "Accept all"}
             </button>
           </div>
         )}

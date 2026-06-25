@@ -9,6 +9,8 @@ import "../../modules/styles/modulesStyles.css";
 import "../../friends/styles/friendsStyles.css";
 import { fetchTFCsForModule, type TfcSummary } from "../../tfc/api/tfcApi";
 import {
+  acceptTFCSharingRequest,
+  declineTFCSharingRequest,
   fetchIncomingTFCSharingRequests,
   fetchOutgoingTFCSharingRequests,
   fetchTFCSharingRequestDetail,
@@ -37,6 +39,9 @@ export function SharingPage() {
   const [selectedTFCIds, setSelectedTFCIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [respondingRequestId, setRespondingRequestId] = useState<number | null>(
+    null,
+  );
   const [detailRequestId, setDetailRequestId] = useState<number | null>(null);
   const [selectedRequest, setSelectedRequest] =
     useState<TFCSharingRequestDetail | null>(null);
@@ -117,6 +122,20 @@ export function SharingPage() {
     );
   }
 
+  async function refreshSharingRequests() {
+    if (!token) {
+      return;
+    }
+
+    const [nextIncomingRequests, nextOutgoingRequests] = await Promise.all([
+      fetchIncomingTFCSharingRequests(token),
+      fetchOutgoingTFCSharingRequests(token),
+    ]);
+
+    setIncomingRequests(nextIncomingRequests);
+    setOutgoingRequests(nextOutgoingRequests);
+  }
+
   async function handleSendTFCSharingRequest() {
     if (!token || !selectedFriend) {
       setError("Select a friend for TFC sharing.");
@@ -146,6 +165,52 @@ export function SharingPage() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleAcceptSharingRequest(requestId: number) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccess("");
+      setRespondingRequestId(requestId);
+      await acceptTFCSharingRequest(requestId, token);
+      await refreshSharingRequests();
+      setSelectedRequest(null);
+      setSuccess(
+        "TFC sharing request accepted. Shared copies are available under Shared TFCs.",
+      );
+    } catch (caughtError) {
+      setError(
+        toErrorMessage(caughtError, "Could not accept TFC sharing request."),
+      );
+    } finally {
+      setRespondingRequestId(null);
+    }
+  }
+
+  async function handleDeclineSharingRequest(requestId: number) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccess("");
+      setRespondingRequestId(requestId);
+      await declineTFCSharingRequest(requestId, token);
+      await refreshSharingRequests();
+      setSelectedRequest(null);
+      setSuccess("TFC sharing request declined.");
+    } catch (caughtError) {
+      setError(
+        toErrorMessage(caughtError, "Could not decline TFC sharing request."),
+      );
+    } finally {
+      setRespondingRequestId(null);
     }
   }
 
@@ -313,6 +378,9 @@ export function SharingPage() {
           <TFCSharingDetailModal
             request={selectedRequest}
             viewerUserId={getViewerUserId(selectedRequest, user.email)}
+            isResponding={respondingRequestId === selectedRequest.id}
+            onAccept={handleAcceptSharingRequest}
+            onDecline={handleDeclineSharingRequest}
             onClose={() => setSelectedRequest(null)}
           />
         )}

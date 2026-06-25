@@ -75,4 +75,28 @@ public class TFCSharingRequestController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/tfc-sharing-requests/{requestId}/accept")
+    public ResponseEntity<TFCSharingRequestDetailDto> acceptSharingRequest(
+        @PathVariable Long requestId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        TFCSharingRequestDetailDto response = tfcSharingRequestService.acceptTfcSharingRequest(
+            requestId,
+            userDetails.getId());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/tfc-sharing-requests/{requestId}/decline")
+    public ResponseEntity<TFCSharingRequestDetailDto> declineSharingRequest(
+        @PathVariable Long requestId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        TFCSharingRequestDetailDto response = tfcSharingRequestService.declineTfcSharingRequest(
+            requestId,
+            userDetails.getId());
+
+        return ResponseEntity.ok(response);
+    }
 }
