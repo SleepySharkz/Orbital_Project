@@ -30,9 +30,19 @@ type FriendSummary = {
   friendsSince: string;
 };
 
+type FriendSharingIndicator = {
+  incomingRequestCount: number;
+  incomingTcCount: number;
+  outgoingRequestCount: number;
+  outgoingTcCount: number;
+  outgoingRequestId: number | null;
+  acceptedSharedTcCount: number;
+};
+
 export type {
   FriendRequest,
   FriendRequestStatus,
+  FriendSharingIndicator,
   FriendSummary,
   UserSearchResult,
 };

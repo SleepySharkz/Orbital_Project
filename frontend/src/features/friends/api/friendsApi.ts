@@ -158,3 +158,14 @@ export async function declineFriendRequest(requestId: number, token: string) {
 
   return parseJson<FriendRequest>(response);
 }
+
+export async function removeFriend(friendUserId: number, token: string) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/friends/${friendUserId}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response, "Could not remove friend."));
+  }
+}

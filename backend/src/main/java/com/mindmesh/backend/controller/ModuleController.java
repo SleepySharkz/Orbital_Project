@@ -21,11 +21,11 @@ import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleResponseDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleSummaryDto;
 import com.mindmesh.backend.dto.responses.ModuleRelated.ModuleTopicsResponseDto;
 import com.mindmesh.backend.dto.responses.cfc.CFCSummaryDto;
-import com.mindmesh.backend.dto.responses.tfc.TfcSummaryResponse;
+import com.mindmesh.backend.dto.responses.tc.TcSummaryResponse;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.CFCService;
 import com.mindmesh.backend.service.ModuleService;
-import com.mindmesh.backend.service.TFCService;
+import com.mindmesh.backend.service.TCService;
 
 import jakarta.validation.Valid;
 
@@ -35,12 +35,12 @@ public class ModuleController {
 
   private final ModuleService moduleService;
   private final CFCService cfcService;
-  private final TFCService tfcService;
+  private final TCService tcService;
 
-  public ModuleController(ModuleService moduleService, CFCService cfcService, TFCService tfcService) {
+  public ModuleController(ModuleService moduleService, CFCService cfcService, TCService tcService) {
     this.moduleService = moduleService;
     this.cfcService = cfcService;
-    this.tfcService = tfcService;
+    this.tcService = tcService;
   }
 
   @PostMapping
@@ -115,12 +115,12 @@ public class ModuleController {
     return ResponseEntity.ok(updatedTopics);
   }
 
-  @GetMapping("/{moduleId}/tfcs")
-  public ResponseEntity<List<TfcSummaryResponse>> getTfcsByModule(
+  @GetMapping("/{moduleId}/tcs")
+  public ResponseEntity<List<TcSummaryResponse>> getTcsByModule(
       @PathVariable Long moduleId,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
-    List<TfcSummaryResponse> tfcs = tfcService.getTFCsByModule(moduleId, userDetails.getId());
-    return ResponseEntity.ok(tfcs);
+    List<TcSummaryResponse> tcs = tcService.getTCsByModule(moduleId, userDetails.getId());
+    return ResponseEntity.ok(tcs);
   }
 
 }

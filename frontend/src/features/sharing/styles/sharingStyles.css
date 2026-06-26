@@ -48,13 +48,13 @@
   font-weight: 750;
 }
 
-.sharing-tfc-list {
+.sharing-tc-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.sharing-tfc-row {
+.sharing-tc-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 13px;
@@ -66,26 +66,26 @@
   cursor: pointer;
 }
 
-.sharing-tfc-row input {
+.sharing-tc-row input {
   width: 18px;
   height: 18px;
   accent-color: #3c48ff;
 }
 
-.sharing-tfc-copy {
+.sharing-tc-copy {
   display: grid;
   gap: 4px;
   min-width: 0;
 }
 
-.sharing-tfc-copy strong {
+.sharing-tc-copy strong {
   overflow: hidden;
   color: #1c2840;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sharing-tfc-copy span {
+.sharing-tc-copy span {
   overflow: hidden;
   color: #66728a;
   font-size: 0.88rem;
@@ -99,7 +99,7 @@
 }
 
 @media (max-width: 960px) {
-  .sharing-tfc-list {
+  .sharing-tc-list {
     grid-template-columns: 1fr;
   }
 }
@@ -113,11 +113,11 @@
     min-width: 0;
   }
 
-  .sharing-tfc-row {
+  .sharing-tc-row {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .sharing-tfc-row .friends-status-pill {
+  .sharing-tc-row .friends-status-pill {
     grid-column: 1 / -1;
     width: fit-content;
   }

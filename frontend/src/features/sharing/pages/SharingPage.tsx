@@ -7,44 +7,48 @@ import { fetchModules } from "../../modules/api/moduleApi";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
 import "../../friends/styles/friendsStyles.css";
-import { fetchTFCsForModule, type TfcSummary } from "../../tfc/api/tfcApi";
+import { fetchTCsForModule, type TcSummary } from "../../tc/api/tcApi";
 import {
-  acceptTFCSharingRequest,
-  declineTFCSharingRequest,
-  fetchIncomingTFCSharingRequests,
-  fetchOutgoingTFCSharingRequests,
-  fetchTFCSharingRequestDetail,
-  sendTFCSharingRequest,
-} from "../api/tfcSharingApi";
-import { TFCSharingDetailModal } from "../components/TFCSharingDetailModal";
-import { TFCSharingRequestsPanel } from "../components/TFCSharingRequestsPanel";
+  acceptTCSharingRequest,
+  cancelTCSharingRequest,
+  declineTCSharingRequest,
+  fetchIncomingTCSharingRequests,
+  fetchOutgoingTCSharingRequests,
+  fetchTCSharingRequestDetail,
+  sendTCSharingRequest,
+} from "../api/tcSharingApi";
+import { TCSharingDetailModal } from "../components/TCSharingDetailModal";
+import { TCSharingRequestsPanel } from "../components/TCSharingRequestsPanel";
 import type {
-  TFCSharingRequestDetail,
-  TFCSharingRequestSummary,
-} from "../types/tfcSharingTypes";
+  TCSharingRequestDetail,
+  TCSharingRequestSummary,
+} from "../types/tcSharingTypes";
 import "../styles/sharingStyles.css";
 
 export function SharingPage() {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
   const [friends, setFriends] = useState<FriendSummary[]>([]);
-  const [tfcs, setTFCs] = useState<TfcSummary[]>([]);
+  const [tcs, setTCs] = useState<TcSummary[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<
-    TFCSharingRequestSummary[]
+    TCSharingRequestSummary[]
   >([]);
   const [outgoingRequests, setOutgoingRequests] = useState<
-    TFCSharingRequestSummary[]
+    TCSharingRequestSummary[]
   >([]);
   const [selectedFriendId, setSelectedFriendId] = useState<number | "">("");
-  const [selectedTFCIds, setSelectedTFCIds] = useState<number[]>([]);
+  const [selectedTCIds, setSelectedTCIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [respondingRequestId, setRespondingRequestId] = useState<number | null>(
     null,
   );
+  const [cancellingRequestId, setCancellingRequestId] = useState<number | null>(
+    null,
+  );
   const [detailRequestId, setDetailRequestId] = useState<number | null>(null);
   const [selectedRequest, setSelectedRequest] =
-    useState<TFCSharingRequestDetail | null>(null);
+    useState<TCSharingRequestDetail | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -84,20 +88,20 @@ export function SharingPage() {
           modules,
         ] = await Promise.all([
           fetchFriends(token),
-          fetchIncomingTFCSharingRequests(token),
-          fetchOutgoingTFCSharingRequests(token),
+          fetchIncomingTCSharingRequests(token),
+          fetchOutgoingTCSharingRequests(token),
           fetchModules(token),
         ]);
 
-        const tfcGroups = await Promise.all(
-          modules.map((module) => fetchTFCsForModule(module.id, token)),
+        const tcGroups = await Promise.all(
+          modules.map((module) => fetchTCsForModule(module.id, token)),
         );
 
         setFriends(nextFriends);
         setIncomingRequests(nextIncomingRequests);
         setOutgoingRequests(nextOutgoingRequests);
-        setTFCs(
-          tfcGroups
+        setTCs(
+          tcGroups
             .flat()
             .sort(
               (first, second) =>
@@ -114,11 +118,11 @@ export function SharingPage() {
     void loadSharingPage();
   }, [token]);
 
-  function handleToggleTFC(tfcId: number) {
-    setSelectedTFCIds((currentTFCIds) =>
-      currentTFCIds.includes(tfcId)
-        ? currentTFCIds.filter((currentTFCId) => currentTFCId !== tfcId)
-        : [...currentTFCIds, tfcId],
+  function handleToggleTC(tcId: number) {
+    setSelectedTCIds((currentTCIds) =>
+      currentTCIds.includes(tcId)
+        ? currentTCIds.filter((currentTCId) => currentTCId !== tcId)
+        : [...currentTCIds, tcId],
     );
   }
 
@@ -128,23 +132,23 @@ export function SharingPage() {
     }
 
     const [nextIncomingRequests, nextOutgoingRequests] = await Promise.all([
-      fetchIncomingTFCSharingRequests(token),
-      fetchOutgoingTFCSharingRequests(token),
+      fetchIncomingTCSharingRequests(token),
+      fetchOutgoingTCSharingRequests(token),
     ]);
 
     setIncomingRequests(nextIncomingRequests);
     setOutgoingRequests(nextOutgoingRequests);
   }
 
-  async function handleSendTFCSharingRequest() {
+  async function handleSendTCSharingRequest() {
     if (!token || !selectedFriend) {
-      setError("Select a friend for TFC sharing.");
+      setError("Select a friend for TC sharing.");
       setSuccess("");
       return;
     }
 
-    if (selectedTFCIds.length === 0) {
-      setError("Select at least one TFC for sharing.");
+    if (selectedTCIds.length === 0) {
+      setError("Select at least one TC for sharing.");
       setSuccess("");
       return;
     }
@@ -153,15 +157,15 @@ export function SharingPage() {
       setError("");
       setSuccess("");
       setIsSubmitting(true);
-      await sendTFCSharingRequest(selectedFriend.userId, selectedTFCIds, token);
-      const nextOutgoingRequests = await fetchOutgoingTFCSharingRequests(token);
+      await sendTCSharingRequest(selectedFriend.userId, selectedTCIds, token);
+      const nextOutgoingRequests = await fetchOutgoingTCSharingRequests(token);
       setOutgoingRequests(nextOutgoingRequests);
       setSelectedFriendId("");
-      setSelectedTFCIds([]);
-      setSuccess(`TFC sharing request sent to ${selectedFriend.username}.`);
+      setSelectedTCIds([]);
+      setSuccess(`TC sharing request sent to ${selectedFriend.username}.`);
     } catch (caughtError) {
       setError(
-        toErrorMessage(caughtError, "Could not send TFC sharing request."),
+        toErrorMessage(caughtError, "Could not send TC sharing request."),
       );
     } finally {
       setIsSubmitting(false);
@@ -177,15 +181,15 @@ export function SharingPage() {
       setError("");
       setSuccess("");
       setRespondingRequestId(requestId);
-      await acceptTFCSharingRequest(requestId, token);
+      await acceptTCSharingRequest(requestId, token);
       await refreshSharingRequests();
       setSelectedRequest(null);
       setSuccess(
-        "TFC sharing request accepted. Shared copies are available under Shared TFCs.",
+        "TC sharing request accepted. Shared copies are available under Shared TCs.",
       );
     } catch (caughtError) {
       setError(
-        toErrorMessage(caughtError, "Could not accept TFC sharing request."),
+        toErrorMessage(caughtError, "Could not accept TC sharing request."),
       );
     } finally {
       setRespondingRequestId(null);
@@ -201,16 +205,43 @@ export function SharingPage() {
       setError("");
       setSuccess("");
       setRespondingRequestId(requestId);
-      await declineTFCSharingRequest(requestId, token);
+      await declineTCSharingRequest(requestId, token);
       await refreshSharingRequests();
       setSelectedRequest(null);
-      setSuccess("TFC sharing request declined.");
+      setSuccess("TC sharing request declined.");
     } catch (caughtError) {
       setError(
-        toErrorMessage(caughtError, "Could not decline TFC sharing request."),
+        toErrorMessage(caughtError, "Could not decline TC sharing request."),
       );
     } finally {
       setRespondingRequestId(null);
+    }
+  }
+
+  async function handleCancelOutgoingRequest(requestId: number) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccess("");
+      setCancellingRequestId(requestId);
+      await cancelTCSharingRequest(requestId, token);
+      await refreshSharingRequests();
+      setSelectedRequest((currentRequest) =>
+        currentRequest?.id === requestId ? null : currentRequest,
+      );
+      setSuccess("Pending TC sharing request cancelled.");
+    } catch (caughtError) {
+      setError(
+        toErrorMessage(
+          caughtError,
+          "Could not cancel pending TC sharing request.",
+        ),
+      );
+    } finally {
+      setCancellingRequestId(null);
     }
   }
 
@@ -223,11 +254,11 @@ export function SharingPage() {
       setError("");
       setSuccess("");
       setDetailRequestId(requestId);
-      const detail = await fetchTFCSharingRequestDetail(requestId, token);
+      const detail = await fetchTCSharingRequestDetail(requestId, token);
       setSelectedRequest(detail);
     } catch (caughtError) {
       setError(
-        toErrorMessage(caughtError, "Could not load TFC sharing request."),
+        toErrorMessage(caughtError, "Could not load TC sharing request."),
       );
     } finally {
       setDetailRequestId(null);
@@ -251,7 +282,7 @@ export function SharingPage() {
         <header className="friends-header">
           <div>
             <p className="friends-eyebrow">Sharing</p>
-            <h1>TFC sharing</h1>
+            <h1>TC sharing</h1>
             <p>
               Select a friend and the topic sheets you want to send privately.
             </p>
@@ -277,10 +308,10 @@ export function SharingPage() {
               <div className="friends-section-heading">
                 <div>
                   <p className="friends-label">New request</p>
-                  <h2>Select TFCs for sharing</h2>
+                  <h2>Select TCs for sharing</h2>
                 </div>
                 <p>
-                  A request captures a snapshot of the selected TFCs and sends
+                  A request captures a snapshot of the selected TCs and sends
                   it to one friend.
                 </p>
               </div>
@@ -316,34 +347,34 @@ export function SharingPage() {
                 </div>
 
                 <div className="sharing-selected-count">
-                  <strong>{selectedTFCIds.length}</strong>
-                  <span>{selectedTFCIds.length === 1 ? "TFC" : "TFCs"} selected</span>
+                  <strong>{selectedTCIds.length}</strong>
+                  <span>{selectedTCIds.length === 1 ? "TC" : "TCs"} selected</span>
                 </div>
               </div>
 
-              {tfcs.length === 0 ? (
+              {tcs.length === 0 ? (
                 <p className="friends-empty">
-                  You do not have any TFCs available for sharing yet.
+                  You do not have any TCs available for sharing yet.
                 </p>
               ) : (
-                <div className="sharing-tfc-list">
-                  {tfcs.map((tfc) => (
-                    <label className="sharing-tfc-row" key={tfc.id}>
+                <div className="sharing-tc-list">
+                  {tcs.map((tc) => (
+                    <label className="sharing-tc-row" key={tc.id}>
                       <input
                         type="checkbox"
-                        checked={selectedTFCIds.includes(tfc.id)}
+                        checked={selectedTCIds.includes(tc.id)}
                         disabled={isSubmitting}
-                        onChange={() => handleToggleTFC(tfc.id)}
+                        onChange={() => handleToggleTC(tc.id)}
                       />
-                      <span className="sharing-tfc-copy">
-                        <strong>{tfc.topic}</strong>
+                      <span className="sharing-tc-copy">
+                        <strong>{tc.topic}</strong>
                         <span>
-                          {tfc.courseCode} - {tfc.schoolSem} - {tfc.entryCount}{" "}
-                          {tfc.entryCount === 1 ? "entry" : "entries"}
+                          {tc.courseCode} - {tc.schoolSem} - {tc.entryCount}{" "}
+                          {tc.entryCount === 1 ? "entry" : "entries"}
                         </span>
-                        <span>Updated {formatDateTime(tfc.updatedAt)}</span>
+                        <span>Updated {formatDateTime(tc.updatedAt)}</span>
                       </span>
-                      {tfc.isStale && (
+                      {tc.isStale && (
                         <span className="friends-status-pill">Stale</span>
                       )}
                     </label>
@@ -356,26 +387,28 @@ export function SharingPage() {
                   className="friends-primary-button"
                   type="button"
                   disabled={
-                    isSubmitting || !selectedFriend || selectedTFCIds.length === 0
+                    isSubmitting || !selectedFriend || selectedTCIds.length === 0
                   }
-                  onClick={() => void handleSendTFCSharingRequest()}
+                  onClick={() => void handleSendTCSharingRequest()}
                 >
-                  {isSubmitting ? "Sending..." : "Send TFC sharing request"}
+                  {isSubmitting ? "Sending..." : "Send TC sharing request"}
                 </button>
               </div>
             </section>
 
-            <TFCSharingRequestsPanel
+            <TCSharingRequestsPanel
               incomingRequests={incomingRequests}
               outgoingRequests={outgoingRequests}
               detailRequestId={detailRequestId}
+              cancellingRequestId={cancellingRequestId}
               onViewDetail={handleViewDetail}
+              onCancelOutgoingRequest={handleCancelOutgoingRequest}
             />
           </div>
         )}
 
         {selectedRequest && (
-          <TFCSharingDetailModal
+          <TCSharingDetailModal
             request={selectedRequest}
             viewerUserId={getViewerUserId(selectedRequest, user.email)}
             isResponding={respondingRequestId === selectedRequest.id}
@@ -411,7 +444,7 @@ function toErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-function getViewerUserId(request: TFCSharingRequestDetail, viewerEmail: string) {
+function getViewerUserId(request: TCSharingRequestDetail, viewerEmail: string) {
   const normalizedViewerEmail = viewerEmail.toLowerCase();
 
   if (request.recipientEmail.toLowerCase() === normalizedViewerEmail) {

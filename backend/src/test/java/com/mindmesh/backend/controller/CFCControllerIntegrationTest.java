@@ -40,7 +40,7 @@ import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.FriendRequestRepository;
 import com.mindmesh.backend.repository.FriendshipRepository;
-import com.mindmesh.backend.repository.TFCRepository;
+import com.mindmesh.backend.repository.TCRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.ai.AICFCGenerationService;
@@ -89,7 +89,7 @@ class CFCControllerIntegrationTest {
   private FriendshipRepository friendshipRepository;
 
   @Autowired
-  private TFCRepository tfcRepository;
+  private TCRepository tcRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -101,7 +101,7 @@ class CFCControllerIntegrationTest {
         .build();
 
     cfcRepository.deleteAll();
-    tfcRepository.deleteAll();
+    tcRepository.deleteAll();
     courseModuleRepository.deleteAll();
     friendRequestRepository.deleteAll();
     friendshipRepository.deleteAll();

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type AnimationEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { CreatedCFCEntry } from "../api/cfcApi";
 
 type CFCFlashcardViewerProps = {
@@ -21,8 +29,57 @@ type CardRenderOptions = {
   renderKey?: string;
   isInteractive?: boolean;
   isOverlayStage: boolean;
-  onAnimationEnd?: () => void;
+  animationEndId?: number;
+  onAnimationEnd?: (event: AnimationEvent<HTMLElement>) => void;
 };
+
+type FlashcardStageProps = {
+  isOverlayStage: boolean;
+  entryCount: number;
+  onPrevious: () => void;
+  onNext: () => void;
+  renderDeck: (isOverlayStage: boolean) => ReactNode;
+};
+
+function FlashcardStage({
+  isOverlayStage,
+  entryCount,
+  onPrevious,
+  onNext,
+  renderDeck,
+}: FlashcardStageProps) {
+  return (
+    <div
+      className={
+        isOverlayStage
+          ? "cfc-flashcard-stage cfc-flashcard-stage-overlay"
+          : "cfc-flashcard-stage"
+      }
+    >
+      <button
+        className="cfc-flashcard-nav cfc-flashcard-nav-left"
+        type="button"
+        onClick={onPrevious}
+        aria-label="Previous flashcard"
+        disabled={entryCount < 2}
+      >
+        {"←"}
+      </button>
+
+      {renderDeck(isOverlayStage)}
+
+      <button
+        className="cfc-flashcard-nav cfc-flashcard-nav-right"
+        type="button"
+        onClick={onNext}
+        aria-label="Next flashcard"
+        disabled={entryCount < 2}
+      >
+        {"→"}
+      </button>
+    </div>
+  );
+}
 
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
@@ -150,6 +207,14 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
     setDeckAnimation(null);
   }, [entries.length]);
 
+  const handleMovingCardAnimationEnd = useCallback(
+    (event: AnimationEvent<HTMLElement>) => {
+      const animationId = Number(event.currentTarget.dataset.animationId);
+      finishDeckAnimation(Number.isNaN(animationId) ? undefined : animationId);
+    },
+    [finishDeckAnimation],
+  );
+
   const startDeckAnimation = useCallback(
     (direction: DeckAnimation["direction"]) => {
       if (entries.length < 2) {
@@ -263,6 +328,7 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
     renderKey,
     isInteractive = false,
     isOverlayStage,
+    animationEndId,
     onAnimationEnd,
   }: CardRenderOptions) {
     const renderedQuestionSide = getQuestionText(entry);
@@ -323,6 +389,7 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
             : undefined
         }
         onAnimationEnd={onAnimationEnd}
+        data-animation-id={animationEndId}
         aria-hidden={!isInteractive}
         aria-label={
           isInteractive
@@ -444,44 +511,11 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
                 ? deckAnimation.outgoingWasAnswer
                 : false,
             isOverlayStage,
+            animationEndId: deckAnimation.id,
             onAnimationEnd: shouldHandleAnimationEnd
-              ? () => finishDeckAnimation(deckAnimation.id)
+              ? handleMovingCardAnimationEnd
               : undefined,
           })}
-      </div>
-    );
-  }
-
-  function renderCardStage(isOverlayStage: boolean) {
-    return (
-      <div
-        className={
-          isOverlayStage
-            ? "cfc-flashcard-stage cfc-flashcard-stage-overlay"
-            : "cfc-flashcard-stage"
-        }
-      >
-        <button
-          className="cfc-flashcard-nav cfc-flashcard-nav-left"
-          type="button"
-          onClick={goToPreviousCard}
-          aria-label="Previous flashcard"
-          disabled={entries.length < 2}
-        >
-          {"←"}
-        </button>
-
-        {renderDeck(isOverlayStage)}
-
-        <button
-          className="cfc-flashcard-nav cfc-flashcard-nav-right"
-          type="button"
-          onClick={goToNextCard}
-          aria-label="Next flashcard"
-          disabled={entries.length < 2}
-        >
-          {"→"}
-        </button>
       </div>
     );
   }
@@ -499,7 +533,15 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
         </div>
       </div>
 
-      {!isMaximized && renderCardStage(false)}
+      {!isMaximized && (
+        <FlashcardStage
+          isOverlayStage={false}
+          entryCount={entries.length}
+          onPrevious={goToPreviousCard}
+          onNext={goToNextCard}
+          renderDeck={renderDeck}
+        />
+      )}
 
       {isMaximized && (
         <div className="cfc-flashcard-overlay" role="dialog" aria-modal="true">
@@ -510,7 +552,13 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
             aria-label="Close maximised flashcard"
           />
           <div className="cfc-flashcard-overlay-content">
-            {renderCardStage(true)}
+            <FlashcardStage
+              isOverlayStage={true}
+              entryCount={entries.length}
+              onPrevious={goToPreviousCard}
+              onNext={goToNextCard}
+              renderDeck={renderDeck}
+            />
           </div>
         </div>
       )}

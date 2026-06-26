@@ -17,10 +17,13 @@ import com.mindmesh.backend.dto.responses.friends.FriendSummaryDto;
 import com.mindmesh.backend.dto.responses.friends.UserSearchResultDto;
 import com.mindmesh.backend.entity.FriendRequest;
 import com.mindmesh.backend.entity.Friendship;
+import com.mindmesh.backend.entity.TCSharingRequest;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.FriendRequestStatus;
+import com.mindmesh.backend.enums.TCSharingRequestStatus;
 import com.mindmesh.backend.repository.FriendRequestRepository;
 import com.mindmesh.backend.repository.FriendshipRepository;
+import com.mindmesh.backend.repository.TCSharingRequestRepository;
 import com.mindmesh.backend.repository.UserRepository;
 
 
@@ -30,15 +33,18 @@ public class FriendshipService {
     private final UserRepository userRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final FriendshipRepository friendshipRepository;
+    private final TCSharingRequestRepository tcSharingRequestRepository;
 
     public FriendshipService(
         UserRepository userRepository,
         FriendRequestRepository friendRequestRepository,
-        FriendshipRepository friendshipRepository
+        FriendshipRepository friendshipRepository,
+        TCSharingRequestRepository tcSharingRequestRepository
     ) {
         this.userRepository = userRepository;
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipRepository = friendshipRepository;
+        this.tcSharingRequestRepository = tcSharingRequestRepository;
     }
 
     @Transactional(readOnly = true)
@@ -288,7 +294,28 @@ public class FriendshipService {
                 "Friendship not found.")
             );
 
+        cancelPendingTcSharingRequestsBetween(currentUserId, friendUserId);
         friendshipRepository.delete(friendship);
+    }
+
+    private void cancelPendingTcSharingRequestsBetween(
+        Long firstUserId,
+        Long secondUserId
+    ) {
+        List<TCSharingRequest> pendingRequests =
+            tcSharingRequestRepository.findBetweenUsersWithStatus(
+                firstUserId,
+                secondUserId,
+                TCSharingRequestStatus.PENDING
+            );
+
+        if (pendingRequests.isEmpty()) {
+            return;
+        }
+
+        Instant cancelledAt = Instant.now();
+        pendingRequests.forEach(request -> request.cancel(cancelledAt));
+        tcSharingRequestRepository.saveAll(pendingRequests);
     }
 
     private void ensurePending(FriendRequest request) {

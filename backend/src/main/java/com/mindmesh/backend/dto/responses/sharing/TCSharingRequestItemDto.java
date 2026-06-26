@@ -1,0 +1,128 @@
+package com.mindmesh.backend.dto.responses.sharing;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.mindmesh.backend.enums.TCSharingCompatibilityStatus;
+
+public class TCSharingRequestItemDto {
+
+    private final Long id;
+    private final Long sourceTcId;
+    private final Long sourceModuleId;
+    private final String sourceOwnerUsername;
+    private final String courseCode;
+    private final String schoolSem;
+    private final String topic;
+    private final Boolean sourceWasStaleAtSendTime;
+    private final LocalDateTime sourceUpdatedAt;
+    private final int entryCount;
+    private final List<TCSharingRequestEntrySnapshotDto> entries;
+    private final Long matchingRecipientModuleId;
+    private final Boolean hasMatchingModule;
+    private final Boolean hasMatchingTopic;
+    private final TCSharingCompatibilityStatus compatibilityStatus;
+    private final String blockingReason;
+
+    public TCSharingRequestItemDto(
+        Long id,
+        Long sourceTcId,
+        Long sourceModuleId,
+        String sourceOwnerUsername,
+        String courseCode,
+        String schoolSem,
+        String topic,
+        Boolean sourceWasStaleAtSendTime,
+        LocalDateTime sourceUpdatedAt,
+        int entryCount,
+        List<TCSharingRequestEntrySnapshotDto> entries,
+        Long matchingRecipientModuleId,
+        Boolean hasMatchingModule,
+        Boolean hasMatchingTopic,
+        TCSharingCompatibilityStatus compatibilityStatus,
+        String blockingReason
+
+    ) {
+        this.id = id;
+        this.sourceTcId = sourceTcId;
+        this.sourceModuleId = sourceModuleId;
+        this.sourceOwnerUsername = sourceOwnerUsername;
+        this.courseCode = courseCode;
+        this.schoolSem = schoolSem;
+        this.topic = topic;
+        this.sourceWasStaleAtSendTime = sourceWasStaleAtSendTime;
+        this.sourceUpdatedAt = sourceUpdatedAt;
+        this.entryCount = entryCount;
+        this.entries = entries;
+        this.matchingRecipientModuleId = matchingRecipientModuleId;
+        this.hasMatchingModule = hasMatchingModule;
+        this.hasMatchingTopic = hasMatchingTopic;
+        this.compatibilityStatus = compatibilityStatus;
+        this.blockingReason = blockingReason;
+
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getSourceTcId() {
+        return this.sourceTcId;
+    }
+
+    public Long getSourceModuleId() {
+        return this.sourceModuleId;
+    }
+
+    public String getSourceOwnerUsername() {
+        return this.sourceOwnerUsername;
+    }
+
+    public String getCourseCode() {
+        return this.courseCode;
+    }
+
+    public String getSchoolSem() {
+        return this.schoolSem;
+    }
+
+    public String getTopic() {
+        return this.topic;
+    }
+
+    public Boolean getSourceWasStaleAtSendTime() {
+        return this.sourceWasStaleAtSendTime;
+    }
+
+    public LocalDateTime getSourceUpdatedAt() {
+        return this.sourceUpdatedAt;
+    }
+
+    public int getEntryCount() {
+        return this.entryCount;
+    }
+
+    public List<TCSharingRequestEntrySnapshotDto> getEntries() {
+        return this.entries;
+    }
+
+    public Long getMatchingRecipientModuleId() {
+        return this.matchingRecipientModuleId;
+    }
+
+    public Boolean getHasMatchingModule() {
+        return this.hasMatchingModule;
+    }
+
+    public Boolean getHasMatchingTopic() {
+        return this.hasMatchingTopic;
+    }
+
+    public TCSharingCompatibilityStatus getCompatibilityStatus() {
+        return this.compatibilityStatus;
+    }
+
+    public String getBlockingReason() {
+        return this.blockingReason;
+    }
+}

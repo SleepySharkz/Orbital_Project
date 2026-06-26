@@ -68,7 +68,7 @@ export function DashboardPage() {
               }
               to="/topic-sheets"
             >
-              Topical CheatSheets
+              Topical Cheatsheets
             </NavLink>
 
             <NavLink
@@ -93,9 +93,9 @@ export function DashboardPage() {
               className={({ isActive }) =>
                 isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
               }
-              to="/shared-tfcs"
+              to="/shared-tcs"
             >
-              Shared TFCs
+              Shared TCs
             </NavLink>
           </nav>
         </div>

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,10 +28,13 @@ import org.springframework.web.server.ResponseStatusException;
 import com.mindmesh.backend.dto.responses.friends.FriendRequestResponseDto;
 import com.mindmesh.backend.entity.FriendRequest;
 import com.mindmesh.backend.entity.Friendship;
+import com.mindmesh.backend.entity.TCSharingRequest;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.FriendRequestStatus;
+import com.mindmesh.backend.enums.TCSharingRequestStatus;
 import com.mindmesh.backend.repository.FriendRequestRepository;
 import com.mindmesh.backend.repository.FriendshipRepository;
+import com.mindmesh.backend.repository.TCSharingRequestRepository;
 import com.mindmesh.backend.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +48,9 @@ class FriendshipServiceTest {
 
   @Mock
   private FriendshipRepository friendshipRepository;
+
+  @Mock
+  private TCSharingRequestRepository tcSharingRequestRepository;
 
   @InjectMocks
   private FriendshipService friendshipService;
@@ -239,9 +246,38 @@ class FriendshipServiceTest {
     Friendship friendship = new Friendship(bob, alice);
     when(friendshipRepository.findByUserAIdAndUserBId(1L, 2L))
         .thenReturn(Optional.of(friendship));
+    when(tcSharingRequestRepository.findBetweenUsersWithStatus(
+        2L,
+        1L,
+        TCSharingRequestStatus.PENDING))
+        .thenReturn(List.of());
 
     friendshipService.removeFriend(2L, 1L);
 
+    verify(friendshipRepository).delete(friendship);
+  }
+
+  @Test
+  void removeFriend_cancelsPendingTcSharingRequestsBetweenUsers() {
+    Friendship friendship = new Friendship(bob, alice);
+    TCSharingRequest aliceToBob = buildTcSharingRequest(10L, alice, bob);
+    TCSharingRequest bobToAlice = buildTcSharingRequest(11L, bob, alice);
+
+    when(friendshipRepository.findByUserAIdAndUserBId(1L, 2L))
+        .thenReturn(Optional.of(friendship));
+    when(tcSharingRequestRepository.findBetweenUsersWithStatus(
+        1L,
+        2L,
+        TCSharingRequestStatus.PENDING))
+        .thenReturn(List.of(aliceToBob, bobToAlice));
+
+    friendshipService.removeFriend(1L, 2L);
+
+    assertEquals(TCSharingRequestStatus.CANCELLED, aliceToBob.getStatus());
+    assertEquals(TCSharingRequestStatus.CANCELLED, bobToAlice.getStatus());
+    assertNotNull(aliceToBob.getRespondedAt());
+    assertNotNull(bobToAlice.getRespondedAt());
+    verify(tcSharingRequestRepository).saveAll(List.of(aliceToBob, bobToAlice));
     verify(friendshipRepository).delete(friendship);
   }
 
@@ -256,6 +292,16 @@ class FriendshipServiceTest {
       User sender,
       User recipient) {
     FriendRequest request = new FriendRequest(sender, recipient);
+    ReflectionTestUtils.setField(request, "id", id);
+    ReflectionTestUtils.setField(request, "createdAt", Instant.now());
+    return request;
+  }
+
+  private TCSharingRequest buildTcSharingRequest(
+      Long id,
+      User sender,
+      User recipient) {
+    TCSharingRequest request = new TCSharingRequest(sender, recipient);
     ReflectionTestUtils.setField(request, "id", id);
     ReflectionTestUtils.setField(request, "createdAt", Instant.now());
     return request;
