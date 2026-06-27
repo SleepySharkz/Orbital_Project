@@ -11,7 +11,10 @@ import { CFCPage } from "./features/cfc/pages/CFCPage";
 import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
 import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
-import { TFCListPage } from "./features/tfc/pages/TFCListPage";
+import { FriendsPage } from "./features/friends/pages/FriendsPage";
+import { SharedTCListPage } from "./features/sharing/pages/SharedTCListPage";
+import { SharingPage } from "./features/sharing/pages/SharingPage";
+import { TCListPage } from "./features/tc/pages/TCListPage";
 
 function CFCDetailRedirect() {
   const { cfcId } = useParams();
@@ -92,6 +95,38 @@ function App() {
         }
       />
       <Route
+        path="/friends"
+        element={
+          <ProtectedRoute>
+            <FriendsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sharing"
+        element={
+          <ProtectedRoute>
+            <SharingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/shared-tcs"
+        element={
+          <ProtectedRoute>
+            <SharedTCListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/shared-tcs/:sharedTcId"
+        element={
+          <ProtectedRoute>
+            <SharedTCListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/cfcs/:cfcId"
         element={
           <ProtectedRoute>
@@ -103,15 +138,15 @@ function App() {
         path="/topic-sheets"
         element={
           <ProtectedRoute>
-            <TFCListPage />
+            <TCListPage />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/topic-sheets/:tfcId"
+        path="/topic-sheets/:tcId"
         element={
           <ProtectedRoute>
-            <TFCListPage />
+            <TCListPage />
           </ProtectedRoute>
         }
       />

@@ -59,7 +59,34 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/topic-sheets"
           >
-            Topical CheatSheets
+            Topical Cheatsheets
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/friends"
+          >
+            Friends
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/sharing"
+          >
+            Sharing
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/shared-tcs"
+          >
+            Shared TCs
           </NavLink>
         </nav>
       </div>

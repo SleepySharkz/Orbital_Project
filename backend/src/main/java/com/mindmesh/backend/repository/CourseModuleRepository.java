@@ -1,8 +1,12 @@
 package com.mindmesh.backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.EntityGraph;
+
 import com.mindmesh.backend.entity.CourseModule;
 
 public interface CourseModuleRepository extends JpaRepository<CourseModule, Long> {
@@ -16,11 +20,20 @@ public interface CourseModuleRepository extends JpaRepository<CourseModule, Long
   boolean existsByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCase(
       Long userId,
       String courseCode,
-      String schoolSem);
+      String schoolSem
+    );
 
   boolean existsByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCaseAndIdNot(
       Long userId,
       String courseCode,
       String schoolSem,
-      Long id);
+      Long id
+    );
+
+    @EntityGraph(attributePaths = {"topics"})
+    Optional<CourseModule> findByUserIdAndCourseCodeIgnoreCaseAndSchoolSemIgnoreCase(
+        Long userId,
+        String courseCode,
+        String schoolSem
+    );
 }

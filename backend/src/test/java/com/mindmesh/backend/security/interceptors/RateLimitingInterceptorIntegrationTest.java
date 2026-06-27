@@ -39,6 +39,8 @@ import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.ai.AICFCGenerationService;
@@ -79,6 +81,12 @@ class RateLimitingInterceptorIntegrationTest {
   private CFCRepository cfcRepository;
 
   @Autowired
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
+  @Autowired
   private SlidingWindowRateLimiterService rateLimiterService;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -94,6 +102,8 @@ class RateLimitingInterceptorIntegrationTest {
 
     cfcRepository.deleteAll();
     courseModuleRepository.deleteAll();
+    friendRequestRepository.deleteAll();
+    friendshipRepository.deleteAll();
     userRepository.deleteAll();
 
     @SuppressWarnings("unchecked")

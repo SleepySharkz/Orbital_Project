@@ -58,7 +58,7 @@ AI processes this into:
 This enables:
 
 1. Coursework flashcards (CFCs)
-2. Topical flashcards (TFCs)
+2. Topical cheatsheets (TCs)
 3. Mindmap visualisation
 4. Sharing system
 
@@ -101,7 +101,7 @@ Metadata includes:
 
 ---
 
-## TFC = Topical Flashcard
+## TC = Topical Cheatsheet
 
 Definition:
 A flashcard summarising learning points aggregated by topic.
@@ -113,7 +113,7 @@ Example:
 Topic:
 Binary Search Trees
 
-TFC combines:
+TC combines:
 
 - deletion mistakes
 - traversal notes
@@ -210,7 +210,7 @@ NOT used as literal nested DB.
 
 ---
 
-## Step 4 — Generate TFCs
+## Step 4 — Generate TCs
 
 Using metadata:
 
@@ -225,7 +225,7 @@ All CFCs tagged:
 
 Aggregated into:
 
-TFC:
+TC:
 BST
 
 This creates topic summaries.
@@ -240,9 +240,9 @@ Benefits:
 
 ## Step 5 — Mindmap generation
 
-From TFC metadata:
+From TC metadata:
 
-Each TFC contains:
+Each TC contains:
 
 - current topic
 - related topics
@@ -256,7 +256,7 @@ BST ↔ AVL Trees
 
 Graph:
 
-- nodes = TFCs/topics
+- nodes = TCs/topics
 - edges = related topics
 
 Not all topics are linked.
@@ -311,7 +311,7 @@ Fields:
 Types:
 
 - CFC
-- TFC
+- TC
 
 ---
 
@@ -331,7 +331,7 @@ Tauzih/Year1Sem2/CS2040/CFC/Tutorial
 
 or
 
-Tauzih/Year1Sem2/CS2040/TFC/Trees/BST
+Tauzih/Year1Sem2/CS2040/TC/Trees/BST
 
 This is NOT literal DB nesting.
 
@@ -369,7 +369,7 @@ Need flexible queries.
 
 Example desired query:
 
-"Get all TFCs under CS2040 regardless of semester, sorted by topic"
+"Get all TCs under CS2040 regardless of semester, sorted by topic"
 
 SQL example:
 
@@ -377,7 +377,7 @@ SQL example:
 SELECT *
 FROM flashcards
 WHERE course_code = 'CS2040'
-AND flashcard_type = 'TFC'
+AND flashcard_type = 'TC'
 ORDER BY topic;
 ```
 
@@ -485,7 +485,7 @@ AI extracts:
 
 ---
 
-### 3. TFC aggregation
+### 3. TC aggregation
 
 Combine CFCs by topic.
 
@@ -536,7 +536,7 @@ Not core.
 
 ### 6. Mindmap
 
-Interactive graph of TFCs.
+Interactive graph of TCs.
 
 ---
 
@@ -640,7 +640,7 @@ Core system complete.
 Need:
 
 - CFC generation polished
-- TFC aggregation
+- TC aggregation
 - authentication
 - private sharing
 - basic marketplace/import
@@ -676,7 +676,7 @@ Tree only represents:
 
 Need flexible filtering like:
 
-- all TFCs in CS2040
+- all TCs in CS2040
 - all tutorial CFCs
 - all notes tagged recursion
 
@@ -711,11 +711,11 @@ Poor metadata = weak system.
 
 # Example Query Use Cases
 
-All TFCs in CS2040:
+All TCs in CS2040:
 
 ```sql
 WHERE course_code='CS2040'
-AND flashcard_type='TFC'
+AND flashcard_type='TC'
 ```
 
 All tutorial CFCs:

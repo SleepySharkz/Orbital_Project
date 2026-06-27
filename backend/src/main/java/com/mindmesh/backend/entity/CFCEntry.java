@@ -33,8 +33,8 @@ public class CFCEntry {
   private GeneratedCFCPage generatedCFCPage;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "tfc_id")
-  private TFC tfc;
+  @JoinColumn(name = "tc_id")
+  private TC tc;
 
   @CreationTimestamp
   private LocalDateTime createdAt;
@@ -113,12 +113,12 @@ public class CFCEntry {
     this.generatedCFCPage = cfcEntryContent;
   }
 
-  public TFC getTfc() {
-    return tfc;
+  public TC getTc() {
+    return tc;
   }
 
-  public void setTfc(TFC tfc) {
-    this.tfc = tfc;
+  public void setTc(TC tc) {
+    this.tc = tc;
   }
 
   public LocalDateTime getCreatedAt() {

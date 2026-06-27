@@ -1,6 +1,7 @@
 package com.mindmesh.backend.repository;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
   // the id, so u just need a reference to that entity
   // Lazily returns the ref, so any sql injection only happens when u start
   // // calling methods on that ref
+
+  // Friend discovery uses a bounded substring search to avoid returning an
+  // unbounded portion of the user table.
+  List<User> findTop20ByEmailContainingIgnoreCaseOrderByEmailAsc(String email);
 }

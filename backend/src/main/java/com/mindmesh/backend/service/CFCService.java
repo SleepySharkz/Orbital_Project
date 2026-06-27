@@ -42,17 +42,17 @@ public class CFCService {
   private final CourseModuleRepository courseModuleRepository;
 
   private final AICFCGenerationService aicfcGenerationService;
-  private final TFCService tfcService;
+  private final TCService tcService;
 
   public CFCService(
       CFCRepository cfcRepository,
       CourseModuleRepository courseModuleRepository,
       AICFCGenerationService aicfcGenerationService,
-      TFCService tfcService) {
+      TCService tcService) {
     this.cfcRepository = cfcRepository;
     this.courseModuleRepository = courseModuleRepository;
     this.aicfcGenerationService = aicfcGenerationService;
-    this.tfcService = tfcService;
+    this.tcService = tcService;
   }
 
   @Transactional
@@ -133,7 +133,7 @@ public class CFCService {
         .toList();
 
     for (String topic : distinctTopics) {
-      tfcService.syncTFCForTopic(module, owner, topic);
+      tcService.syncTCForTopic(module, owner, topic);
     }
 
     return toCFCResponseDto(savedCfc);

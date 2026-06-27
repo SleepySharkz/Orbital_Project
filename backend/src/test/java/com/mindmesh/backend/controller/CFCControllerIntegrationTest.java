@@ -1,14 +1,8 @@
 package com.mindmesh.backend.controller;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +13,15 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindmesh.backend.dto.ai.AIGeneratedCFCEntry;
@@ -39,7 +38,9 @@ import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
-import com.mindmesh.backend.repository.TFCRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
+import com.mindmesh.backend.repository.TCRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.ai.AICFCGenerationService;
@@ -82,7 +83,13 @@ class CFCControllerIntegrationTest {
   private CFCRepository cfcRepository;
 
   @Autowired
-  private TFCRepository tfcRepository;
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
+  @Autowired
+  private TCRepository tcRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -94,8 +101,10 @@ class CFCControllerIntegrationTest {
         .build();
 
     cfcRepository.deleteAll();
-    tfcRepository.deleteAll();
+    tcRepository.deleteAll();
     courseModuleRepository.deleteAll();
+    friendRequestRepository.deleteAll();
+    friendshipRepository.deleteAll();
     userRepository.deleteAll();
   }
 

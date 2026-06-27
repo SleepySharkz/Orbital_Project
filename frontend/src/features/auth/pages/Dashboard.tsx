@@ -61,6 +61,42 @@ export function DashboardPage() {
             >
               My CFCs
             </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/topic-sheets"
+            >
+              Topical Cheatsheets
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/friends"
+            >
+              Friends
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/sharing"
+            >
+              Sharing
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
+              to="/shared-tcs"
+            >
+              Shared TCs
+            </NavLink>
           </nav>
         </div>
 
