@@ -28,9 +28,6 @@ public class PublishMarketplaceListingRequestDto {
     @Size(max = 120, message = "Institution must not exceed 120 characters.")
     private String institution;
 
-    @Size(max = 40, message = "Difficulty must not exceed 40 characters.")
-    private String difficulty;
-
     @NotNull(message = "Publisher visibility is required.")
     private PublisherVisibility publisherVisibility;
 
@@ -75,14 +72,6 @@ public class PublishMarketplaceListingRequestDto {
 
     public void setInstitution(String institution) {
         this.institution = institution;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
     }
 
     public PublisherVisibility getPublisherVisibility() {

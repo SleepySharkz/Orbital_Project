@@ -72,9 +72,6 @@ public class MarketplaceListing {
   @Column(length = 120)
   private String institution;
 
-  @Column(length = 40)
-  private String difficulty;
-
   // Give user the authority to decide if he wants the publisher to be known to
   // the public
   @Enumerated(EnumType.STRING)
@@ -129,7 +126,6 @@ public class MarketplaceListing {
       String topic,
       String tags,
       String institution,
-      String difficulty,
       PublisherVisibility publisherVisibility,
       String publisherDisplayName) {
     if (publisher == null) {
@@ -162,7 +158,6 @@ public class MarketplaceListing {
     this.topic = topic;
     this.tags = tags;
     this.institution = institution;
-    this.difficulty = difficulty;
     this.publisherVisibility = publisherVisibility;
     this.publisherDisplayName = publisherDisplayName;
     this.status = MarketplaceListingStatus.PUBLISHED;
@@ -264,10 +259,6 @@ public class MarketplaceListing {
 
   public String getInstitution() {
     return institution;
-  }
-
-  public String getDifficulty() {
-    return difficulty;
   }
 
   public PublisherVisibility getPublisherVisibility() {

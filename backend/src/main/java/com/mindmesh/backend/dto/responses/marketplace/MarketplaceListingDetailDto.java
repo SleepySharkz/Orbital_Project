@@ -18,7 +18,6 @@ public class MarketplaceListingDetailDto {
     private final String topic;
     private final List<String> tags;
     private final String institution;
-    private final String difficulty;
     private final PublisherVisibility publisherVisibility;
     private final String publisherDisplayName;
     private final MarketplaceListingStatus status;
@@ -42,7 +41,6 @@ public class MarketplaceListingDetailDto {
         String topic,
         List<String> tags,
         String institution,
-        String difficulty,
         PublisherVisibility publisherVisibility,
         String publisherDisplayName,
         MarketplaceListingStatus status,
@@ -65,7 +63,6 @@ public class MarketplaceListingDetailDto {
         this.topic = topic;
         this.tags = tags;
         this.institution = institution;
-        this.difficulty = difficulty;
         this.publisherVisibility = publisherVisibility;
         this.publisherDisplayName = publisherDisplayName;
         this.status = status;
@@ -117,10 +114,6 @@ public class MarketplaceListingDetailDto {
 
     public String getInstitution() {
         return institution;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
     }
 
     public PublisherVisibility getPublisherVisibility() {

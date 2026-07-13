@@ -115,7 +115,8 @@ class CFCServiceTest {
     assertEquals(2, response.getEntries().size());
     assertEquals(1L, response.getEntries().get(0).getRequestItemId());
     assertEquals("Explain BST deletion", response.getEntries().get(0).getSourceMaterial().getQuestionText());
-    assertEquals("I mixed up predecessor and successor.", response.getEntries().get(0).getSourceMaterial().getRoughNote());
+    assertEquals("I mixed up predecessor and successor.",
+        response.getEntries().get(0).getSourceMaterial().getRoughNote());
     assertNull(response.getEntries().get(1).getSourceMaterial().getQuestionText());
     assertEquals("AI flashcard question 1", response.getEntries().get(0).getFlashcardQuestion());
     assertEquals("AI flashcard question 2", response.getEntries().get(1).getFlashcardQuestion());
@@ -171,6 +172,7 @@ class CFCServiceTest {
         "Tutorial 5",
         List.of(buildItem(1L, "Trees", "   ", List.of(), "Note")));
 
+    // REMEMBER these accepts longs
     when(courseModuleRepository.findByIdAndUserId(12L, 7L)).thenReturn(Optional.of(module));
 
     ResponseStatusException exception = assertThrows(
