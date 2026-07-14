@@ -16,7 +16,6 @@ import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPublishR
 import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.MarketplaceListing;
 import com.mindmesh.backend.entity.MarketplaceListingEntrySnapshot;
-import com.mindmesh.backend.entity.ModuleTopic;
 import com.mindmesh.backend.entity.TC;
 import com.mindmesh.backend.enums.MarketplaceListingStatus;
 import com.mindmesh.backend.enums.PublisherVisibility;
