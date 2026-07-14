@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { fetchCFCsForModule, type CFCSummary } from "../../cfc/api/cfcApi";
 import { fetchModuleById, type ModuleResponse } from "../api/moduleApi";
 import { CFCSummaryList } from "../components/CFCSummaryList";

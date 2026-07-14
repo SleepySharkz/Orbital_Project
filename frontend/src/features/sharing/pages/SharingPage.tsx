@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { fetchFriends } from "../../friends/api/friendsApi";
 import type { FriendSummary } from "../../friends/types/friendTypes";
 import { fetchModules } from "../../modules/api/moduleApi";

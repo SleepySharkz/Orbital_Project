@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { fetchModules, fetchModuleTopics, type ModuleSummary } from "../../modules/api/moduleApi";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import { createCFCRequest, type SourceType } from "../api/cfcApi";
