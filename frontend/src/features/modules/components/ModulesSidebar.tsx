@@ -84,6 +84,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             className={({ isActive }) =>
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
+            to="/marketplace"
+          >
+            Marketplace
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
             to="/shared-tcs"
           >
             Shared TCs

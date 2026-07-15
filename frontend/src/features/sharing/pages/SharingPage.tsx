@@ -287,10 +287,6 @@ export function SharingPage() {
               Select a friend and the topic sheets you want to send privately.
             </p>
           </div>
-          <div className="friends-header-stat">
-            <strong>{incomingRequests.length + outgoingRequests.length}</strong>
-            <span>requests</span>
-          </div>
         </header>
 
         {error && <p className="friends-banner friends-banner-error">{error}</p>}
@@ -308,7 +304,13 @@ export function SharingPage() {
               <div className="friends-section-heading">
                 <div>
                   <p className="friends-label">New request</p>
-                  <h2>Select TCs for sharing</h2>
+                  <div className="sharing-heading-row">
+                    <h2>Select TCs to share with your friends!</h2>
+                    <span className="sharing-selected-inline">
+                      {selectedTCIds.length}{" "}
+                      {selectedTCIds.length === 1 ? "TC" : "TCs"} selected
+                    </span>
+                  </div>
                 </div>
                 <p>
                   A request captures a snapshot of the selected TCs and sends
@@ -316,40 +318,33 @@ export function SharingPage() {
                 </p>
               </div>
 
-              <div className="sharing-compose-grid">
-                <div className="sharing-field">
-                  <label className="sharing-field-label" htmlFor="friend">
-                    Friend
-                  </label>
-                  <select
-                    className="friends-input"
-                    id="friend"
-                    value={selectedFriendId}
-                    disabled={isSubmitting}
-                    onChange={(event) =>
-                      setSelectedFriendId(
-                        event.target.value
-                          ? Number(event.target.value)
-                          : "",
-                      )
-                    }
-                  >
-                    <option value="">Select a friend</option>
-                    {friends.map((friend) => (
-                      <option value={friend.userId} key={friend.userId}>
-                        {friend.username}
-                        {pendingOutgoingByFriendId[friend.userId]
-                          ? " - pending request exists"
-                          : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="sharing-selected-count">
-                  <strong>{selectedTCIds.length}</strong>
-                  <span>{selectedTCIds.length === 1 ? "TC" : "TCs"} selected</span>
-                </div>
+              <div className="sharing-field">
+                <label className="sharing-field-label" htmlFor="friend">
+                  Friend
+                </label>
+                <select
+                  className="friends-input"
+                  id="friend"
+                  value={selectedFriendId}
+                  disabled={isSubmitting}
+                  onChange={(event) =>
+                    setSelectedFriendId(
+                      event.target.value
+                        ? Number(event.target.value)
+                        : "",
+                    )
+                  }
+                >
+                  <option value="">Select a friend</option>
+                  {friends.map((friend) => (
+                    <option value={friend.userId} key={friend.userId}>
+                      {friend.username}
+                      {pendingOutgoingByFriendId[friend.userId]
+                        ? " - pending request exists"
+                        : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {tcs.length === 0 ? (
