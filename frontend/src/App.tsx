@@ -15,6 +15,7 @@ import { FriendsPage } from "./features/friends/pages/FriendsPage";
 import { SharedTCListPage } from "./features/sharing/pages/SharedTCListPage";
 import { SharingPage } from "./features/sharing/pages/SharingPage";
 import { TCListPage } from "./features/tc/pages/TCListPage";
+import { MindmapPage } from "./features/mindmap/pages/MindmapPage";
 
 function CFCDetailRedirect() {
   const { cfcId } = useParams();
@@ -147,6 +148,14 @@ function App() {
         element={
           <ProtectedRoute>
             <TCListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mindmap"
+        element={
+          <ProtectedRoute>
+            <MindmapPage />
           </ProtectedRoute>
         }
       />

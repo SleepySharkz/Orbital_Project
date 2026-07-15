@@ -66,6 +66,15 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             className={({ isActive }) =>
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
+            to="/mindmap"
+          >
+            Mindmap
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
             to="/friends"
           >
             Friends

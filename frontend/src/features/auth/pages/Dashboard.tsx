@@ -75,6 +75,15 @@ export function DashboardPage() {
               className={({ isActive }) =>
                 isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
               }
+              to="/mindmap"
+            >
+              Mindmap
+            </NavLink>
+
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
+              }
               to="/friends"
             >
               Friends
