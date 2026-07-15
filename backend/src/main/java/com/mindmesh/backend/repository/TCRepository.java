@@ -30,4 +30,14 @@ public interface TCRepository extends JpaRepository<TC, Long> {
         AND tc.id IN :ids
       """)
   List<TC> findAllOwnedByIdIn(@Param("ownerId") Long ownerId, @Param("ids") List<Long> ids);
+
+  @Query("""
+      SELECT DISTINCT tc
+      FROM TC tc
+      JOIN FETCH tc.entries
+      WHERE tc.owner.id = :ownerId
+        AND tc.module.id = :moduleId
+      ORDER BY tc.topic ASC
+      """)
+  List<TC> findMindmapCandidates(@Param("ownerId") Long ownerId, @Param("moduleId") Long moduleId);
 }

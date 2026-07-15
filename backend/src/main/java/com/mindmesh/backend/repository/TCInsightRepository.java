@@ -40,4 +40,28 @@ public interface TCInsightRepository extends JpaRepository<TCInsight, Long> {
 
   @EntityGraph(attributePaths = { "user", "module", "tcA", "tcB", "points" })
   Optional<TCInsight> findDetailByIdAndUserId(Long id, Long userId);
+
+
+  @EntityGraph(attributePaths = { "tcA", "tcB" })
+  @Query("""
+      SELECT insight
+      FROM TCInsight insight
+      WHERE insight.user.id = :userId
+        AND insight.module.id = :moduleId
+        AND (
+          insight.status = :readyStatus
+          OR (
+            insight.status = :refreshingStatus
+            AND insight.title IS NOT NULL
+            AND insight.summary IS NOT NULL
+          )
+        )
+      ORDER BY insight.updatedAt DESC
+      """)
+  List<TCInsight> findReadableMindmapEdges(
+      @Param("userId") Long userId,
+      @Param("moduleId") Long moduleId,
+      @Param("readyStatus") TCInsightStatus readyStatus,
+      @Param("refreshingStatus") TCInsightStatus refreshingStatus
+  );
 }
