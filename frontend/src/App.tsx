@@ -12,6 +12,8 @@ import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
 import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
 import { FriendsPage } from "./features/friends/pages/FriendsPage";
+import { MarketplaceBrowsePage } from "./features/marketplace/pages/MarketplaceBrowsePage";
+import { MarketplaceListingDetailPage } from "./features/marketplace/pages/MarketplaceListingDetailPage";
 import { SharedTCListPage } from "./features/sharing/pages/SharedTCListPage";
 import { SharingPage } from "./features/sharing/pages/SharingPage";
 import { TCListPage } from "./features/tc/pages/TCListPage";
@@ -108,6 +110,22 @@ function App() {
         element={
           <ProtectedRoute>
             <SharingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/marketplace"
+        element={
+          <ProtectedRoute>
+            <MarketplaceBrowsePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/marketplace/:listingId"
+        element={
+          <ProtectedRoute>
+            <MarketplaceListingDetailPage />
           </ProtectedRoute>
         }
       />

@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useState,
   type ReactNode,
@@ -14,21 +12,9 @@ import {
   type SignupCredentials,
   type User,
 } from "../api/authApi";
-
-type AuthContextValue = {
-  user: User | null;
-  token: string | null;
-  loading: boolean;
-  signup: (credentials: SignupCredentials) => Promise<string>;
-  login: (credentials: LoginCredentials) => Promise<User>;
-  logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
-};
+import { AuthContext } from "./authContextValue";
 
 const AUTH_TOKEN_KEY = "authToken";
-
-// Also we have a reusable security context for the pages to cleanly use.
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // SEPARATION OF CONCERNS -> We let AuthProvider provide apis to handle authentication and fetching side for the pages
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem(AUTH_TOKEN_KEY),
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(token));
 
   async function refreshUser() {
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -88,7 +74,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    void refreshUser();
+    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (!storedToken) {
+      return;
+    }
+
+    let didCancel = false;
+
+    fetchCurrentUser(storedToken)
+      .then((currentUser) => {
+        if (didCancel) {
+          return;
+        }
+
+        setToken(storedToken);
+        setUser(currentUser);
+      })
+      .catch(() => {
+        if (didCancel) {
+          return;
+        }
+
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        setToken(null);
+        setUser(null);
+      })
+      .finally(() => {
+        if (!didCancel) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      didCancel = true;
+    };
   }, []);
 
   return (
@@ -106,14 +126,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider.");
-  }
-
-  return context;
 }

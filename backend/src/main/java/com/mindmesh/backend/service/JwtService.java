@@ -21,7 +21,6 @@ import io.jsonwebtoken.security.SignatureException;
 
 // For now we will stick with single tokens (No refresh - access token).
 // But sure later can modify
-// TODO: Augment JWT to use refresh tokens
 @Service
 public class JwtService {
 

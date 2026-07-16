@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 // Another router that ensures that already authenticated users dont see the signup / login page ever again
 export function PublicOnlyRoute({ children }: { children: ReactNode }) {
