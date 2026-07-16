@@ -14,7 +14,6 @@ import com.mindmesh.backend.enums.MarketplaceListingStatus;
 
 public interface MarketplaceListingRepository extends JpaRepository<MarketplaceListing, Long> {
 
-  // Just pure find queries (Pagination to be done later IMPORTANT)
   // Performance optimisation using attributePaths. We also eagerly query other
   // attributes together as one read, to prevent second reads.
   // Likely need to load children entries

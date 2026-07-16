@@ -3,10 +3,12 @@ package com.mindmesh.backend.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -238,6 +241,96 @@ class MarketplaceControllerIntegrationTest {
         .andExpect(status().isForbidden());
   }
 
+  @Test
+  void browseListings_returnsOnlyPublishedMatchingListingsWithPageMetadata() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user, "Trees", "Heaps");
+    TC visibleTc = saveTcWithEntries(module, user, "Trees", 1);
+    TC hiddenTc = saveTcWithEntries(module, user, "Heaps", 1);
+
+    publishListing(
+        user,
+        """
+            {
+              "tcId": %d,
+              "publicTitle": "BST Revision Pack",
+              "description": "Binary search tree drills",
+              "tags": ["trees"],
+              "publisherVisibility": "DISPLAY_NAME"
+            }
+            """.formatted(visibleTc.getId()))
+        .andExpect(status().isCreated());
+
+    publishListing(user, publishRequestJson(hiddenTc, "Hidden BST Pack"))
+        .andExpect(status().isCreated());
+
+    MarketplaceListing hiddenListing = marketplaceListingRepository
+        .findByPublisherIdOrderByPublishedAtDesc(user.getId(), Pageable.unpaged())
+        .getContent()
+        .stream()
+        .filter(listing -> listing.getPublicTitle().equals("Hidden BST Pack"))
+        .findFirst()
+        .orElseThrow();
+    hiddenListing.unlist(Instant.now());
+    marketplaceListingRepository.save(hiddenListing);
+
+    mockMvc.perform(get("/api/v1/marketplace/listings")
+        .with(authentication(authFor(user)))
+        .param("q", "binary")
+        .param("page", "0")
+        .param("size", "12")
+        .param("sort", "newest"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(1)))
+        .andExpect(jsonPath("$.items[0].publicTitle").value("BST Revision Pack"))
+        .andExpect(jsonPath("$.items[0].descriptionPreview").value("Binary search tree drills"))
+        .andExpect(jsonPath("$.items[0].courseCode").value("CS2040"))
+        .andExpect(jsonPath("$.items[0].topic").value("Trees"))
+        .andExpect(jsonPath("$.page").value(0))
+        .andExpect(jsonPath("$.size").value(12))
+        .andExpect(jsonPath("$.totalItems").value(1))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.hasNext").value(false));
+  }
+
+  @Test
+  void getListingDetail_returnsPublishedEntriesWithoutPrivateSourceFields() throws Exception {
+    User user = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(user, "Trees");
+    TC tc = saveTcWithEntries(module, user, "Trees", 2);
+
+    publishListing(
+        user,
+        """
+            {
+              "tcId": %d,
+              "publicTitle": "BST Revision Pack",
+              "description": "Useful public summary",
+              "tags": ["trees"],
+              "institution": "NUS",
+              "publisherVisibility": "DISPLAY_NAME"
+            }
+            """.formatted(tc.getId()))
+        .andExpect(status().isCreated());
+
+    MarketplaceListing listing = savedListingFor(user);
+
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(user))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.publicTitle").value("BST Revision Pack"))
+        .andExpect(jsonPath("$.description").value("Useful public summary"))
+        .andExpect(jsonPath("$.entries", hasSize(2)))
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Flashcard question 2"))
+        .andExpect(jsonPath("$.entries[0].flashcardNoteContent").value("Flashcard note content 2"))
+        .andExpect(jsonPath("$.entries[0].displayOrder").value(0))
+        .andExpect(jsonPath("$.sourceTcId").doesNotExist())
+        .andExpect(jsonPath("$.sourceModuleId").doesNotExist())
+        .andExpect(jsonPath("$.status").doesNotExist())
+        .andExpect(jsonPath("$.entries[0].sourceEntryId").doesNotExist())
+        .andExpect(jsonPath("$.entries[0].sourceEntryCreatedAt").doesNotExist());
+  }
+
   private ResultActions publishListing(User user, String requestJson) throws Exception {
     return mockMvc.perform(post("/api/v1/marketplace/listings")
         .with(authentication(authFor(user)))
@@ -257,7 +350,8 @@ class MarketplaceControllerIntegrationTest {
 
   private MarketplaceListing savedListingFor(User user) {
     MarketplaceListing listingSummary = marketplaceListingRepository
-        .findByPublisherIdOrderByPublishedAtDesc(user.getId())
+        .findByPublisherIdOrderByPublishedAtDesc(user.getId(), Pageable.unpaged())
+        .getContent()
         .get(0);
 
     return marketplaceListingRepository
