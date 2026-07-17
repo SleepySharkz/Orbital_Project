@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
+import "../../tc/styles/tcStyles.css";
 import { fetchMarketplaceListingDetail } from "../api/marketplaceApi";
-import { MarketplaceEntryPreview } from "../components/MarketplaceEntryPreview";
 import "../styles/marketplaceStyles.css";
 import type { MarketplaceListingDetail } from "../types/marketplaceTypes";
 
@@ -139,16 +139,35 @@ export function MarketplaceListingDetailPage() {
 
               <section className="marketplace-entry-section">
                 <div className="marketplace-section-heading">
-                  <h2>Published entries</h2>
+                  <h2>Cheatsheet preview</h2>
                   <span>
                     {listing.entryCount}{" "}
                     {listing.entryCount === 1 ? "entry" : "entries"}
                   </span>
                 </div>
 
-                <div className="marketplace-entry-list">
+                <div className="marketplace-sheet">
                   {listing.entries.map((entry) => (
-                    <MarketplaceEntryPreview entry={entry} key={entry.id} />
+                    <article className="marketplace-sheet-entry" key={entry.id}>
+                      <div className="tc-entry-header">
+                        <h2 className="tc-entry-question">
+                          {entry.flashcardQuestion}
+                        </h2>
+                      </div>
+
+                      <div className="tc-note-block">
+                        {entry.flashcardNoteContent
+                          .split("\n")
+                          .map((line, lineIndex) => (
+                            <p
+                              className="tc-note-line"
+                              key={`${entry.id}-${lineIndex}`}
+                            >
+                              {line}
+                            </p>
+                          ))}
+                      </div>
+                    </article>
                   ))}
                 </div>
               </section>
