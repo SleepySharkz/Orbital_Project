@@ -14,6 +14,9 @@ public interface TCRepository extends JpaRepository<TC, Long> {
 
   Optional<TC> findByIdAndOwnerId(Long id, Long userId);
 
+  @EntityGraph(attributePaths = {"owner", "module", "module.topics"})
+  Optional<TC> findWithSourceMetadataByIdAndOwnerId(Long id, Long userId);
+
   Optional<TC> findByOwnerIdAndModuleIdAndTopic(Long ownerId, Long moduleId, String topic);
 
   List<TC> findAllByOwnerIdAndModuleIdOrderByUpdatedAtDesc(Long ownerId, Long moduleId);

@@ -28,6 +28,9 @@ public interface MarketplaceListingRepository extends JpaRepository<MarketplaceL
   Page<MarketplaceListing> findByPublisherIdOrderByPublishedAtDesc(Long publisherId, Pageable pageable);
 
   @EntityGraph(attributePaths = { "publisher" })
+  Page<MarketplaceListing> findByPublisherIdOrderByUpdatedAtDesc(Long publisherId, Pageable pageable);
+
+  @EntityGraph(attributePaths = { "publisher" })
   Page<MarketplaceListing> findByStatusOrderByPublishedAtDesc(MarketplaceListingStatus status, Pageable pageable);
 
   @EntityGraph(attributePaths = { "publisher" })
@@ -79,6 +82,11 @@ public interface MarketplaceListingRepository extends JpaRepository<MarketplaceL
       Long publisherId,
       Long sourceTcId,
       MarketplaceListingStatus status);
+
+  boolean existsByPublisherIdAndSourceTcIdAndStatusIn(
+      Long publisherId,
+      Long sourceTcId,
+      Iterable<MarketplaceListingStatus> statuses);
 
   // Publisher can still view his/her listing even though if its hidden from
   // public

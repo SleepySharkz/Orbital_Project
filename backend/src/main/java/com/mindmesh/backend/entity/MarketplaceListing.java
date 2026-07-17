@@ -128,6 +128,8 @@ public class MarketplaceListing {
       String institution,
       PublisherVisibility publisherVisibility,
       String publisherDisplayName) {
+
+    // Validation checks
     if (publisher == null) {
       throw new IllegalArgumentException("Publisher is required.");
     }
@@ -211,6 +213,55 @@ public class MarketplaceListing {
 
     this.status = MarketplaceListingStatus.REMOVED;
     this.removedAt = removedAt;
+  }
+
+  // Faciliate metedata editing for listing management
+  public void updateMetadata(
+      String publicTitle,
+      String description,
+      String tags,
+      String institution,
+      PublisherVisibility publisherVisibility,
+      String publisherDisplayName) {
+    if (isBlank(publicTitle)) {
+      throw new IllegalArgumentException("Public title is required.");
+    }
+
+    if (publisherVisibility == null) {
+      throw new IllegalArgumentException("Publisher visibility is required.");
+    }
+
+    if (isBlank(publisherDisplayName)) {
+      throw new IllegalArgumentException("Publisher display name is required.");
+    }
+
+    this.publicTitle = publicTitle;
+    this.description = description;
+    this.tags = tags;
+    this.institution = institution;
+    this.publisherVisibility = publisherVisibility;
+    this.publisherDisplayName = publisherDisplayName;
+  }
+
+  // We support full replacement of new TC (Even unchanged entries get replaced)
+  // Currently we feel that versioning is of no priority -> adds complexity for
+  // not much benefit
+  public void replaceEntries(List<MarketplaceListingEntrySnapshot> replacementEntries) {
+    clearEntries();
+
+    if (replacementEntries == null) {
+      return;
+    }
+
+    for (MarketplaceListingEntrySnapshot entry : replacementEntries) {
+      addEntry(entry);
+    }
+  }
+
+  public void clearEntries() {
+    for (MarketplaceListingEntrySnapshot entry : new ArrayList<>(entries)) {
+      removeEntry(entry);
+    }
   }
 
   private boolean isBlank(String value) {
