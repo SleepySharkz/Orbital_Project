@@ -1,17 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/context/AuthContext";
 import { fetchModules, type ModuleSummary } from "../../modules/api/moduleApi";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
-import { fetchModuleMindmap } from "../api/mindmapApi";
+import {
+  discoverInsight,
+  fetchInsightDetail,
+  fetchModuleMindmap,
+  pollInsightUntilSettled,
+} from "../api/mindmapApi";
 import { InsightSheetPanel } from "../components/InsightSheetPanel";
 import { MindmapCanvas } from "../components/MindmapCanvas";
 import { ModuleMindmapSelector } from "../components/ModuleMindmapSelector";
 import {
+  canonicalPairKey,
+  detailToReadyEdge,
   edgeMatchesSelection,
   updateMindmapSelection,
   type MindmapEdge,
+  type MindmapInsightDetail,
   type MindmapResponse,
 } from "../types/mindmapTypes";
 import "../styles/mindmapStyles.css";
@@ -23,12 +31,18 @@ export function MindmapPage() {
   const [selectedModuleId, setSelectedModuleId] = useState<number | "">("");
   const [mindmap, setMindmap] = useState<MindmapResponse | null>(null);
   const [selectedTcIds, setSelectedTcIds] = useState<number[]>([]);
-  const [selectedEdge, setSelectedEdge] = useState<MindmapEdge | null>(null);
+  const [selectedInsight, setSelectedInsight] =
+    useState<MindmapInsightDetail | null>(null);
+  const [discoveringPairKey, setDiscoveringPairKey] = useState<string | null>(
+    null,
+  );
   const [isModulesLoading, setIsModulesLoading] = useState(true);
   const [isMindmapLoading, setIsMindmapLoading] = useState(false);
   const [modulesError, setModulesError] = useState("");
   const [mindmapError, setMindmapError] = useState("");
   const [selectionNotice, setSelectionNotice] = useState("");
+  const activeOperationRef = useRef(0);
+  const inFlightPairsRef = useRef(new Set<string>());
 
   useEffect(() => {
     let ignore = false;
@@ -47,7 +61,6 @@ export function MindmapPage() {
         setModulesError("");
         setIsModulesLoading(true);
         const fetchedModules = await fetchModules(token);
-
         if (ignore) {
           return;
         }
@@ -60,7 +73,6 @@ export function MindmapPage() {
           ) {
             return currentModuleId;
           }
-
           return fetchedModules[0]?.id ?? "";
         });
       } catch (caughtError) {
@@ -77,7 +89,6 @@ export function MindmapPage() {
     }
 
     void loadModules();
-
     return () => {
       ignore = true;
     };
@@ -85,6 +96,7 @@ export function MindmapPage() {
 
   useEffect(() => {
     let ignore = false;
+    activeOperationRef.current += 1;
 
     async function loadMindmap() {
       if (!token || selectedModuleId === "") {
@@ -99,10 +111,9 @@ export function MindmapPage() {
         setMindmapError("");
         setIsMindmapLoading(true);
         setSelectedTcIds([]);
-        setSelectedEdge(null);
+        setSelectedInsight(null);
         setSelectionNotice("");
         const response = await fetchModuleMindmap(selectedModuleId, token);
-
         if (!ignore) {
           setMindmap(response);
         }
@@ -119,7 +130,6 @@ export function MindmapPage() {
     }
 
     void loadMindmap();
-
     return () => {
       ignore = true;
     };
@@ -136,6 +146,10 @@ export function MindmapPage() {
   const selectedTopics = selectedTcIds
     .map((tcId) => nodeTopicsById.get(tcId))
     .filter((topic): topic is string => Boolean(topic));
+  const selectedPairKey =
+    selectedTcIds.length === 2 ? canonicalPairKey(selectedTcIds) : null;
+  const isSelectedPairDiscovering =
+    selectedPairKey !== null && discoveringPairKey === selectedPairKey;
 
   async function handleLogout() {
     await logout();
@@ -143,42 +157,137 @@ export function MindmapPage() {
   }
 
   function handleModuleChange(moduleId: number) {
+    activeOperationRef.current += 1;
     setSelectedTcIds([]);
-    setSelectedEdge(null);
+    setSelectedInsight(null);
     setSelectionNotice("");
     setSelectedModuleId(moduleId);
   }
 
   function handleToggleNode(tcId: number) {
-    setSelectedTcIds((currentIds) =>
-      updateMindmapSelection(currentIds, tcId),
-    );
-    setSelectedEdge(null);
+    activeOperationRef.current += 1;
+    setSelectedTcIds((currentIds) => updateMindmapSelection(currentIds, tcId));
+    setSelectedInsight(null);
     setSelectionNotice("");
   }
 
-  function handleOpenInsight(edge: MindmapEdge) {
-    setSelectedTcIds([edge.sourceTcId, edge.targetTcId]);
-    setSelectedEdge(edge);
-    setSelectionNotice("");
-  }
-
-  function handleDiscoverInsight() {
-    if (!mindmap || selectedTcIds.length !== 2) {
+  async function handleOpenInsight(edge: MindmapEdge) {
+    if (!token) {
       return;
     }
 
+    const operationId = ++activeOperationRef.current;
+    setSelectedTcIds([edge.sourceTcId, edge.targetTcId]);
+    setSelectedInsight(null);
+    setSelectionNotice("Loading saved insight...");
+
+    try {
+      const detail = await fetchInsightDetail(edge.insightId, token);
+      if (operationId !== activeOperationRef.current) {
+        return;
+      }
+      setSelectedInsight(detail);
+      setSelectionNotice("");
+    } catch (caughtError) {
+      if (operationId === activeOperationRef.current) {
+        setSelectionNotice(
+          toErrorMessage(caughtError, "Could not load saved insight."),
+        );
+      }
+    }
+  }
+
+  async function handleDiscoverInsight() {
+    if (
+      !mindmap ||
+      !token ||
+      selectedModuleId === "" ||
+      selectedTcIds.length !== 2
+    ) {
+      return;
+    }
+
+    const selectedIds = [...selectedTcIds];
     const existingEdge = mindmap.edges.find((edge) =>
-      edgeMatchesSelection(edge, selectedTcIds),
+      edgeMatchesSelection(edge, selectedIds),
     );
 
     if (existingEdge) {
-      handleOpenInsight(existingEdge);
+      await handleOpenInsight(existingEdge);
       return;
     }
 
-    setSelectedEdge(null);
-    setSelectionNotice("No saved insight exists for this pair.");
+    const pairKey = canonicalPairKey(selectedIds);
+    if (inFlightPairsRef.current.has(pairKey)) {
+      return;
+    }
+
+    inFlightPairsRef.current.add(pairKey);
+    const operationId = ++activeOperationRef.current;
+    setDiscoveringPairKey(pairKey);
+    setSelectedInsight(null);
+    setSelectionNotice("");
+
+    try {
+      let detail = await discoverInsight(selectedModuleId, selectedIds, token);
+      if (operationId !== activeOperationRef.current) {
+        return;
+      }
+
+      setSelectedInsight(detail);
+      if (detail.status === "GENERATING") {
+        detail = await pollInsightUntilSettled(detail.insightId, token);
+      }
+
+      if (operationId !== activeOperationRef.current) {
+        return;
+      }
+      applyDiscoveryResult(detail);
+    } catch (caughtError) {
+      if (operationId === activeOperationRef.current) {
+        setSelectionNotice(
+          toErrorMessage(caughtError, "Could not discover insight."),
+        );
+      }
+    } finally {
+      inFlightPairsRef.current.delete(pairKey);
+      setDiscoveringPairKey((currentPairKey) =>
+        currentPairKey === pairKey ? null : currentPairKey,
+      );
+    }
+  }
+
+  function applyDiscoveryResult(detail: MindmapInsightDetail) {
+    setSelectedInsight(detail);
+    const readyEdge = detailToReadyEdge(detail);
+
+    if (readyEdge) {
+      setMindmap((currentMindmap) => {
+        if (!currentMindmap) {
+          return currentMindmap;
+        }
+        return {
+          ...currentMindmap,
+          edges: [
+            ...currentMindmap.edges.filter(
+              (edge) => edge.insightId !== readyEdge.insightId,
+            ),
+            readyEdge,
+          ],
+        };
+      });
+      setSelectionNotice("");
+      return;
+    }
+
+    if (detail.status === "NO_USEFUL_LINK") {
+      setSelectionNotice("No useful link was found for this pair.");
+      return;
+    }
+
+    if (detail.status === "GENERATION_FAILED") {
+      setSelectionNotice("Insight generation failed. Please try again.");
+    }
   }
 
   if (!user || !token) {
@@ -195,7 +304,8 @@ export function MindmapPage() {
             <p className="modules-eyebrow">Mindmap</p>
             <h1 className="modules-title">Module Mindmap</h1>
             <p className="modules-subtitle">
-              Saved connections across your active Topical Cheatsheets.
+              Discover and revisit connections across your active Topical
+              Cheatsheets.
             </p>
           </div>
 
@@ -222,7 +332,7 @@ export function MindmapPage() {
         ) : (
           <section
             className={
-              selectedEdge
+              selectedInsight
                 ? "mindmap-workspace mindmap-workspace-with-panel"
                 : "mindmap-workspace"
             }
@@ -240,11 +350,17 @@ export function MindmapPage() {
 
                 <button
                   className="mindmap-discover-button"
-                  disabled={selectedTcIds.length !== 2 || isMindmapLoading}
+                  disabled={
+                    selectedTcIds.length !== 2 ||
+                    isMindmapLoading ||
+                    isSelectedPairDiscovering
+                  }
                   type="button"
-                  onClick={handleDiscoverInsight}
+                  onClick={() => void handleDiscoverInsight()}
                 >
-                  Discover Insight
+                  {isSelectedPairDiscovering
+                    ? "Discovering..."
+                    : "Discover Insight"}
                 </button>
               </div>
 
@@ -268,24 +384,18 @@ export function MindmapPage() {
                 <MindmapCanvas
                   edges={mindmap.edges}
                   nodes={mindmap.nodes}
-                  selectedInsightId={selectedEdge?.insightId ?? null}
+                  selectedInsightId={selectedInsight?.insightId ?? null}
                   selectedTcIds={selectedTcIds}
-                  onOpenInsight={handleOpenInsight}
+                  onOpenInsight={(edge) => void handleOpenInsight(edge)}
                   onToggleNode={handleToggleNode}
                 />
               ) : null}
             </div>
 
-            {selectedEdge && (
+            {selectedInsight && (
               <InsightSheetPanel
-                edge={selectedEdge}
-                sourceTopic={
-                  nodeTopicsById.get(selectedEdge.sourceTcId) ?? "Topic A"
-                }
-                targetTopic={
-                  nodeTopicsById.get(selectedEdge.targetTcId) ?? "Topic B"
-                }
-                onClose={() => setSelectedEdge(null)}
+                insight={selectedInsight}
+                onClose={() => setSelectedInsight(null)}
               />
             )}
           </section>

@@ -1,25 +1,21 @@
-import type { MindmapEdge } from "../types/mindmapTypes";
+import type { MindmapInsightDetail } from "../types/mindmapTypes";
 
 type InsightSheetPanelProps = {
-  edge: MindmapEdge;
-  sourceTopic: string;
-  targetTopic: string;
+  insight: MindmapInsightDetail;
   onClose: () => void;
 };
 
 export function InsightSheetPanel({
-  edge,
-  sourceTopic,
-  targetTopic,
+  insight,
   onClose,
 }: InsightSheetPanelProps) {
   return (
     <aside aria-label="Saved insight" className="mindmap-insight-panel">
       <div className="mindmap-insight-panel-header">
         <div>
-          <p className="mindmap-label">Saved insight</p>
+          <p className="mindmap-label">Insight sheet</p>
           <p className="mindmap-insight-topics">
-            {sourceTopic} / {targetTopic}
+            {insight.topicA} / {insight.topicB}
           </p>
         </div>
         <button className="mindmap-panel-close" type="button" onClick={onClose}>
@@ -27,18 +23,79 @@ export function InsightSheetPanel({
         </button>
       </div>
 
-      {edge.isRefreshing && (
+      {insight.status === "GENERATING" && (
+        <div aria-live="polite" className="mindmap-generation-state">
+          <strong>Discovering insight</strong>
+          <p>Analyzing both Topical Cheatsheets...</p>
+        </div>
+      )}
+
+      {insight.status === "REFRESHING" && (
         <p className="mindmap-refresh-status">Refreshing</p>
       )}
 
-      <div className="mindmap-insight-copy">
-        <h2>{edge.title}</h2>
-        <p>{edge.summary}</p>
-      </div>
+      {(insight.status === "READY" || insight.status === "REFRESHING") &&
+        insight.title &&
+        insight.summary && (
+          <>
+            <div className="mindmap-insight-copy">
+              <h2>{insight.title}</h2>
+              <p>{insight.summary}</p>
+            </div>
 
-      <p className="mindmap-insight-updated">
-        Updated {formatDateTime(edge.updatedAt)}
-      </p>
+            <ol className="mindmap-insight-points">
+              {insight.points.map((point) => (
+                <li key={`${point.displayOrder}-${point.heading}`}>
+                  <h3>{point.heading}</h3>
+                  <p>{point.explanation}</p>
+                  {(point.sourceTopicAReferences ||
+                    point.sourceTopicBReferences) && (
+                    <dl className="mindmap-point-sources">
+                      {point.sourceTopicAReferences && (
+                        <>
+                          <dt>{insight.topicA}</dt>
+                          <dd>{point.sourceTopicAReferences}</dd>
+                        </>
+                      )}
+                      {point.sourceTopicBReferences && (
+                        <>
+                          <dt>{insight.topicB}</dt>
+                          <dd>{point.sourceTopicBReferences}</dd>
+                        </>
+                      )}
+                    </dl>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+
+      {insight.status === "NO_USEFUL_LINK" && (
+        <div className="mindmap-result-message mindmap-result-no-link">
+          <strong>No useful link found</strong>
+          <p>
+            {insight.rejectionReason ||
+              "The current material does not support a useful relationship."}
+          </p>
+        </div>
+      )}
+
+      {insight.status === "GENERATION_FAILED" && (
+        <div className="mindmap-result-message mindmap-result-failed">
+          <strong>Insight generation failed</strong>
+          <p>
+            {insight.rejectionReason ||
+              "Please close this panel and try the selected pair again."}
+          </p>
+        </div>
+      )}
+
+      {insight.updatedAt && (
+        <p className="mindmap-insight-updated">
+          Updated {formatDateTime(insight.updatedAt)}
+        </p>
+      )}
     </aside>
   );
 }

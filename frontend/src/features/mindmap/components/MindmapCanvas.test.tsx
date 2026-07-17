@@ -2,7 +2,11 @@ import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { MindmapEdge, MindmapNode } from "../types/mindmapTypes";
+import type {
+  MindmapEdge,
+  MindmapInsightDetail,
+  MindmapNode,
+} from "../types/mindmapTypes";
 import { updateMindmapSelection } from "../types/mindmapTypes";
 import { InsightSheetPanel } from "./InsightSheetPanel";
 import { MindmapCanvas } from "./MindmapCanvas";
@@ -37,6 +41,31 @@ const edge: MindmapEdge = {
   summary: "Trees are connected acyclic graphs.",
   updatedAt: "2026-07-15T10:20:00Z",
   isRefreshing: false,
+};
+
+const readyDetail: MindmapInsightDetail = {
+  insightId: edge.insightId,
+  moduleId: 12,
+  sourceTcId: edge.sourceTcId,
+  targetTcId: edge.targetTcId,
+  topicA: "Trees",
+  topicB: "Graphs",
+  status: "READY",
+  title: edge.title,
+  summary: edge.summary,
+  points: [
+    {
+      heading: "Acyclicity",
+      explanation: "A tree is a connected graph without cycles.",
+      sourceTopicAReferences: "Tree definition",
+      sourceTopicBReferences: "Graph cycle notes",
+      displayOrder: 0,
+    },
+  ],
+  rejectionReason: null,
+  createdAt: "2026-07-17T10:00:00Z",
+  updatedAt: edge.updatedAt,
+  generatedAt: edge.updatedAt,
 };
 
 describe("MindmapCanvas", () => {
@@ -143,24 +172,23 @@ function SelectionHarness() {
 }
 
 function EdgeHarness() {
-  const [openedEdge, setOpenedEdge] = useState<MindmapEdge | null>(null);
+  const [openedInsight, setOpenedInsight] =
+    useState<MindmapInsightDetail | null>(null);
 
   return (
     <>
       <MindmapCanvas
         edges={[edge]}
         nodes={nodes}
-        selectedInsightId={openedEdge?.insightId ?? null}
+        selectedInsightId={openedInsight?.insightId ?? null}
         selectedTcIds={[]}
-        onOpenInsight={setOpenedEdge}
+        onOpenInsight={() => setOpenedInsight(readyDetail)}
         onToggleNode={() => undefined}
       />
-      {openedEdge && (
+      {openedInsight && (
         <InsightSheetPanel
-          edge={openedEdge}
-          sourceTopic="Trees"
-          targetTopic="Graphs"
-          onClose={() => setOpenedEdge(null)}
+          insight={openedInsight}
+          onClose={() => setOpenedInsight(null)}
         />
       )}
     </>

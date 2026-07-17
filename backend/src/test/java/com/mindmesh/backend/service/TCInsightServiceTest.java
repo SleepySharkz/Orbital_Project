@@ -70,12 +70,12 @@ class TCInsightServiceTest {
   void findOrCreateGeneratingInsight_reverseOrderReusesCanonicalPair() {
     when(courseModuleRepository.findByIdAndUserId(12L, 7L))
         .thenReturn(Optional.of(module));
-    when(tcRepository.findAllOwnedByIdIn(7L, List.of(101L, 102L)))
+    when(tcRepository.findAllOwnedWithInsightInputsByIdIn(7L, List.of(101L, 102L)))
         .thenReturn(List.of(graphsTc, treesTc));
     when(tcInsightRepository.findByUserIdAndModuleIdAndTcAIdAndTcBId(
         7L, 12L, 101L, 102L))
         .thenReturn(Optional.empty());
-    when(tcInsightRepository.save(any(TCInsight.class)))
+    when(tcInsightRepository.saveAndFlush(any(TCInsight.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
     TCInsight first = tcInsightService.findOrCreateGeneratingInsight(
@@ -97,14 +97,14 @@ class TCInsightServiceTest {
     assertEquals(102L, first.getTcB().getId());
     assertEquals("Trees", first.getTopicA());
     assertEquals("Graphs", first.getTopicB());
-    verify(tcInsightRepository, times(1)).save(any(TCInsight.class));
+    verify(tcInsightRepository, times(1)).saveAndFlush(any(TCInsight.class));
   }
 
   @Test
   void findOrCreateGeneratingInsight_rejectsTcNotOwnedByCurrentUser() {
     when(courseModuleRepository.findByIdAndUserId(12L, 7L))
         .thenReturn(Optional.of(module));
-    when(tcRepository.findAllOwnedByIdIn(7L, List.of(101L, 102L)))
+    when(tcRepository.findAllOwnedWithInsightInputsByIdIn(7L, List.of(101L, 102L)))
         .thenReturn(List.of(treesTc));
 
     ResponseStatusException exception = assertThrows(
@@ -115,7 +115,7 @@ class TCInsightServiceTest {
             List.of(101L, 102L)));
 
     assertEquals(404, exception.getStatusCode().value());
-    verify(tcInsightRepository, never()).save(any(TCInsight.class));
+    verify(tcInsightRepository, never()).saveAndFlush(any(TCInsight.class));
   }
 
   @Test
@@ -127,7 +127,7 @@ class TCInsightServiceTest {
 
     when(courseModuleRepository.findByIdAndUserId(12L, 7L))
         .thenReturn(Optional.of(module));
-    when(tcRepository.findAllOwnedByIdIn(7L, List.of(101L, 103L)))
+    when(tcRepository.findAllOwnedWithInsightInputsByIdIn(7L, List.of(101L, 103L)))
         .thenReturn(List.of(treesTc, otherModuleTc));
 
     ResponseStatusException exception = assertThrows(
@@ -138,7 +138,7 @@ class TCInsightServiceTest {
             List.of(101L, 103L)));
 
     assertEquals(400, exception.getStatusCode().value());
-    verify(tcInsightRepository, never()).save(any(TCInsight.class));
+    verify(tcInsightRepository, never()).saveAndFlush(any(TCInsight.class));
   }
 
   @Test
@@ -147,7 +147,7 @@ class TCInsightServiceTest {
 
     when(courseModuleRepository.findByIdAndUserId(12L, 7L))
         .thenReturn(Optional.of(module));
-    when(tcRepository.findAllOwnedByIdIn(7L, List.of(101L, 102L)))
+    when(tcRepository.findAllOwnedWithInsightInputsByIdIn(7L, List.of(101L, 102L)))
         .thenReturn(List.of(treesTc, graphsTc));
 
     ResponseStatusException exception = assertThrows(
@@ -158,7 +158,7 @@ class TCInsightServiceTest {
             List.of(101L, 102L)));
 
     assertEquals(400, exception.getStatusCode().value());
-    verify(tcInsightRepository, never()).save(any(TCInsight.class));
+    verify(tcInsightRepository, never()).saveAndFlush(any(TCInsight.class));
   }
 
   @Test
@@ -167,7 +167,7 @@ class TCInsightServiceTest {
 
     when(courseModuleRepository.findByIdAndUserId(12L, 7L))
         .thenReturn(Optional.of(module));
-    when(tcRepository.findAllOwnedByIdIn(7L, List.of(101L, sharedTcId)))
+    when(tcRepository.findAllOwnedWithInsightInputsByIdIn(7L, List.of(101L, sharedTcId)))
         .thenReturn(List.of(treesTc));
 
     ResponseStatusException exception = assertThrows(
@@ -178,7 +178,7 @@ class TCInsightServiceTest {
             List.of(101L, sharedTcId)));
 
     assertEquals(404, exception.getStatusCode().value());
-    verify(tcInsightRepository, never()).save(any(TCInsight.class));
+    verify(tcInsightRepository, never()).saveAndFlush(any(TCInsight.class));
   }
 
   @Test
