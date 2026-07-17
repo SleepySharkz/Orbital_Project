@@ -264,6 +264,10 @@ public class MarketplaceListing {
     }
   }
 
+  public void incrementImportCount() {
+    importCount++;
+  }
+
   private boolean isBlank(String value) {
     return value == null || value.isBlank();
   }

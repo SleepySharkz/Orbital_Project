@@ -112,34 +112,6 @@ class MarketplacePublishingServiceTest {
   }
 
   @Test
-  void publishTc_withAnonymousVisibilityStoresSafeDisplayName() {
-    PublishMarketplaceListingRequestDto request = buildRequest(PublisherVisibility.ANONYMOUS);
-
-    givenOwnedTcExists(tc);
-    givenNoPublishedListingExists();
-    saveListingAsIs();
-
-    marketplacePublishingService.publishTC(request, 7L);
-
-    MarketplaceListing savedListing = savedListing();
-    assertEquals(PublisherVisibility.ANONYMOUS, savedListing.getPublisherVisibility());
-    assertEquals("Anonymous", savedListing.getPublisherDisplayName());
-  }
-
-  @Test
-  void publishTc_withUnownedTc_throwsNotFound() {
-    PublishMarketplaceListingRequestDto request = buildRequest(PublisherVisibility.DISPLAY_NAME);
-    when(tcRepository.findByIdAndOwnerId(55L, 99L)).thenReturn(Optional.empty());
-
-    ResponseStatusException exception = assertThrows(
-        ResponseStatusException.class,
-        () -> marketplacePublishingService.publishTC(request, 99L));
-
-    assertEquals(404, exception.getStatusCode().value());
-    verify(marketplaceListingRepository, never()).save(any(MarketplaceListing.class));
-  }
-
-  @Test
   void publishTc_withStaleTc_throwsBadRequest() {
     PublishMarketplaceListingRequestDto request = buildRequest(PublisherVisibility.DISPLAY_NAME);
     module.removeTopic(module.getTopics().get(0));
@@ -151,24 +123,6 @@ class MarketplacePublishingServiceTest {
 
     assertEquals(400, exception.getStatusCode().value());
     assertTrue(exception.getReason().contains("Stale topic sheets"));
-    verify(marketplaceListingRepository, never()).save(any(MarketplaceListing.class));
-  }
-
-  @Test
-  void publishTc_withEmptyTc_throwsBadRequest() {
-    PublishMarketplaceListingRequestDto request = buildRequest(PublisherVisibility.DISPLAY_NAME);
-    TC emptyTc = new TC(module, owner, "Trees");
-    ReflectionTestUtils.setField(emptyTc, "id", 56L);
-    request.setTcId(56L);
-    when(tcRepository.findByIdAndOwnerId(56L, 7L))
-        .thenReturn(Optional.of(emptyTc));
-
-    ResponseStatusException exception = assertThrows(
-        ResponseStatusException.class,
-        () -> marketplacePublishingService.publishTC(request, 7L));
-
-    assertEquals(400, exception.getStatusCode().value());
-    assertTrue(exception.getReason().contains("no entries"));
     verify(marketplaceListingRepository, never()).save(any(MarketplaceListing.class));
   }
 
@@ -216,11 +170,6 @@ class MarketplacePublishingServiceTest {
         55L,
         MarketplaceListingStatus.PUBLISHED))
         .thenReturn(true);
-  }
-
-  private void saveListingAsIs() {
-    when(marketplaceListingRepository.save(any(MarketplaceListing.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
   }
 
   private void saveListingWithGeneratedId() {

@@ -1,5 +1,7 @@
 package com.mindmesh.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mindmesh.backend.dto.requests.marketplace.PublishMarketplaceListingRequestDto;
 import com.mindmesh.backend.dto.requests.marketplace.UpdateMarketplaceListingMetadataRequestDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportDetailDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportResponseDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportSummaryDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingDetailDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementDetailDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementPageResponseDto;
@@ -21,6 +26,7 @@ import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPageResp
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPublishResponseDto;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.marketplace.MarketplaceBrowsingService;
+import com.mindmesh.backend.service.marketplace.MarketplaceImportService;
 import com.mindmesh.backend.service.marketplace.MarketplaceListingManagementService;
 import com.mindmesh.backend.service.marketplace.MarketplacePublishingService;
 
@@ -30,17 +36,19 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/marketplace")
 public class MarketplaceController {
 
-  // The big three
   private final MarketplacePublishingService marketplacePublishingService;
   private final MarketplaceBrowsingService marketplaceBrowsingService;
+  private final MarketplaceImportService marketplaceImportService;
   private final MarketplaceListingManagementService marketplaceListingManagementService;
 
   public MarketplaceController(
       MarketplacePublishingService marketplacePublishingService,
       MarketplaceBrowsingService marketplaceBrowsingService,
+      MarketplaceImportService marketplaceImportService,
       MarketplaceListingManagementService marketplaceListingManagementService) {
     this.marketplacePublishingService = marketplacePublishingService;
     this.marketplaceBrowsingService = marketplaceBrowsingService;
+    this.marketplaceImportService = marketplaceImportService;
     this.marketplaceListingManagementService = marketplaceListingManagementService;
   }
 
@@ -82,6 +90,36 @@ public class MarketplaceController {
   public ResponseEntity<MarketplaceListingDetailDto> getListingDetail(
       @PathVariable Long listingId) {
     MarketplaceListingDetailDto response = marketplaceBrowsingService.getPublishedListingDetail(listingId);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/listings/{listingId}/import")
+  public ResponseEntity<MarketplaceImportResponseDto> importListing(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceImportResponseDto response = marketplaceImportService.importListing(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  @GetMapping("/imports")
+  public ResponseEntity<List<MarketplaceImportSummaryDto>> listImports(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    List<MarketplaceImportSummaryDto> response = marketplaceImportService.listImports(userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/imports/{importId}")
+  public ResponseEntity<MarketplaceImportDetailDto> getImportDetail(
+      @PathVariable Long importId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceImportDetailDto response = marketplaceImportService.getImportDetail(
+        importId,
+        userDetails.getId());
 
     return ResponseEntity.ok(response);
   }
