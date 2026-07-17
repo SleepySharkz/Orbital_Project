@@ -499,6 +499,18 @@
   gap: 12px;
 }
 
+.marketplace-upvote-action {
+  border: 1px solid #7b8494;
+  background: #ffffff;
+  color: #23324d;
+}
+
+.marketplace-upvote-action.active {
+  border-color: #18794e;
+  background: #18794e;
+  color: #ffffff;
+}
+
 .marketplace-detail-heading h1 {
   font-size: 2.4rem;
   line-height: 1.05;

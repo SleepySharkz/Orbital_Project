@@ -4,7 +4,11 @@ import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
 import "../../tc/styles/tcStyles.css";
-import { fetchMarketplaceListingDetail } from "../api/marketplaceApi";
+import {
+  fetchMarketplaceListingDetail,
+  addMarketplaceListingUpvote,
+  removeMarketplaceListingUpvote,
+} from "../api/marketplaceApi";
 import "../styles/marketplaceStyles.css";
 import type { MarketplaceListingDetail } from "../types/marketplaceTypes";
 
@@ -15,6 +19,8 @@ export function MarketplaceListingDetailPage() {
   const [listing, setListing] = useState<MarketplaceListingDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isUpdatingUpvote, setIsUpdatingUpvote] = useState(false);
+  const [upvoteError, setUpvoteError] = useState("");
 
   useEffect(() => {
     if (!token || !listingId) {
@@ -75,6 +81,41 @@ export function MarketplaceListingDetailPage() {
   async function handleLogout() {
     await logout();
     navigate("/login");
+  }
+
+  async function handleToggleUpvote() {
+    if (!listing || !token || isUpdatingUpvote) {
+      // Prevent ghost input
+      return;
+    }
+
+    setIsUpdatingUpvote(true); // Block other racing upvotes
+    setUpvoteError(""); // Reset
+
+    try {
+      const response = listing.hasCurrentUserUpvoted
+        ? await removeMarketplaceListingUpvote(listing.id, token)
+        : await addMarketplaceListingUpvote(listing.id, token);
+
+      setListing((currentListing) => {
+        // Protect against race condition / stale response scenario
+        if (!currentListing || currentListing.id !== response.listingId) { // Check if its still the same listing
+          return currentListing;
+        }
+
+        return {
+          ...currentListing,
+          upvoteCount: response.upvoteCount,
+          hasCurrentUserUpvoted: response.hasCurrentUserUpvoted,
+        };
+      });
+    } catch (caughtError) {
+      setUpvoteError(
+        toErrorMessage(caughtError, "Could not update your upvote."),
+      );
+    } finally {
+      setIsUpdatingUpvote(false);
+    }
   }
 
   if (!user || !token) {
@@ -194,6 +235,22 @@ export function MarketplaceListingDetailPage() {
                   <dd>{formatDate(listing.updatedAt)}</dd>
                 </div>
               </dl>
+              <button
+                className={`marketplace-primary-button marketplace-upvote-action${
+                  listing.hasCurrentUserUpvoted ? " active" : ""
+                }`}
+                type="button"
+                aria-pressed={listing.hasCurrentUserUpvoted}
+                disabled={isUpdatingUpvote}
+                onClick={handleToggleUpvote}
+              >
+                Upvote
+              </button>
+              {upvoteError && (
+                <p className="marketplace-banner marketplace-banner-error" role="alert">
+                  {upvoteError}
+                </p>
+              )}
               <button className="marketplace-primary-button" type="button" disabled>
                 Import coming soon
               </button>

@@ -24,13 +24,13 @@ import com.mindmesh.backend.repository.MarketplaceListingRepository;
 import com.mindmesh.backend.repository.UserRepository;
 
 @Service
-public class MarketplaceImportService {
+public class MarketplaceImportAndMergeService {
 
   private final MarketplaceImportRepository marketplaceImportRepository;
   private final MarketplaceListingRepository marketplaceListingRepository;
   private final UserRepository userRepository;
 
-  public MarketplaceImportService(
+  public MarketplaceImportAndMergeService(
       MarketplaceImportRepository marketplaceImportRepository,
       MarketplaceListingRepository marketplaceListingRepository,
       UserRepository userRepository) {

@@ -31,7 +31,7 @@ import com.mindmesh.backend.repository.MarketplaceListingRepository;
 import com.mindmesh.backend.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
-class MarketplaceImportServiceTest {
+class MarketplaceImportAndMergeServiceTest {
 
   @Mock
   private MarketplaceImportRepository marketplaceImportRepository;
@@ -43,7 +43,7 @@ class MarketplaceImportServiceTest {
   private UserRepository userRepository;
 
   @InjectMocks
-  private MarketplaceImportService marketplaceImportService;
+  private MarketplaceImportAndMergeService marketplaceImportAndMergeService;
 
   private User importer;
   private MarketplaceListing listing;
@@ -107,7 +107,7 @@ class MarketplaceImportServiceTest {
           return marketplaceImport;
         });
 
-    MarketplaceImportResponseDto response = marketplaceImportService.importListing(50L, 2L);
+    MarketplaceImportResponseDto response = marketplaceImportAndMergeService.importListing(50L, 2L);
 
     ArgumentCaptor<MarketplaceImport> importCaptor = ArgumentCaptor.forClass(MarketplaceImport.class);
     verify(marketplaceImportRepository).saveAndFlush(importCaptor.capture());

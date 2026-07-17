@@ -20,6 +20,7 @@ public class MarketplaceListingSummaryDto {
   private final String publisherDisplayName;
   private final Integer entryCount;
   private final Integer upvoteCount;
+  private final boolean hasCurrentUserUpvoted;
   private final Integer importCount;
   private final Instant publishedAt;
 
@@ -37,6 +38,27 @@ public class MarketplaceListingSummaryDto {
       Integer upvoteCount,
       Integer importCount,
       Instant publishedAt) {
+    this(
+        id, publicTitle, descriptionPreview, courseCode, schoolSem, topic, tags,
+        publisherVisibility, publisherDisplayName, entryCount, upvoteCount, false,
+        importCount, publishedAt);
+  }
+
+  public MarketplaceListingSummaryDto(
+      Long id,
+      String publicTitle,
+      String descriptionPreview,
+      String courseCode,
+      String schoolSem,
+      String topic,
+      List<String> tags,
+      PublisherVisibility publisherVisibility,
+      String publisherDisplayName,
+      Integer entryCount,
+      Integer upvoteCount,
+      boolean hasCurrentUserUpvoted,
+      Integer importCount,
+      Instant publishedAt) {
     this.id = id;
     this.publicTitle = publicTitle;
     this.descriptionPreview = descriptionPreview;
@@ -48,6 +70,7 @@ public class MarketplaceListingSummaryDto {
     this.publisherDisplayName = publisherDisplayName;
     this.entryCount = entryCount;
     this.upvoteCount = upvoteCount;
+    this.hasCurrentUserUpvoted = hasCurrentUserUpvoted;
     this.importCount = importCount;
     this.publishedAt = publishedAt;
   }
@@ -94,6 +117,10 @@ public class MarketplaceListingSummaryDto {
 
   public Integer getUpvoteCount() {
     return upvoteCount;
+  }
+
+  public boolean isHasCurrentUserUpvoted() {
+    return hasCurrentUserUpvoted;
   }
 
   public Integer getImportCount() {

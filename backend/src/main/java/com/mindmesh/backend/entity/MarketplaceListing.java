@@ -2,7 +2,9 @@ package com.mindmesh.backend.entity;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -21,9 +23,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "marketplace_listings", indexes = {
@@ -111,6 +116,16 @@ public class MarketplaceListing {
   // Gotta ensure any parent cascade operations are also made to the children
   @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<MarketplaceListingEntrySnapshot> entries = new ArrayList<>();
+
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "marketplace_listing_upvotes",
+      joinColumns = @JoinColumn(name = "listing_id"),
+      inverseJoinColumns = @JoinColumn(name = "user_id"),
+      uniqueConstraints = @UniqueConstraint(
+          name = "uk_marketplace_listing_upvote_user",
+          columnNames = { "listing_id", "user_id" }))
+  private Set<User> upvoters = new HashSet<>();
 
   protected MarketplaceListing() {
   }
@@ -266,6 +281,28 @@ public class MarketplaceListing {
 
   public void incrementImportCount() {
     importCount++;
+  }
+
+  public boolean addUpvote(User user) {
+    if (user == null || !upvoters.add(user)) {
+      return false;
+    }
+
+    upvoteCount = upvoters.size();
+    return true;
+  }
+
+  public boolean removeUpvote(User user) {
+    if (user == null || !upvoters.remove(user)) {
+      return false;
+    }
+
+    upvoteCount = upvoters.size();
+    return true;
+  }
+
+  public boolean hasUpvoteFrom(User user) {
+    return user != null && upvoters.contains(user);
   }
 
   private boolean isBlank(String value) {

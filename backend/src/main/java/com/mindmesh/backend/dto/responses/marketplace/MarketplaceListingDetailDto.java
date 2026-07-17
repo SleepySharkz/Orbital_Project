@@ -7,120 +7,149 @@ import com.mindmesh.backend.enums.PublisherVisibility;
 
 public class MarketplaceListingDetailDto {
 
-    private final Long id;
-    private final String publicTitle;
-    private final String description;
-    private final String courseCode;
-    private final String schoolSem;
-    private final String topic;
-    private final List<String> tags;
-    private final String institution;
-    private final PublisherVisibility publisherVisibility;
-    private final String publisherDisplayName;
-    private final Integer entryCount;
-    private final Integer upvoteCount;
-    private final Integer importCount;
-    private final Instant publishedAt;
-    private final Instant updatedAt;
-    private final List<MarketplaceListingEntrySnapshotDto> entries;
+  private final Long id;
+  private final String publicTitle;
+  private final String description;
+  private final String courseCode;
+  private final String schoolSem;
+  private final String topic;
+  private final List<String> tags;
+  private final String institution;
+  private final PublisherVisibility publisherVisibility;
+  private final String publisherDisplayName;
+  private final Integer entryCount;
+  private final Integer upvoteCount;
+  private final boolean hasCurrentUserUpvoted;
+  private final Integer importCount;
+  private final Instant publishedAt;
+  private final Instant updatedAt;
+  private final List<MarketplaceListingEntrySnapshotDto> entries;
 
-    public MarketplaceListingDetailDto(
-        Long id,
-        String publicTitle,
-        String description,
-        String courseCode,
-        String schoolSem,
-        String topic,
-        List<String> tags,
-        String institution,
-        PublisherVisibility publisherVisibility,
-        String publisherDisplayName,
-        Integer entryCount,
-        Integer upvoteCount,
-        Integer importCount,
-        Instant publishedAt,
-        Instant updatedAt,
-        List<MarketplaceListingEntrySnapshotDto> entries
-    ) {
-        this.id = id;
-        this.publicTitle = publicTitle;
-        this.description = description;
-        this.courseCode = courseCode;
-        this.schoolSem = schoolSem;
-        this.topic = topic;
-        this.tags = tags;
-        this.institution = institution;
-        this.publisherVisibility = publisherVisibility;
-        this.publisherDisplayName = publisherDisplayName;
-        this.entryCount = entryCount;
-        this.upvoteCount = upvoteCount;
-        this.importCount = importCount;
-        this.publishedAt = publishedAt;
-        this.updatedAt = updatedAt;
-        this.entries = entries;
-    }
+  public MarketplaceListingDetailDto(
+      Long id,
+      String publicTitle,
+      String description,
+      String courseCode,
+      String schoolSem,
+      String topic,
+      List<String> tags,
+      String institution,
+      PublisherVisibility publisherVisibility,
+      String publisherDisplayName,
+      Integer entryCount,
+      Integer upvoteCount,
+      Integer importCount,
+      Instant publishedAt,
+      Instant updatedAt,
+      List<MarketplaceListingEntrySnapshotDto> entries) {
+    this(
+        id, publicTitle, description, courseCode, schoolSem, topic, tags, institution,
+        publisherVisibility, publisherDisplayName, entryCount, upvoteCount, false,
+        importCount, publishedAt, updatedAt, entries);
+  }
 
-    public Long getId() {
-        return id;
-    }
+  public MarketplaceListingDetailDto(
+      Long id,
+      String publicTitle,
+      String description,
+      String courseCode,
+      String schoolSem,
+      String topic,
+      List<String> tags,
+      String institution,
+      PublisherVisibility publisherVisibility,
+      String publisherDisplayName,
+      Integer entryCount,
+      Integer upvoteCount,
+      boolean hasCurrentUserUpvoted,
+      Integer importCount,
+      Instant publishedAt,
+      Instant updatedAt,
+      List<MarketplaceListingEntrySnapshotDto> entries) {
+    this.id = id;
+    this.publicTitle = publicTitle;
+    this.description = description;
+    this.courseCode = courseCode;
+    this.schoolSem = schoolSem;
+    this.topic = topic;
+    this.tags = tags;
+    this.institution = institution;
+    this.publisherVisibility = publisherVisibility;
+    this.publisherDisplayName = publisherDisplayName;
+    this.entryCount = entryCount;
+    this.upvoteCount = upvoteCount;
+    this.hasCurrentUserUpvoted = hasCurrentUserUpvoted;
+    this.importCount = importCount;
+    this.publishedAt = publishedAt;
+    this.updatedAt = updatedAt;
+    this.entries = entries;
+  }
 
-    public String getPublicTitle() {
-        return publicTitle;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getPublicTitle() {
+    return publicTitle;
+  }
 
-    public String getCourseCode() {
-        return courseCode;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public String getSchoolSem() {
-        return schoolSem;
-    }
+  public String getCourseCode() {
+    return courseCode;
+  }
 
-    public String getTopic() {
-        return topic;
-    }
+  public String getSchoolSem() {
+    return schoolSem;
+  }
 
-    public List<String> getTags() {
-        return tags;
-    }
+  public String getTopic() {
+    return topic;
+  }
 
-    public String getInstitution() {
-        return institution;
-    }
+  public List<String> getTags() {
+    return tags;
+  }
 
-    public PublisherVisibility getPublisherVisibility() {
-        return publisherVisibility;
-    }
+  public String getInstitution() {
+    return institution;
+  }
 
-    public String getPublisherDisplayName() {
-        return publisherDisplayName;
-    }
+  public PublisherVisibility getPublisherVisibility() {
+    return publisherVisibility;
+  }
 
-    public Integer getEntryCount() {
-        return entryCount;
-    }
+  public String getPublisherDisplayName() {
+    return publisherDisplayName;
+  }
 
-    public Integer getUpvoteCount() {
-        return upvoteCount;
-    }
+  public Integer getEntryCount() {
+    return entryCount;
+  }
 
-    public Integer getImportCount() {
-        return importCount;
-    }
+  public Integer getUpvoteCount() {
+    return upvoteCount;
+  }
 
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
+  public boolean isHasCurrentUserUpvoted() {
+    return hasCurrentUserUpvoted;
+  }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
+  public Integer getImportCount() {
+    return importCount;
+  }
 
-    public List<MarketplaceListingEntrySnapshotDto> getEntries() {
-        return entries;
-    }
+  public Instant getPublishedAt() {
+    return publishedAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public List<MarketplaceListingEntrySnapshotDto> getEntries() {
+    return entries;
+  }
 }
