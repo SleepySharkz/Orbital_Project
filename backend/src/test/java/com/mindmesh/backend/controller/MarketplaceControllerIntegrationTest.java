@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -331,6 +332,190 @@ class MarketplaceControllerIntegrationTest {
         .andExpect(jsonPath("$.entries[0].sourceEntryCreatedAt").doesNotExist());
   }
 
+  @Test
+  void myListings_returnsOnlyCurrentPublishersListingsAcrossStatuses() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User otherUser = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    CourseModule publisherModule = saveModule(publisher, "Trees", "Graphs");
+    CourseModule otherModule = saveModule(otherUser, "Trees");
+    TC publishedTc = saveTcWithEntries(publisherModule, publisher, "Trees", 1);
+    TC unlistedTc = saveTcWithEntries(publisherModule, publisher, "Graphs", 1);
+    TC otherTc = saveTcWithEntries(otherModule, otherUser, "Trees", 1);
+
+    publishListing(publisher, publishRequestJson(publishedTc, "Published Listing"))
+        .andExpect(status().isCreated());
+    publishListing(publisher, publishRequestJson(unlistedTc, "Unlisted Listing"))
+        .andExpect(status().isCreated());
+    publishListing(otherUser, publishRequestJson(otherTc, "Other Listing"))
+        .andExpect(status().isCreated());
+
+    MarketplaceListing unlistedListing = marketplaceListingRepository
+        .findByPublisherIdOrderByPublishedAtDesc(publisher.getId(), Pageable.unpaged())
+        .getContent()
+        .stream()
+        .filter(listing -> listing.getPublicTitle().equals("Unlisted Listing"))
+        .findFirst()
+        .orElseThrow();
+    unlistedListing.unlist(Instant.now());
+    marketplaceListingRepository.save(unlistedListing);
+
+    mockMvc.perform(get("/api/v1/marketplace/my-listings")
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(2)))
+        .andExpect(jsonPath("$.items[?(@.publicTitle == 'Published Listing')]").exists())
+        .andExpect(jsonPath("$.items[?(@.publicTitle == 'Unlisted Listing')]").exists())
+        .andExpect(jsonPath("$.items[?(@.publicTitle == 'Other Listing')]").doesNotExist());
+  }
+
+  @Test
+  void myListingDetail_returnsPublisherOnlyManagementFields() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(get("/api/v1/marketplace/my-listings/{listingId}", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.publicTitle").value("Trees Guide"))
+        .andExpect(jsonPath("$.status").value("PUBLISHED"))
+        .andExpect(jsonPath("$.sourceTcId").value(tc.getId()))
+        .andExpect(jsonPath("$.sourceTcStillExists").value(true))
+        .andExpect(jsonPath("$.sourceTcIsStale").value(false))
+        .andExpect(jsonPath("$.entries", hasSize(1)));
+  }
+
+  @Test
+  void patchMyListing_updatesMetadataWithoutChangingEntries() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(patch("/api/v1/marketplace/my-listings/{listingId}", listing.getId())
+        .with(authentication(authFor(publisher)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "publicTitle": "Updated Trees Guide",
+              "description": "Updated public description",
+              "tags": ["revision", "trees", "Revision"],
+              "institution": "SOC",
+              "publisherVisibility": "ANONYMOUS"
+            }
+            """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.publicTitle").value("Updated Trees Guide"))
+        .andExpect(jsonPath("$.description").value("Updated public description"))
+        .andExpect(jsonPath("$.tags", hasSize(2)))
+        .andExpect(jsonPath("$.institution").value("SOC"))
+        .andExpect(jsonPath("$.publisherVisibility").value("ANONYMOUS"))
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Flashcard question 1"));
+
+    MarketplaceListing updatedListing = marketplaceListingRepository
+        .findByIdAndPublisherId(listing.getId(), publisher.getId())
+        .orElseThrow();
+    assertEquals("revision,trees", updatedListing.getTags());
+    assertEquals("Anonymous", updatedListing.getPublisherDisplayName());
+    assertEquals(1, updatedListing.getEntries().size());
+  }
+
+  @Test
+  void patchMyListing_nonPublisherGetsNotFound() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User otherUser = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(patch("/api/v1/marketplace/my-listings/{listingId}", listing.getId())
+        .with(authentication(authFor(otherUser)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "publicTitle": "Hijacked Listing",
+              "publisherVisibility": "DISPLAY_NAME"
+            }
+            """))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void unlistMyListing_hidesListingFromPublicBrowseAndDetail() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(post("/api/v1/marketplace/my-listings/{listingId}/unlist", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("UNLISTED"))
+        .andExpect(jsonPath("$.unlistedAt").isNotEmpty());
+
+    mockMvc.perform(get("/api/v1/marketplace/listings")
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(0)));
+
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void republishMyListing_replacesSnapshotsFromCurrentSourceTc() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    saveAdditionalTcEntry(tc, module, "Trees", 2);
+
+    mockMvc.perform(post("/api/v1/marketplace/my-listings/{listingId}/republish", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(listing.getId()))
+        .andExpect(jsonPath("$.publicTitle").value("Trees Guide"))
+        .andExpect(jsonPath("$.entryCount").value(2))
+        .andExpect(jsonPath("$.upvoteCount").value(0))
+        .andExpect(jsonPath("$.importCount").value(0))
+        .andExpect(jsonPath("$.entries", hasSize(2)))
+        .andExpect(jsonPath("$.entries[0].flashcardQuestion").value("Flashcard question 2"));
+
+    MarketplaceListing republishedListing = marketplaceListingRepository
+        .findByIdAndPublisherId(listing.getId(), publisher.getId())
+        .orElseThrow();
+    assertEquals(2, republishedListing.getEntries().size());
+  }
+
+  @Test
+  void republishMyListing_removedListingReturnsBadRequest() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+    listing.remove(Instant.now());
+    marketplaceListingRepository.save(listing);
+
+    mockMvc.perform(post("/api/v1/marketplace/my-listings/{listingId}/republish", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isBadRequest());
+  }
+
   private ResultActions publishListing(User user, String requestJson) throws Exception {
     return mockMvc.perform(post("/api/v1/marketplace/listings")
         .with(authentication(authFor(user)))
@@ -399,6 +584,32 @@ class MarketplaceControllerIntegrationTest {
     }
 
     return tcRepository.findById(tc.getId()).orElseThrow();
+  }
+
+  private void saveAdditionalTcEntry(TC tc, CourseModule module, String topic, int index) throws Exception {
+    CFC cfc = new CFC(
+        module,
+        SourceType.TUTORIAL,
+        "Tutorial " + index,
+        "Title " + index,
+        "Summary " + index);
+
+    new CFCEntry(
+        cfc,
+        (long) index,
+        topic,
+        "Private question " + index,
+        "Private rough note " + index,
+        new GeneratedCFCPage(
+            "Flashcard question " + index,
+            "Flashcard note content " + index));
+
+    cfc = cfcRepository.save(cfc);
+    Thread.sleep(5L);
+    CFCEntry savedEntry = cfc.getEntries().get(0);
+    TC managedTc = tcRepository.findById(tc.getId()).orElseThrow();
+    savedEntry.setTc(managedTc);
+    cfcEntryRepository.save(savedEntry);
   }
 
   private UsernamePasswordAuthenticationToken authFor(User user) {
