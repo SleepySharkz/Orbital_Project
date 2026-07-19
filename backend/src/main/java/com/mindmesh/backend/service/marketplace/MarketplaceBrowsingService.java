@@ -18,6 +18,7 @@ import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingSummaryD
 import com.mindmesh.backend.entity.MarketplaceListing;
 import com.mindmesh.backend.entity.MarketplaceListingEntrySnapshot;
 import com.mindmesh.backend.enums.MarketplaceListingStatus;
+import com.mindmesh.backend.repository.MarketplaceListingReportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
 
 import jakarta.transaction.Transactional;
@@ -29,9 +30,13 @@ public class MarketplaceBrowsingService {
   private static final int MAX_PAGE_SIZE = 50;
 
   private final MarketplaceListingRepository marketplaceListingRepository;
+  private final MarketplaceListingReportRepository marketplaceListingReportRepository;
 
-  public MarketplaceBrowsingService(MarketplaceListingRepository marketplaceListingRepository) {
+  public MarketplaceBrowsingService(
+      MarketplaceListingRepository marketplaceListingRepository,
+      MarketplaceListingReportRepository marketplaceListingReportRepository) {
     this.marketplaceListingRepository = marketplaceListingRepository;
+    this.marketplaceListingReportRepository = marketplaceListingReportRepository;
   }
 
   @Transactional
@@ -78,7 +83,9 @@ public class MarketplaceBrowsingService {
     boolean hasCurrentUserUpvoted = marketplaceListingRepository.hasUpvoteFromUser(
         listingId,
         userId);
-    return toDetailDto(listing, hasCurrentUserUpvoted);
+    boolean hasCurrentUserReported = marketplaceListingReportRepository
+        .existsByListingIdAndReporterId(listingId, userId);
+    return toDetailDto(listing, hasCurrentUserUpvoted, hasCurrentUserReported);
   }
 
   private MarketplaceListingSummaryDto toSummaryDto(MarketplaceListing listing) {
@@ -100,7 +107,8 @@ public class MarketplaceBrowsingService {
 
   private MarketplaceListingDetailDto toDetailDto(
       MarketplaceListing listing,
-      boolean hasCurrentUserUpvoted) {
+      boolean hasCurrentUserUpvoted,
+      boolean hasCurrentUserReported) {
     List<MarketplaceListingEntrySnapshotDto> entries = listing.getEntries()
         .stream()
         .sorted(Comparator.comparing(MarketplaceListingEntrySnapshot::getDisplayOrder))
@@ -121,6 +129,7 @@ public class MarketplaceBrowsingService {
         listing.getEntryCount(),
         listing.getUpvoteCount(),
         hasCurrentUserUpvoted,
+        hasCurrentUserReported,
         listing.getImportCount(),
         listing.getPublishedAt(),
         listing.getUpdatedAt(),

@@ -8,9 +8,14 @@ import {
   fetchMarketplaceListingDetail,
   addMarketplaceListingUpvote,
   removeMarketplaceListingUpvote,
+  reportMarketplaceListing,
 } from "../api/marketplaceApi";
+import { MarketplaceReportModal } from "../components/MarketplaceReportModal";
 import "../styles/marketplaceStyles.css";
-import type { MarketplaceListingDetail } from "../types/marketplaceTypes";
+import type {
+  CreateMarketplaceReportRequest,
+  MarketplaceListingDetail,
+} from "../types/marketplaceTypes";
 
 export function MarketplaceListingDetailPage() {
   const { listingId } = useParams();
@@ -21,6 +26,9 @@ export function MarketplaceListingDetailPage() {
   const [error, setError] = useState("");
   const [isUpdatingUpvote, setIsUpdatingUpvote] = useState(false);
   const [upvoteError, setUpvoteError] = useState("");
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportError, setReportError] = useState("");
 
   useEffect(() => {
     if (!token || !listingId) {
@@ -115,6 +123,37 @@ export function MarketplaceListingDetailPage() {
       );
     } finally {
       setIsUpdatingUpvote(false);
+    }
+  }
+
+  async function handleSubmitReport(request: CreateMarketplaceReportRequest) {
+    if (!listing || !token || isSubmittingReport || listing.hasCurrentUserReported) {
+      return;
+    }
+
+    setIsSubmittingReport(true);
+    setReportError("");
+
+    try {
+      const response = await reportMarketplaceListing(listing.id, request, token);
+
+      setListing((currentListing) => {
+        if (!currentListing || currentListing.id !== response.listingId) {
+          return currentListing;
+        }
+
+        return {
+          ...currentListing,
+          hasCurrentUserReported: true,
+        };
+      });
+      setIsReportModalOpen(false);
+    } catch (caughtError) {
+      setReportError(
+        toErrorMessage(caughtError, "Could not report this listing."),
+      );
+    } finally {
+      setIsSubmittingReport(false);
     }
   }
 
@@ -237,25 +276,52 @@ export function MarketplaceListingDetailPage() {
               </dl>
               <button
                 className={`marketplace-primary-button marketplace-upvote-action${
-                  listing.hasCurrentUserUpvoted ? " active" : ""
+                  listing.hasCurrentUserUpvoted ? " upvoted" : ""
                 }`}
                 type="button"
                 aria-pressed={listing.hasCurrentUserUpvoted}
                 disabled={isUpdatingUpvote}
                 onClick={handleToggleUpvote}
               >
-                Upvote
+                {listing.hasCurrentUserUpvoted ? "Upvoted" : "Upvote"}
               </button>
               {upvoteError && (
                 <p className="marketplace-banner marketplace-banner-error" role="alert">
                   {upvoteError}
                 </p>
               )}
+              <button
+                className={`marketplace-primary-button marketplace-report-action${
+                  listing.hasCurrentUserReported ? " reported" : ""
+                }`}
+                type="button"
+                disabled={listing.hasCurrentUserReported || isSubmittingReport}
+                onClick={() => {
+                  setReportError("");
+                  setIsReportModalOpen(true);
+                }}
+              >
+                {listing.hasCurrentUserReported ? "Reported" : "Report"}
+              </button>
               <button className="marketplace-primary-button" type="button" disabled>
                 Import coming soon
               </button>
             </aside>
           </div>
+        )}
+
+        {isReportModalOpen && listing && (
+          <MarketplaceReportModal
+            isSubmitting={isSubmittingReport}
+            error={reportError}
+            onSubmit={(request) => void handleSubmitReport(request)}
+            onCancel={() => {
+              if (!isSubmittingReport) {
+                setReportError("");
+                setIsReportModalOpen(false);
+              }
+            }}
+          />
         )}
       </main>
     </div>

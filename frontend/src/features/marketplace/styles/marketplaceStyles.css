@@ -500,15 +500,41 @@
 }
 
 .marketplace-upvote-action {
-  border: 1px solid #7b8494;
-  background: #ffffff;
-  color: #23324d;
-}
-
-.marketplace-upvote-action.active {
-  border-color: #18794e;
+  border: 1px solid #18794e;
   background: #18794e;
   color: #ffffff;
+}
+
+.marketplace-upvote-action.upvoted,
+.marketplace-upvote-action.upvoted:disabled {
+  border-color: #98a2b3;
+  background: #98a2b3;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.marketplace-report-action {
+  border: 1px solid #b42318;
+  background: #b42318;
+  color: #ffffff;
+}
+
+.marketplace-report-action.reported,
+.marketplace-report-action.reported:disabled {
+  border-color: #98a2b3;
+  background: #98a2b3;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.marketplace-report-modal {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.marketplace-report-textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .marketplace-detail-heading h1 {

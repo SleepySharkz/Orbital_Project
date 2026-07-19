@@ -509,6 +509,11 @@ class MarketplaceControllerIntegrationTest {
         .andExpect(jsonPath("$.reportId").isNumber())
         .andExpect(jsonPath("$.listingStatus").value("PUBLISHED"));
 
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(firstReporter))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.hasCurrentUserReported").value(true));
+
     reportListing(firstReporter, listing, "SPAM")
         .andExpect(status().isConflict());
 

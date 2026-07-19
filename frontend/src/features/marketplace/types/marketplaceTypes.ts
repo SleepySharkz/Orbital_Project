@@ -89,6 +89,7 @@ export type MarketplaceListingDetail = {
   entryCount: number;
   upvoteCount: number;
   hasCurrentUserUpvoted: boolean;
+  hasCurrentUserReported: boolean;
   importCount: number;
   publishedAt: string;
   updatedAt: string;
@@ -136,4 +137,24 @@ export type MarketplaceUpvoteResponse = {
   listingId: number;
   upvoteCount: number;
   hasCurrentUserUpvoted: boolean;
+};
+
+export type MarketplaceReportReason =
+  | "INACCURATE_CONTENT"
+  | "SPAM"
+  | "OFFENSIVE_CONTENT"
+  | "PERSONAL_INFORMATION"
+  | "RESTRICTED_ASSESSMENT_MATERIAL"
+  | "COPYRIGHTED_MATERIAL"
+  | "OTHER";
+
+export type CreateMarketplaceReportRequest = {
+  reason: MarketplaceReportReason;
+  details?: string;
+};
+
+export type MarketplaceReportResponse = {
+  listingId: number;
+  reportId: number;
+  listingStatus: MarketplaceListingStatus;
 };

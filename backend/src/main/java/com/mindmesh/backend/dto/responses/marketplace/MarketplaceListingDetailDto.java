@@ -20,6 +20,7 @@ public class MarketplaceListingDetailDto {
   private final Integer entryCount;
   private final Integer upvoteCount;
   private final boolean hasCurrentUserUpvoted;
+  private final boolean hasCurrentUserReported;
   private final Integer importCount;
   private final Instant publishedAt;
   private final Instant updatedAt;
@@ -45,7 +46,7 @@ public class MarketplaceListingDetailDto {
     this(
         id, publicTitle, description, courseCode, schoolSem, topic, tags, institution,
         publisherVisibility, publisherDisplayName, entryCount, upvoteCount, false,
-        importCount, publishedAt, updatedAt, entries);
+        false, importCount, publishedAt, updatedAt, entries);
   }
 
   public MarketplaceListingDetailDto(
@@ -62,6 +63,7 @@ public class MarketplaceListingDetailDto {
       Integer entryCount,
       Integer upvoteCount,
       boolean hasCurrentUserUpvoted,
+      boolean hasCurrentUserReported,
       Integer importCount,
       Instant publishedAt,
       Instant updatedAt,
@@ -79,6 +81,7 @@ public class MarketplaceListingDetailDto {
     this.entryCount = entryCount;
     this.upvoteCount = upvoteCount;
     this.hasCurrentUserUpvoted = hasCurrentUserUpvoted;
+    this.hasCurrentUserReported = hasCurrentUserReported;
     this.importCount = importCount;
     this.publishedAt = publishedAt;
     this.updatedAt = updatedAt;
@@ -135,6 +138,10 @@ public class MarketplaceListingDetailDto {
 
   public boolean isHasCurrentUserUpvoted() {
     return hasCurrentUserUpvoted;
+  }
+
+  public boolean isHasCurrentUserReported() {
+    return hasCurrentUserReported;
   }
 
   public Integer getImportCount() {

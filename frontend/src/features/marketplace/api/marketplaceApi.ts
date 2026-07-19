@@ -8,6 +8,8 @@ import type {
   PublishMarketplaceListingRequest,
   UpdateMarketplaceListingMetadataRequest,
   MarketplaceUpvoteResponse,
+  CreateMarketplaceReportRequest,
+  MarketplaceReportResponse,
 } from "../types/marketplaceTypes";
 
 type ErrorResponse = {
@@ -215,6 +217,29 @@ export async function removeMarketplaceListingUpvote(
   }
 
   return parseJson<MarketplaceUpvoteResponse>(response);
+}
+
+export async function reportMarketplaceListing(
+  listingId: number,
+  request: CreateMarketplaceReportRequest,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/marketplace/listings/${listingId}/reports`,
+    {
+      method: "POST",
+      headers: jsonHeaders(token),
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not report this listing."),
+    );
+  }
+
+  return parseJson<MarketplaceReportResponse>(response);
 }
 
 export async function fetchMyMarketplaceListings(token: string) {
