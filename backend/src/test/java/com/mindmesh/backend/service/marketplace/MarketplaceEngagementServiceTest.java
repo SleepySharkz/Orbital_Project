@@ -23,20 +23,24 @@ import com.mindmesh.backend.entity.MarketplaceListing;
 import com.mindmesh.backend.entity.User;
 import com.mindmesh.backend.enums.MarketplaceListingStatus;
 import com.mindmesh.backend.enums.PublisherVisibility;
+import com.mindmesh.backend.repository.MarketplaceListingReportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
 import com.mindmesh.backend.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
-class MarketplaceRatingServiceTest {
+class MarketplaceEngagementServiceTest {
 
   @Mock
   private MarketplaceListingRepository marketplaceListingRepository;
 
   @Mock
+  private MarketplaceListingReportRepository marketplaceListingReportRepository;
+
+  @Mock
   private UserRepository userRepository;
 
   @InjectMocks
-  private MarketplaceRatingService marketplaceRatingService;
+  private MarketplaceEngagementService marketplaceEngagementService;
 
   private User publisher;
   private User voter;
@@ -72,10 +76,10 @@ class MarketplaceRatingServiceTest {
         .thenReturn(Optional.of(listing));
     when(userRepository.findById(2L)).thenReturn(Optional.of(voter));
 
-    MarketplaceUpvoteResponseDto added = marketplaceRatingService.addUpvote(50L, 2L);
-    MarketplaceUpvoteResponseDto duplicate = marketplaceRatingService.addUpvote(50L, 2L);
-    MarketplaceUpvoteResponseDto removed = marketplaceRatingService.removeUpvote(50L, 2L);
-    MarketplaceUpvoteResponseDto repeatedRemoval = marketplaceRatingService.removeUpvote(50L, 2L);
+    MarketplaceUpvoteResponseDto added = marketplaceEngagementService.addUpvote(50L, 2L);
+    MarketplaceUpvoteResponseDto duplicate = marketplaceEngagementService.addUpvote(50L, 2L);
+    MarketplaceUpvoteResponseDto removed = marketplaceEngagementService.removeUpvote(50L, 2L);
+    MarketplaceUpvoteResponseDto repeatedRemoval = marketplaceEngagementService.removeUpvote(50L, 2L);
 
     assertEquals(1, added.getUpvoteCount());
     assertTrue(added.isHasCurrentUserUpvoted());
@@ -91,7 +95,7 @@ class MarketplaceRatingServiceTest {
         .thenReturn(Optional.of(listing));
     when(userRepository.findById(1L)).thenReturn(Optional.of(publisher));
 
-    MarketplaceUpvoteResponseDto publisherUpvote = marketplaceRatingService.addUpvote(50L, 1L);
+    MarketplaceUpvoteResponseDto publisherUpvote = marketplaceEngagementService.addUpvote(50L, 1L);
 
     assertEquals(1, publisherUpvote.getUpvoteCount());
     assertTrue(publisherUpvote.isHasCurrentUserUpvoted());
@@ -101,7 +105,7 @@ class MarketplaceRatingServiceTest {
         .thenReturn(Optional.empty());
     ResponseStatusException nonPublished = assertThrows(
         ResponseStatusException.class,
-        () -> marketplaceRatingService.addUpvote(60L, 2L));
+        () -> marketplaceEngagementService.addUpvote(60L, 2L));
     assertEquals(404, nonPublished.getStatusCode().value());
   }
 }

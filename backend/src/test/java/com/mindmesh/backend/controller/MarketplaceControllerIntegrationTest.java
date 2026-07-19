@@ -42,6 +42,7 @@ import com.mindmesh.backend.repository.CFCEntryRepository;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
 import com.mindmesh.backend.repository.MarketplaceImportRepository;
+import com.mindmesh.backend.repository.MarketplaceListingReportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
 import com.mindmesh.backend.repository.TCRepository;
 import com.mindmesh.backend.repository.UserRepository;
@@ -75,6 +76,9 @@ class MarketplaceControllerIntegrationTest {
   @Autowired
   private MarketplaceImportRepository marketplaceImportRepository;
 
+  @Autowired
+  private MarketplaceListingReportRepository marketplaceListingReportRepository;
+
   private MockMvc mockMvc;
 
   @BeforeEach
@@ -94,6 +98,7 @@ class MarketplaceControllerIntegrationTest {
 
   private void cleanDatabaseState() {
     marketplaceImportRepository.deleteAll();
+    marketplaceListingReportRepository.deleteAll();
     marketplaceListingRepository.deleteAll();
     cfcRepository.deleteAll();
     tcRepository.deleteAll();
@@ -248,6 +253,36 @@ class MarketplaceControllerIntegrationTest {
         .andExpect(jsonPath("$.status").doesNotExist())
         .andExpect(jsonPath("$.entries[0].sourceEntryId").doesNotExist())
         .andExpect(jsonPath("$.entries[0].sourceEntryCreatedAt").doesNotExist());
+  }
+
+  @Test
+  void getListingDetail_returnsUpvoteStateForCurrentUser() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User viewer = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+
+    publishListing(publisher, publishRequestJson(tc, "BST Revision Pack"))
+        .andExpect(status().isCreated());
+
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(post("/api/v1/marketplace/listings/{listingId}/upvote", listing.getId())
+        .with(authentication(authFor(viewer))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.hasCurrentUserUpvoted").value(true));
+
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(viewer))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.upvoteCount").value(1))
+        .andExpect(jsonPath("$.hasCurrentUserUpvoted").value(true));
+
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(publisher))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.upvoteCount").value(1))
+        .andExpect(jsonPath("$.hasCurrentUserUpvoted").value(false));
   }
 
   @Test
@@ -455,6 +490,114 @@ class MarketplaceControllerIntegrationTest {
     mockMvc.perform(get("/api/v1/marketplace/imports/{importId}", importId)
         .with(authentication(authFor(importer))))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void reportListing_allowsOneReportPerUserAndDifferentReporters() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User firstReporter = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    User secondReporter = userRepository.save(new User("Alex", "alex@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    reportListing(firstReporter, listing, "INACCURATE_CONTENT")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.listingId").value(listing.getId()))
+        .andExpect(jsonPath("$.reportId").isNumber())
+        .andExpect(jsonPath("$.listingStatus").value("PUBLISHED"));
+
+    reportListing(firstReporter, listing, "SPAM")
+        .andExpect(status().isConflict());
+
+    reportListing(secondReporter, listing, "SPAM")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.listingStatus").value("PUBLISHED"));
+
+    assertEquals(2L, marketplaceListingReportRepository.countByListingId(listing.getId()));
+  }
+
+  @Test
+  void reportListing_atThresholdHidesListingAndBlocksNewImports() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User firstReporter = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    User secondReporter = userRepository.save(new User("Alex", "alex@example.com", "hashed"));
+    User thirdReporter = userRepository.save(new User("Sam", "sam@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    reportListing(firstReporter, listing, "SPAM").andExpect(status().isCreated());
+    reportListing(secondReporter, listing, "SPAM").andExpect(status().isCreated());
+    reportListing(thirdReporter, listing, "SPAM")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.listingStatus").value("UNDER_REVIEW"));
+
+    mockMvc.perform(get("/api/v1/marketplace/listings")
+        .with(authentication(authFor(firstReporter))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items", hasSize(0)));
+
+    mockMvc.perform(get("/api/v1/marketplace/listings/{listingId}", listing.getId())
+        .with(authentication(authFor(firstReporter))))
+        .andExpect(status().isNotFound());
+
+    mockMvc.perform(post("/api/v1/marketplace/listings/{listingId}/import", listing.getId())
+        .with(authentication(authFor(firstReporter))))
+        .andExpect(status().isNotFound());
+
+    MarketplaceListing hiddenListing = marketplaceListingRepository.findById(listing.getId()).orElseThrow();
+    assertEquals(MarketplaceListingStatus.UNDER_REVIEW, hiddenListing.getStatus());
+  }
+
+  @Test
+  void reportListing_existingImportRemainsReadableAfterThreshold() throws Exception {
+    User publisher = userRepository.save(new User("Tauzih", "tauzih@example.com", "hashed"));
+    User importer = userRepository.save(new User("Dhruv", "dhruv@example.com", "hashed"));
+    User secondReporter = userRepository.save(new User("Alex", "alex@example.com", "hashed"));
+    User thirdReporter = userRepository.save(new User("Sam", "sam@example.com", "hashed"));
+    CourseModule module = saveModule(publisher, "Trees");
+    TC tc = saveTcWithEntries(module, publisher, "Trees", 1);
+    publishListing(publisher, publishRequestJson(tc, "Trees Guide"))
+        .andExpect(status().isCreated());
+    MarketplaceListing listing = savedListingFor(publisher);
+
+    mockMvc.perform(post("/api/v1/marketplace/listings/{listingId}/import", listing.getId())
+        .with(authentication(authFor(importer))))
+        .andExpect(status().isCreated());
+
+    Long importId = marketplaceImportRepository
+        .findByImporterIdOrderByImportedAtDesc(importer.getId())
+        .get(0)
+        .getId();
+
+    reportListing(importer, listing, "SPAM").andExpect(status().isCreated());
+    reportListing(secondReporter, listing, "SPAM").andExpect(status().isCreated());
+    reportListing(thirdReporter, listing, "SPAM")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.listingStatus").value("UNDER_REVIEW"));
+
+    mockMvc.perform(get("/api/v1/marketplace/imports/{importId}", importId)
+        .with(authentication(authFor(importer))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sourceListingId").value(listing.getId()))
+        .andExpect(jsonPath("$.entries", hasSize(1)));
+  }
+
+  private ResultActions reportListing(User reporter, MarketplaceListing listing, String reason) throws Exception {
+    return mockMvc.perform(post("/api/v1/marketplace/listings/{listingId}/reports", listing.getId())
+        .with(authentication(authFor(reporter)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "reason": "%s",
+              "details": "Report details"
+            }
+            """.formatted(reason)));
   }
 
   private ResultActions publishListing(User user, String requestJson) throws Exception {

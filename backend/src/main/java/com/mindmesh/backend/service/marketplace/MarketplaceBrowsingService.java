@@ -70,12 +70,15 @@ public class MarketplaceBrowsingService {
   }
 
   @Transactional
-  public MarketplaceListingDetailDto getPublishedListingDetail(Long listingId) {
+  public MarketplaceListingDetailDto getPublishedListingDetail(Long listingId, Long userId) {
     MarketplaceListing listing = marketplaceListingRepository
         .findByIdAndStatus(listingId, MarketplaceListingStatus.PUBLISHED)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Marketplace listing not found."));
 
-    return toDetailDto(listing);
+    boolean hasCurrentUserUpvoted = marketplaceListingRepository.hasUpvoteFromUser(
+        listingId,
+        userId);
+    return toDetailDto(listing, hasCurrentUserUpvoted);
   }
 
   private MarketplaceListingSummaryDto toSummaryDto(MarketplaceListing listing) {
@@ -95,7 +98,9 @@ public class MarketplaceBrowsingService {
         listing.getPublishedAt());
   }
 
-  private MarketplaceListingDetailDto toDetailDto(MarketplaceListing listing) {
+  private MarketplaceListingDetailDto toDetailDto(
+      MarketplaceListing listing,
+      boolean hasCurrentUserUpvoted) {
     List<MarketplaceListingEntrySnapshotDto> entries = listing.getEntries()
         .stream()
         .sorted(Comparator.comparing(MarketplaceListingEntrySnapshot::getDisplayOrder))
@@ -115,6 +120,7 @@ public class MarketplaceBrowsingService {
         listing.getPublisherDisplayName(),
         listing.getEntryCount(),
         listing.getUpvoteCount(),
+        hasCurrentUserUpvoted,
         listing.getImportCount(),
         listing.getPublishedAt(),
         listing.getUpdatedAt(),
