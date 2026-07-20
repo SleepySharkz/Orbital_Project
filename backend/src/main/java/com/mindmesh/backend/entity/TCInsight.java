@@ -187,6 +187,30 @@ public class TCInsight {
     this.status = TCInsightStatus.NO_USEFUL_LINK;
   }
 
+    public void markGenerationFailed(String failureReason) {
+    if (isBlank(failureReason)) {
+      throw new IllegalArgumentException("A generation failure reason is required.");
+    }
+
+    this.title = null;
+    this.summary = null;
+    replacePoints(List.of());
+    this.rejectionReason = failureReason.trim();
+    this.status = TCInsightStatus.GENERATION_FAILED;
+  }
+
+  public void restartGeneration() {
+    if (status != TCInsightStatus.GENERATION_FAILED) {
+      throw new IllegalStateException("Only a failed generation can be restarted.");
+    }
+
+    this.title = null;
+    this.summary = null;
+    replacePoints(List.of());
+    this.rejectionReason = null;
+    this.status = TCInsightStatus.GENERATING;
+  }
+
   public void markRefreshing(Instant startedAt) {
     if (startedAt == null) {
       throw new IllegalArgumentException("Refresh start timestamp is required.");

@@ -24,6 +24,39 @@ type MindmapResponse = {
   edges: MindmapEdge[];
 };
 
+type MindmapInsightStatus =
+  | "GENERATING"
+  | "GENERATION_FAILED"
+  | "READY"
+  | "NO_USEFUL_LINK"
+  | "REFRESHING"
+  | "REFRESH_FAILED";
+
+type MindmapInsightPoint = {
+  heading: string;
+  explanation: string;
+  sourceTopicAReferences: string | null;
+  sourceTopicBReferences: string | null;
+  displayOrder: number;
+};
+
+type MindmapInsightDetail = {
+  insightId: number;
+  moduleId: number;
+  sourceTcId: number;
+  targetTcId: number;
+  topicA: string;
+  topicB: string;
+  status: MindmapInsightStatus;
+  title: string | null;
+  summary: string | null;
+  points: MindmapInsightPoint[];
+  rejectionReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  generatedAt: string | null;
+};
+
 type NodePosition = {
   x: number;
   y: number;
@@ -52,10 +85,39 @@ function edgeMatchesSelection(edge: MindmapEdge, selectedIds: number[]) {
   );
 }
 
-export { edgeMatchesSelection, updateMindmapSelection };
+function canonicalPairKey(tcIds: number[]) {
+  return [...tcIds].sort((first, second) => first - second).join(":");
+}
+
+function detailToReadyEdge(detail: MindmapInsightDetail): MindmapEdge | null {
+  if (detail.status !== "READY" || !detail.title || !detail.summary) {
+    return null;
+  }
+
+  return {
+    insightId: detail.insightId,
+    sourceTcId: detail.sourceTcId,
+    targetTcId: detail.targetTcId,
+    status: "READY",
+    title: detail.title,
+    summary: detail.summary,
+    updatedAt: detail.updatedAt,
+    isRefreshing: false,
+  };
+}
+
+export {
+  canonicalPairKey,
+  detailToReadyEdge,
+  edgeMatchesSelection,
+  updateMindmapSelection,
+};
 
 export type {
   MindmapEdge,
+  MindmapInsightDetail,
+  MindmapInsightPoint,
+  MindmapInsightStatus,
   MindmapNode,
   MindmapResponse,
   NodePosition,
