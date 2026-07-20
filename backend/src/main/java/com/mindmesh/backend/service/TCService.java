@@ -30,14 +30,17 @@ public class TCService {
   private final TCRepository tcRepository;
   private final CFCEntryRepository cfcEntryRepository;
   private final CourseModuleRepository courseModuleRepository;
+  private final TCUpdateEventPublisher tcUpdateEventPublisher;
 
   public TCService(
       TCRepository tcRepository,
       CFCEntryRepository cfcEntryRepository,
-      CourseModuleRepository courseModuleRepository) {
+      CourseModuleRepository courseModuleRepository,
+      TCUpdateEventPublisher tcUpdateEventPublisher) {
     this.tcRepository = tcRepository;
     this.cfcEntryRepository = cfcEntryRepository;
     this.courseModuleRepository = courseModuleRepository;
+    this.tcUpdateEventPublisher = tcUpdateEventPublisher;
   }
 
   @Transactional
@@ -80,7 +83,8 @@ public class TCService {
       tc.addEntry(entry);
     }
 
-    tcRepository.save(tc);
+    TC savedTc = tcRepository.save(tc);
+    tcUpdateEventPublisher.publishUpdated(savedTc);
   }
 
   @Transactional

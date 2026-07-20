@@ -49,6 +49,9 @@ class TCServiceTest {
   @Mock
   private CourseModuleRepository courseModuleRepository;
 
+  @Mock
+  private TCUpdateEventPublisher tcUpdateEventPublisher;
+
   @InjectMocks
   private TCService tcService;
 
@@ -90,6 +93,7 @@ class TCServiceTest {
     assertTrue(savedTc.getEntries().contains(treeEntryTwo));
     assertSame(savedTc, treeEntryOne.getTc());
     assertSame(savedTc, treeEntryTwo.getTc());
+    verify(tcUpdateEventPublisher).publishUpdated(savedTc);
   }
 
   @Test

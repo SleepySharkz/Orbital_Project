@@ -71,7 +71,8 @@ public class MindmapService {
             userId,
             moduleId,
             TCInsightStatus.READY,
-            TCInsightStatus.REFRESHING)
+            TCInsightStatus.REFRESHING,
+            TCInsightStatus.REFRESH_FAILED)
         .stream()
         .filter(insight -> activeTcIds.contains(insight.getTcA().getId()))
         .filter(insight -> activeTcIds.contains(insight.getTcB().getId()))

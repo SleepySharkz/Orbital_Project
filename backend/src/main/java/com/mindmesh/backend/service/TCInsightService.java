@@ -1,12 +1,7 @@
 package com.mindmesh.backend.service;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,13 +17,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.mindmesh.backend.dto.ai.AIGeneratedInsightPoint;
 import com.mindmesh.backend.dto.ai.AIGeneratedInsightResponse;
-import com.mindmesh.backend.dto.ai.AIInsightEntryInput;
 import com.mindmesh.backend.dto.ai.AIInsightGenerationRequest;
 import com.mindmesh.backend.dto.responses.mindmap.MindmapInsightDetailDto;
 import com.mindmesh.backend.dto.responses.mindmap.MindmapInsightDetailDto.InsightPointDto;
-import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
-import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.TC;
 import com.mindmesh.backend.entity.TCInsight;
 import com.mindmesh.backend.entity.TCInsightPoint;
@@ -47,14 +39,17 @@ public class TCInsightService {
   private final TCInsightRepository tcInsightRepository;
   private final TCRepository tcRepository;
   private final CourseModuleRepository courseModuleRepository;
+  private final TCInsightInputFactory inputFactory;
 
   public TCInsightService(
       TCInsightRepository tcInsightRepository,
       TCRepository tcRepository,
-      CourseModuleRepository courseModuleRepository) {
+      CourseModuleRepository courseModuleRepository,
+      TCInsightInputFactory inputFactory) {
     this.tcInsightRepository = tcInsightRepository;
     this.tcRepository = tcRepository;
     this.courseModuleRepository = courseModuleRepository;
+    this.inputFactory = inputFactory;
   }
 
   @Transactional
@@ -110,7 +105,8 @@ public class TCInsightService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<AIInsightGenerationRequest> buildGenerationRequest(Long insightId) {
+  public Optional<AIInsightGenerationRequest> buildGenerationRequest(
+      Long insightId) {
     TCInsight insight = tcInsightRepository.findById(insightId)
         .orElseThrow(() -> new ResponseStatusException(
             HttpStatus.NOT_FOUND,
@@ -120,26 +116,38 @@ public class TCInsightService {
       return Optional.empty();
     }
 
-    List<Long> tcIds = List.of(insight.getTcA().getId(), insight.getTcB().getId());
+    return Optional.of(buildRequest(insight));
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<AIInsightGenerationRequest> buildRefreshRequest(
+      Long insightId) {
+    TCInsight insight = tcInsightRepository.findById(insightId)
+        .orElseThrow(() -> new ResponseStatusException(
+            HttpStatus.NOT_FOUND,
+            "Insight not found."));
+
+    if (insight.getStatus() != TCInsightStatus.REFRESHING) {
+      return Optional.empty();
+    }
+
+    return Optional.of(buildRequest(insight));
+  }
+
+  private AIInsightGenerationRequest buildRequest(TCInsight insight) {
+    List<Long> tcIds = List.of(
+        insight.getTcA().getId(),
+        insight.getTcB().getId());
     Map<Long, TC> tcsById = tcRepository
-        .findAllOwnedWithInsightInputsByIdIn(insight.getUser().getId(), tcIds)
+        .findAllOwnedWithInsightInputsByIdIn(
+            insight.getUser().getId(),
+            tcIds)
         .stream()
         .collect(Collectors.toMap(TC::getId, Function.identity()));
 
-    TC tcA = requireGenerationTc(tcsById, insight.getTcA().getId());
-    TC tcB = requireGenerationTc(tcsById, insight.getTcB().getId());
-    List<AIInsightEntryInput> entriesA = toAIEntries(tcA);
-    List<AIInsightEntryInput> entriesB = toAIEntries(tcB);
-
-    return Optional.of(new AIInsightGenerationRequest(
-        insight.getModule().getCourseCode(),
-        insight.getModule().getSchoolSem(),
-        insight.getTopicA(),
-        insight.getTopicB(),
-        entriesA,
-        entriesB,
-        contentHash(tcA.getTopic(), entriesA),
-        contentHash(tcB.getTopic(), entriesB)));
+    TC tcA = tcsById.get(insight.getTcA().getId());
+    TC tcB = tcsById.get(insight.getTcB().getId());
+    return inputFactory.build(insight, tcA, tcB);
   }
 
   @Transactional
@@ -157,6 +165,23 @@ public class TCInsightService {
       return;
     }
 
+    applyGeneratedResult(insight, generated, request, completedAt);
+  }
+
+  void applyRefreshResult(
+      TCInsight insight,
+      AIGeneratedInsightResponse generated,
+      AIInsightGenerationRequest request,
+      Instant completedAt) {
+    applyGeneratedResult(insight, generated, request, completedAt);
+    insight.recordRefreshCompleted(completedAt);
+  }
+
+  private void applyGeneratedResult(
+      TCInsight insight,
+      AIGeneratedInsightResponse generated,
+      AIInsightGenerationRequest request,
+      Instant completedAt) {
     if (generated == null || generated.getHasUsefulLink() == null) {
       throw new IllegalArgumentException("Generated insight result is incomplete.");
     }
@@ -277,64 +302,6 @@ public class TCInsightService {
     }
 
     return selectedTcIds.stream().sorted().toList();
-  }
-
-  private TC requireGenerationTc(Map<Long, TC> tcsById, Long tcId) {
-    TC tc = tcsById.get(tcId);
-    if (tc == null || tc.getEntries().isEmpty()) {
-      throw new IllegalStateException("Insight input TC is no longer available.");
-    }
-    return tc;
-  }
-
-  private List<AIInsightEntryInput> toAIEntries(TC tc) {
-    return tc.getEntries()
-        .stream()
-        .sorted(Comparator.comparing(CFCEntry::getId))
-        .map(this::toAIEntry)
-        .toList();
-  }
-
-  private AIInsightEntryInput toAIEntry(CFCEntry entry) {
-    GeneratedCFCPage generated = entry.getGeneratedCFCPage();
-    return new AIInsightEntryInput(
-        entry.getId(),
-        generated == null ? null : generated.getFlashcardQuestion(),
-        generated == null ? null : generated.getFlashcardNoteContent(),
-        entry.getQuestionText(),
-        entry.getRoughNote(),
-        entry.getCfc().getSourceType().name(),
-        entry.getCfc().getSourceTitle());
-  }
-
-  private String contentHash(String topic, List<AIInsightEntryInput> entries) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      updateDigest(digest, topic);
-      for (AIInsightEntryInput entry : entries) {
-        updateDigest(digest, entry.entryId() == null ? null : entry.entryId().toString());
-        updateDigest(digest, entry.generatedQuestion());
-        updateDigest(digest, entry.generatedNote());
-        updateDigest(digest, entry.originalQuestion());
-        updateDigest(digest, entry.roughNote());
-        updateDigest(digest, entry.sourceType());
-        updateDigest(digest, entry.sourceTitle());
-      }
-      return HexFormat.of().formatHex(digest.digest());
-    } catch (NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("SHA-256 is unavailable.", exception);
-    }
-  }
-
-  private void updateDigest(MessageDigest digest, String value) {
-    if (value == null) {
-      digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(-1).array());
-      return;
-    }
-
-    byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-    digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(bytes.length).array());
-    digest.update(bytes);
   }
 
   private TCInsightPoint toEntityPoint(AIGeneratedInsightPoint point, int displayOrder) {

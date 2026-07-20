@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -37,6 +38,8 @@ import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCEntryRepository;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
 import com.mindmesh.backend.repository.TCRepository;
 import com.mindmesh.backend.repository.UserRepository;
@@ -67,6 +70,12 @@ class MarketplaceControllerIntegrationTest {
   @Autowired
   private MarketplaceListingRepository marketplaceListingRepository;
 
+  @Autowired
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
   private MockMvc mockMvc;
 
   @BeforeEach
@@ -86,6 +95,8 @@ class MarketplaceControllerIntegrationTest {
 
   private void cleanDatabaseState() {
     marketplaceListingRepository.deleteAll();
+    friendshipRepository.deleteAll();
+    friendRequestRepository.deleteAll();
     cfcRepository.deleteAll();
     tcRepository.deleteAll();
     courseModuleRepository.deleteAll();
@@ -257,7 +268,8 @@ class MarketplaceControllerIntegrationTest {
 
   private MarketplaceListing savedListingFor(User user) {
     MarketplaceListing listingSummary = marketplaceListingRepository
-        .findByPublisherIdOrderByPublishedAtDesc(user.getId())
+        .findByPublisherIdOrderByPublishedAtDesc(user.getId(), PageRequest.of(0, 1))
+        .getContent()
         .get(0);
 
     return marketplaceListingRepository

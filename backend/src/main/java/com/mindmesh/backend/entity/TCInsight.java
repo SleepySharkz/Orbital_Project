@@ -187,7 +187,7 @@ public class TCInsight {
     this.status = TCInsightStatus.NO_USEFUL_LINK;
   }
 
-    public void markGenerationFailed(String failureReason) {
+  public void markGenerationFailed(String failureReason) {
     if (isBlank(failureReason)) {
       throw new IllegalArgumentException("A generation failure reason is required.");
     }
@@ -216,8 +216,32 @@ public class TCInsight {
       throw new IllegalArgumentException("Refresh start timestamp is required.");
     }
 
-    this.lastRefreshStartedAt = startedAt;
+    if (status != TCInsightStatus.REFRESHING) {
+      this.lastRefreshStartedAt = startedAt;
+    }
     this.status = TCInsightStatus.REFRESHING;
+  }
+
+  public void completeUnchangedRefresh(Instant completedAt) {
+    if (completedAt == null) {
+      throw new IllegalArgumentException("Refresh completion timestamp is required.");
+    }
+
+    if (!isBlank(title) && !isBlank(summary) && !points.isEmpty()) {
+      this.status = TCInsightStatus.READY;
+    } else if (!isBlank(rejectionReason)) {
+      this.status = TCInsightStatus.NO_USEFUL_LINK;
+    } else {
+      throw new IllegalStateException("Cannot restore an insight without a prior terminal result.");
+    }
+    this.lastRefreshCompletedAt = completedAt;
+  }
+
+  public void recordRefreshCompleted(Instant completedAt) {
+    if (completedAt == null) {
+      throw new IllegalArgumentException("Refresh completion timestamp is required.");
+    }
+    this.lastRefreshCompletedAt = completedAt;
   }
 
   public void markRefreshFailed(Instant completedAt) {

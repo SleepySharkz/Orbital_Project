@@ -1,5 +1,6 @@
 package com.mindmesh.backend.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +39,20 @@ public interface TCInsightRepository extends JpaRepository<TCInsight, Long> {
       @Param("userId") Long userId,
       @Param("tcId") Long tcId);
 
+  @EntityGraph(attributePaths = { "tcA", "tcB" })
+  @Query("""
+      SELECT DISTINCT insight
+      FROM TCInsight insight
+      WHERE insight.user.id = :userId
+        AND insight.module.id = :moduleId
+        AND (insight.tcA.id IN :tcIds OR insight.tcB.id IN :tcIds)
+      ORDER BY insight.id ASC
+      """)
+  List<TCInsight> findAllAffectedByTcIds(
+      @Param("userId") Long userId,
+      @Param("moduleId") Long moduleId,
+      @Param("tcIds") Collection<Long> tcIds);
+
   @EntityGraph(attributePaths = { "user", "module", "tcA", "tcB", "points" })
   Optional<TCInsight> findDetailByIdAndUserId(Long id, Long userId);
 
@@ -49,9 +64,8 @@ public interface TCInsightRepository extends JpaRepository<TCInsight, Long> {
       WHERE insight.user.id = :userId
         AND insight.module.id = :moduleId
         AND (
-          insight.status = :readyStatus
-          OR (
-            insight.status = :refreshingStatus
+          insight.status = :readyStatus OR (
+            insight.status IN (:refreshingStatus, :refreshFailedStatus)
             AND insight.title IS NOT NULL
             AND insight.summary IS NOT NULL
           )
@@ -62,6 +76,6 @@ public interface TCInsightRepository extends JpaRepository<TCInsight, Long> {
       @Param("userId") Long userId,
       @Param("moduleId") Long moduleId,
       @Param("readyStatus") TCInsightStatus readyStatus,
-      @Param("refreshingStatus") TCInsightStatus refreshingStatus
-  );
+      @Param("refreshingStatus") TCInsightStatus refreshingStatus,
+      @Param("refreshFailedStatus") TCInsightStatus refreshFailedStatus);
 }

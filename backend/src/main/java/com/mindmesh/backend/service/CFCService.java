@@ -43,16 +43,19 @@ public class CFCService {
 
   private final AICFCGenerationService aicfcGenerationService;
   private final TCService tcService;
+  private final TCUpdateEventPublisher tcUpdateEventPublisher;
 
   public CFCService(
       CFCRepository cfcRepository,
       CourseModuleRepository courseModuleRepository,
       AICFCGenerationService aicfcGenerationService,
-      TCService tcService) {
+      TCService tcService,
+      TCUpdateEventPublisher tcUpdateEventPublisher) {
     this.cfcRepository = cfcRepository;
     this.courseModuleRepository = courseModuleRepository;
     this.aicfcGenerationService = aicfcGenerationService;
     this.tcService = tcService;
+    this.tcUpdateEventPublisher = tcUpdateEventPublisher;
   }
 
   @Transactional
@@ -206,6 +209,9 @@ public class CFCService {
         requestDto.getFlashcardNoteContent().trim());
 
     cfcRepository.save(cfc);
+    if (entry.getTc() != null) {
+      tcUpdateEventPublisher.publishUpdated(entry.getTc());
+    }
     return toCFCEntryResponseDto(entry);
   }
 
