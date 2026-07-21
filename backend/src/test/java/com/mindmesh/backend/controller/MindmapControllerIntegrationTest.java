@@ -303,6 +303,8 @@ class MindmapControllerIntegrationTest {
         "Shared note",
         "Shared source question",
         "Shared rough note",
+        SourceType.TUTORIAL,
+        "Tutorial fixture",
         null);
     sharedTcRepository.save(sharedTc);
   }

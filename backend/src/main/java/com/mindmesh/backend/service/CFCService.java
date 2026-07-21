@@ -73,6 +73,11 @@ public class CFCService {
     CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
     SourceType sourceType = headerDto.getSourceType();
     String sourceTitle = headerDto.getSourceTitle();
+    if (sourceType == SourceType.SHARED_TC) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "SHARED_TC is reserved for imported private shares.");
+    }
 
     // Start validating
     checkUniqueItemIDs(items);

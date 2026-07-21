@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
-import type { SourceType } from "../api/cfcApi";
+import type { StoredSourceType } from "../api/cfcApi";
 import type { CFCCollectionItem } from "./cfcCollectionTypes";
 
 type CFCCollectionCardProps = {
   item: CFCCollectionItem;
 };
 
-function formatSourceType(sourceType: SourceType) {
+function formatSourceType(sourceType: StoredSourceType) {
+  if (sourceType === "SHARED_TC") return "Shared TC";
   return sourceType
     .toLowerCase()
     .split("_")

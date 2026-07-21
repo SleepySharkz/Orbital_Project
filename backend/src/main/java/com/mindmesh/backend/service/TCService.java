@@ -154,7 +154,15 @@ public class TCService {
         entry.getGeneratedCFCPage().getFlashcardNoteContent(),
         entry.getQuestionText(),
         entry.getRoughNote(),
-        entry.getCreatedAt());
+        entry.getCreatedAt(),
+        entry.getOrigin(),
+        entry.getSourceOwnerUsername(),
+        entry.getSourceTypeAtShare(),
+        entry.getSourceTitleAtShare(),
+        entry.getSourceSharedTcId(),
+        entry.getSourceSharedEntryId(),
+        entry.getSourceEntryCreatedAt(),
+        entry.getMergedAt());
   }
 
 }

@@ -428,3 +428,8 @@
     padding: 18px 18px 22px;
   }
 }
+.tc-source-provenance {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid #dce3ef;
+  padding-bottom: 12px;
+}

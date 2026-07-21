@@ -5,11 +5,15 @@ import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import {
   fetchSharedTCById,
   fetchSharedTCs,
+  mergeSharedTC,
 } from "../api/tcSharingApi";
 import type {
+  MergeSharedTCResponse,
+  SharedEntrySourceType,
   SharedTCDetail,
   SharedTCSummary,
 } from "../types/tcSharingTypes";
+import "../../friends/styles/friendsStyles.css";
 import "../../modules/styles/modulesStyles.css";
 import "../../tc/styles/tcStyles.css";
 import "../styles/sharingStyles.css";
@@ -29,6 +33,15 @@ function formatDateTime(value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function formatSourceType(value: SharedEntrySourceType) {
+  if (value === "SHARED_TC") return "Shared TC";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function SharedTCListPage() {
@@ -51,6 +64,10 @@ export function SharedTCListPage() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [listError, setListError] = useState("");
   const [detailError, setDetailError] = useState("");
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeError, setMergeError] = useState("");
+  const [mergeSuccess, setMergeSuccess] =
+    useState<MergeSharedTCResponse | null>(null);
 
   useEffect(() => {
     async function loadSharedTcs() {
@@ -96,6 +113,7 @@ export function SharedTCListPage() {
 
       try {
         setDetailError("");
+        setMergeError("");
         setIsDetailLoading(true);
         setSelectedSharedTc(await fetchSharedTCById(parsedSharedTcId, token));
       } catch (caughtError) {
@@ -132,6 +150,30 @@ export function SharedTCListPage() {
     navigate("/login");
   }
 
+  async function handleMerge() {
+    if (!token || !selectedSharedTc?.canMerge) return;
+
+    try {
+      setIsMerging(true);
+      setMergeError("");
+      const result = await mergeSharedTC(selectedSharedTc.id, token);
+      setSharedTcs((current) =>
+        current.filter((sharedTc) => sharedTc.id !== result.sharedTcId),
+      );
+      setSelectedSharedTc(null);
+      setMergeSuccess(result);
+      navigate("/shared-tcs", { replace: true });
+    } catch (caughtError) {
+      setMergeError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Could not merge shared TC.",
+      );
+    } finally {
+      setIsMerging(false);
+    }
+  }
+
   if (!user || !token) {
     return null;
   }
@@ -147,6 +189,26 @@ export function SharedTCListPage() {
             Accepted topic sheets shared privately with you.
           </p>
         </header>
+
+        {mergeSuccess && (
+          <section className="sharing-merge-success" role="status">
+            <div>
+              <strong>Shared TC merged</strong>
+              <p>
+                {mergeSuccess.mergedEntryCount}{" "}
+                {mergeSuccess.mergedEntryCount === 1 ? "entry is" : "entries are"}{" "}
+                now part of your TC.
+              </p>
+            </div>
+            <button
+              className="friends-secondary-button"
+              type="button"
+              onClick={() => navigate(`/topic-sheets/${mergeSuccess.ownedTcId}`)}
+            >
+              Open merged TC
+            </button>
+          </section>
+        )}
 
         <section className="tc-section">
           {isListLoading && (
@@ -253,6 +315,30 @@ export function SharedTCListPage() {
                   </p>
                 </header>
 
+                <div className="sharing-merge-actions">
+                  {selectedSharedTc.canMerge ? (
+                    <button
+                      className="friends-primary-button"
+                      type="button"
+                      disabled={isMerging}
+                      onClick={() => void handleMerge()}
+                    >
+                      {isMerging ? "Merging..." : "Merge into my TC"}
+                    </button>
+                  ) : (
+                    <p className="tc-banner tc-banner-error">
+                      {selectedSharedTc.mergeBlockingReason
+                        ?? "This shared TC cannot be merged."}
+                    </p>
+                  )}
+
+                  {mergeError && (
+                    <p className="tc-banner tc-banner-error" role="alert">
+                      {mergeError}
+                    </p>
+                  )}
+                </div>
+
                 <section className="tc-sheet">
                   {selectedSharedTc.entries.map((entry) => (
                     <article className="tc-sheet-entry" key={entry.id}>
@@ -281,6 +367,18 @@ export function SharedTCListPage() {
                         </summary>
 
                         <div className="tc-source-grid">
+                          {(entry.sourceType || entry.sourceTitle) && (
+                            <div className="tc-source-provenance">
+                              <p className="tc-source-label">Original Source</p>
+                              <p className="tc-source-copy">
+                                {entry.sourceType
+                                  ? formatSourceType(entry.sourceType)
+                                  : "Source"}
+                                {entry.sourceTitle ? ` - ${entry.sourceTitle}` : ""}
+                              </p>
+                            </div>
+                          )}
+
                           <div className="tc-source-card">
                             <p className="tc-source-label">
                               Original Question

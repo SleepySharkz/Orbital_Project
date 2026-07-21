@@ -85,6 +85,29 @@
   justify-content: flex-end;
 }
 
+.sharing-merge-actions {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.sharing-merge-success {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #b8dfc7;
+  border-radius: 8px;
+  padding: 16px;
+  background: #edf9f1;
+  color: #173f28;
+}
+
+.sharing-merge-success p {
+  margin: 4px 0 0;
+}
+
 @media (max-width: 960px) {
   .sharing-tc-list {
     grid-template-columns: 1fr;
@@ -92,6 +115,11 @@
 }
 
 @media (max-width: 680px) {
+  .sharing-merge-success {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .sharing-tc-row {
     grid-template-columns: auto minmax(0, 1fr);
   }

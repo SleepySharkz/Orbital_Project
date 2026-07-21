@@ -16,6 +16,7 @@ import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.GeneratedCFCPage;
 import com.mindmesh.backend.entity.TC;
 import com.mindmesh.backend.entity.TCInsight;
+import com.mindmesh.backend.enums.SourceType;
 
 @Component
 public class TCInsightInputFactory {
@@ -54,14 +55,20 @@ public class TCInsightInputFactory {
 
   private AIInsightEntryInput toAIEntry(CFCEntry entry) {
     GeneratedCFCPage generated = entry.getGeneratedCFCPage();
+    SourceType sourceType = entry.getSourceTypeAtShare() == null
+        ? entry.getCfc().getSourceType()
+        : entry.getSourceTypeAtShare();
+    String sourceTitle = entry.getSourceTitleAtShare() == null
+        ? entry.getCfc().getSourceTitle()
+        : entry.getSourceTitleAtShare();
     return new AIInsightEntryInput(
         entry.getId(),
         generated == null ? null : generated.getFlashcardQuestion(),
         generated == null ? null : generated.getFlashcardNoteContent(),
         entry.getQuestionText(),
         entry.getRoughNote(),
-        entry.getCfc().getSourceType().name(),
-        entry.getCfc().getSourceTitle());
+        sourceType.name(),
+        sourceTitle);
   }
 
   private String contentHash(String topic, List<AIInsightEntryInput> entries) {

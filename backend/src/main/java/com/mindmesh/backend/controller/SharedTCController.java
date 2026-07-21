@@ -6,12 +6,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mindmesh.backend.dto.responses.sharing.MergeSharedTCResponseDto;
 import com.mindmesh.backend.dto.responses.sharing.SharedTCDetailDto;
 import com.mindmesh.backend.dto.responses.sharing.SharedTCSummaryDto;
 import com.mindmesh.backend.security.CustomUserDetails;
+import com.mindmesh.backend.service.SharedTCMergeService;
 import com.mindmesh.backend.service.SharedTCService;
 
 @RestController
@@ -19,9 +22,13 @@ import com.mindmesh.backend.service.SharedTCService;
 public class SharedTCController {
 
   private final SharedTCService sharedTcService;
+  private final SharedTCMergeService sharedTcMergeService;
 
-  public SharedTCController(SharedTCService sharedTcService) {
+  public SharedTCController(
+      SharedTCService sharedTcService,
+      SharedTCMergeService sharedTcMergeService) {
     this.sharedTcService = sharedTcService;
+    this.sharedTcMergeService = sharedTcMergeService;
   }
 
   @GetMapping
@@ -36,5 +43,12 @@ public class SharedTCController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     return ResponseEntity.ok(
         sharedTcService.getSharedTcById(sharedTcId, userDetails.getId()));
+  }
+
+  @PostMapping("/{sharedTcId}/merge")
+  public ResponseEntity<MergeSharedTCResponseDto> mergeSharedTc(
+      @PathVariable Long sharedTcId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    return ResponseEntity.ok(sharedTcMergeService.merge(sharedTcId, userDetails.getId()));
   }
 }
