@@ -14,7 +14,6 @@ import com.mindmesh.backend.enums.MarketplaceListingStatus;
 
 public interface MarketplaceListingRepository extends JpaRepository<MarketplaceListing, Long> {
 
-  // Just pure find queries (Pagination to be done later IMPORTANT)
   // Performance optimisation using attributePaths. We also eagerly query other
   // attributes together as one read, to prevent second reads.
   // Likely need to load children entries
@@ -27,6 +26,9 @@ public interface MarketplaceListingRepository extends JpaRepository<MarketplaceL
   // No need entries since these are used for surface level browsing
   @EntityGraph(attributePaths = { "publisher" })
   Page<MarketplaceListing> findByPublisherIdOrderByPublishedAtDesc(Long publisherId, Pageable pageable);
+
+  @EntityGraph(attributePaths = { "publisher" })
+  Page<MarketplaceListing> findByPublisherIdOrderByUpdatedAtDesc(Long publisherId, Pageable pageable);
 
   @EntityGraph(attributePaths = { "publisher" })
   Page<MarketplaceListing> findByStatusOrderByPublishedAtDesc(MarketplaceListingStatus status, Pageable pageable);
@@ -80,6 +82,11 @@ public interface MarketplaceListingRepository extends JpaRepository<MarketplaceL
       Long publisherId,
       Long sourceTcId,
       MarketplaceListingStatus status);
+
+  boolean existsByPublisherIdAndSourceTcIdAndStatusIn(
+      Long publisherId,
+      Long sourceTcId,
+      Iterable<MarketplaceListingStatus> statuses);
 
   // Publisher can still view his/her listing even though if its hidden from
   // public

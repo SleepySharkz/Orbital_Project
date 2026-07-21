@@ -46,7 +46,7 @@ export function TCSummaryCard({ tc, isSelected, onOpen, currentUsername }: TCSum
         </div>
 
         {tc.isStale && (
-          <p className="tc-stale-badge">Historical topic</p>
+          <p className="tc-stale-badge">Stale Topic</p>
         )}
       </div>
 

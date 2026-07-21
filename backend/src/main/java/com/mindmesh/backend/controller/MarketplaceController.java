@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,11 +13,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mindmesh.backend.dto.requests.marketplace.PublishMarketplaceListingRequestDto;
+import com.mindmesh.backend.dto.requests.marketplace.UpdateMarketplaceListingMetadataRequestDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingDetailDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementDetailDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementPageResponseDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPageResponseDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPublishResponseDto;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.marketplace.MarketplaceBrowsingService;
+import com.mindmesh.backend.service.marketplace.MarketplaceListingManagementService;
 import com.mindmesh.backend.service.marketplace.MarketplacePublishingService;
 
 import jakarta.validation.Valid;
@@ -25,16 +30,21 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/marketplace")
 public class MarketplaceController {
 
+  // The big three
   private final MarketplacePublishingService marketplacePublishingService;
   private final MarketplaceBrowsingService marketplaceBrowsingService;
+  private final MarketplaceListingManagementService marketplaceListingManagementService;
 
   public MarketplaceController(
       MarketplacePublishingService marketplacePublishingService,
-      MarketplaceBrowsingService marketplaceBrowsingService) {
+      MarketplaceBrowsingService marketplaceBrowsingService,
+      MarketplaceListingManagementService marketplaceListingManagementService) {
     this.marketplacePublishingService = marketplacePublishingService;
     this.marketplaceBrowsingService = marketplaceBrowsingService;
+    this.marketplaceListingManagementService = marketplaceListingManagementService;
   }
 
+  // Separate listings for public browsing and publising
   @PostMapping("/listings")
   public ResponseEntity<MarketplaceListingPublishResponseDto> publishListing(
       @Valid @RequestBody PublishMarketplaceListingRequestDto request,
@@ -48,7 +58,7 @@ public class MarketplaceController {
 
   @GetMapping("/listings")
   public ResponseEntity<MarketplaceListingPageResponseDto> browseListings(
-      // request parameters
+      // Search request parameters and filters
       @RequestParam(required = false) String q,
       @RequestParam(required = false, name = "module") String module,
       @RequestParam(required = false) String topic,
@@ -72,6 +82,67 @@ public class MarketplaceController {
   public ResponseEntity<MarketplaceListingDetailDto> getListingDetail(
       @PathVariable Long listingId) {
     MarketplaceListingDetailDto response = marketplaceBrowsingService.getPublishedListingDetail(listingId);
+
+    return ResponseEntity.ok(response);
+  }
+
+  // Separate my listings endpoints for management
+  @GetMapping("/my-listings")
+  public ResponseEntity<MarketplaceListingManagementPageResponseDto> listMyListings(
+      @RequestParam(required = false, defaultValue = "0") Integer page,
+      @RequestParam(required = false, defaultValue = "12") Integer size,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingManagementPageResponseDto response = marketplaceListingManagementService.listMyListings(
+        userDetails.getId(),
+        page,
+        size);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/my-listings/{listingId}")
+  public ResponseEntity<MarketplaceListingManagementDetailDto> getMyListingDetail(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingManagementDetailDto response = marketplaceListingManagementService.getMyListingDetail(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  // First time using patch method, kinda nervous
+  @PatchMapping("/my-listings/{listingId}")
+  public ResponseEntity<MarketplaceListingManagementDetailDto> updateMyListingMetadata(
+      @PathVariable Long listingId,
+      @Valid @RequestBody UpdateMarketplaceListingMetadataRequestDto request,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingManagementDetailDto response = marketplaceListingManagementService.updateMetadata(
+        listingId,
+        userDetails.getId(),
+        request);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/my-listings/{listingId}/unlist")
+  public ResponseEntity<MarketplaceListingManagementDetailDto> unlistMyListing(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingManagementDetailDto response = marketplaceListingManagementService.unlist(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/my-listings/{listingId}/republish")
+  public ResponseEntity<MarketplaceListingManagementDetailDto> republishMyListing(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingManagementDetailDto response = marketplaceListingManagementService.republish(
+        listingId,
+        userDetails.getId());
 
     return ResponseEntity.ok(response);
   }
