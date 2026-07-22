@@ -85,7 +85,6 @@ export function MyCFCsPage() {
       <main className="cfc-main">
         <header className="cfc-collection-header">
           <div>
-            <p className="cfc-eyebrow">My CFCs</p>
             <h1 className="cfc-title">Saved Coursework Flashcards</h1>
             <p className="cfc-subtitle">
               Review every saved CFC across your modules.

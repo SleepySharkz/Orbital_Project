@@ -1,5 +1,38 @@
 export type PublisherVisibility = "DISPLAY_NAME" | "ANONYMOUS";
 
+export type MarketplaceImportSummary = {
+  id: number;
+  sourceListingTitle: string;
+  sourcePublisherDisplayName: string;
+  courseCode: string;
+  schoolSem: string;
+  topic: string;
+  entryCount: number;
+  importedAt: string;
+}
+
+
+export type MarketplaceImportDetail = {
+  id: number;
+  sourceListingId: number;
+  sourceListingTitle: string;
+  sourcePublisherDisplayName: string;
+  courseCode: string;
+  schoolSem: string;
+  topic: string;
+  entryCount: number;
+  importedAt: string;
+  entries: MarketplaceListingEntry[];
+}
+
+export type MarketplaceImportResponse = {
+  importId: number;
+  sourceListingId: number;
+  sourceListingTitle: string;
+  entryCount: number;
+  importedAt: string;
+}
+
 export type MarketplaceListingSummary = {
   id: number;
   publicTitle: string;

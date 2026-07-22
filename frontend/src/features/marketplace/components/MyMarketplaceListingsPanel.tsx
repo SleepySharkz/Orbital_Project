@@ -26,7 +26,6 @@ export function MyMarketplaceListingsPanel({
     <section className="marketplace-publishing-panel">
       <div className="marketplace-publishing-intro">
         <div>
-          <p className="modules-eyebrow">Publishing</p>
           <h2>Your marketplace listings</h2>
           <p>
             Publish from the sharing page, then manage visibility and updates

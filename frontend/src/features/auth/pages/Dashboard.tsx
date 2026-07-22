@@ -1,5 +1,7 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import { useAuth } from "../context/useAuth";
+import "../../modules/styles/modulesStyles.css";
 import "../styles/dashboardStyles.css";
 
 export function DashboardPage() {
@@ -17,101 +19,10 @@ export function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-sidebar-top">
-          <div className="dashboard-brand-block">
-            <p className="dashboard-brand">MINDMESH</p>
-            <p className="dashboard-username">{user.username}</p>
-            <p className="dashboard-email">{user.email}</p>
-          </div>
-
-          <nav className="dashboard-nav" aria-label="Dashboard routes">
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/dashboard"
-            >
-              Dashboard
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/modules"
-            >
-              Modules
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/cfcs"
-            >
-              Create Flashcard (CFC)
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/my-cfcs"
-            >
-              My CFCs
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/topic-sheets"
-            >
-              Topical Cheatsheets
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/friends"
-            >
-              Friends
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/sharing"
-            >
-              Sharing
-            </NavLink>
-
-            <NavLink
-              className={({ isActive }) =>
-                isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-              }
-              to="/shared-tcs"
-            >
-              Shared TCs
-            </NavLink>
-          </nav>
-        </div>
-
-        <button
-          className="dashboard-logout"
-          type="button"
-          onClick={handleLogout}
-        >
-          Log Out
-        </button>
-      </aside>
+      <ModulesSidebar user={user} onLogout={handleLogout} />
 
       <main className="dashboard-main">
         <section className="dashboard-panel">
-          <p className="dashboard-eyebrow">Dashboard</p>
           <h1 className="dashboard-title">Welcome Back</h1>
           <p className="dashboard-subtitle">
             Use the navigation on the left to move between your dashboard, modules, and saved CFCs.

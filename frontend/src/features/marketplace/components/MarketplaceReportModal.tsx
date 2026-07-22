@@ -41,7 +41,6 @@ export function MarketplaceReportModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div>
-          <p className="modules-eyebrow">Report listing</p>
           <h2>Why are you reporting this?</h2>
           <p>Select the closest reason and add any useful details.</p>
         </div>

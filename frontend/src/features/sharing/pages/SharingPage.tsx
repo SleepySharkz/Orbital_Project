@@ -227,7 +227,7 @@ export function SharingPage() {
       await refreshSharingRequests();
       setSelectedRequest(null);
       setSuccess(
-        "TC sharing request accepted. Shared copies are available under Shared TCs.",
+        "TC sharing request accepted. Shared copies are available under Your received TCs.",
       );
     } catch (caughtError) {
       setError(
@@ -369,7 +369,6 @@ export function SharingPage() {
       <main className="modules-main sharing-main">
         <header className="friends-header">
           <div>
-            <p className="friends-eyebrow">Sharing</p>
             <h1>TC sharing</h1>
             <p>
               Share privately with friends or publish a public marketplace

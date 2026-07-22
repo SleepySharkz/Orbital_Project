@@ -524,7 +524,6 @@ export function CFCFlashcardViewer({ entries, title }: CFCFlashcardViewerProps) 
     <section className="cfc-flashcard-viewer" aria-label={`${title} flashcards`}>
       <div className="cfc-flashcard-toolbar">
         <div>
-          <p className="cfc-eyebrow">Flashcards</p>
           <h2 className="cfc-flashcard-heading">{title}</h2>
         </div>
 
