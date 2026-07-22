@@ -35,6 +35,7 @@
 
 .dashboard-username,
 .dashboard-email,
+.dashboard-eyebrow,
 .dashboard-subtitle {
   margin: 0;
 }
@@ -95,6 +96,15 @@
   padding: 32px;
   background: #ffffff;
   box-shadow: 0 16px 36px rgba(18, 28, 45, 0.08);
+}
+
+.dashboard-eyebrow {
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a7690;
 }
 
 .dashboard-title {
