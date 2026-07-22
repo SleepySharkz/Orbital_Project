@@ -104,4 +104,15 @@ public interface MarketplaceListingRepository extends JpaRepository<MarketplaceL
       @Param("listingId") Long listingId,
       @Param("publisherId") Long publisherId,
       @Param("publicStatus") MarketplaceListingStatus publicStatus);
+
+  @Query("""
+      SELECT CASE WHEN COUNT(upvoter) > 0 THEN true ELSE false END
+      FROM MarketplaceListing listing
+      JOIN listing.upvoters upvoter
+      WHERE listing.id = :listingId
+        AND upvoter.id = :userId
+      """)
+  boolean hasUpvoteFromUser(
+      @Param("listingId") Long listingId,
+      @Param("userId") Long userId);
 }

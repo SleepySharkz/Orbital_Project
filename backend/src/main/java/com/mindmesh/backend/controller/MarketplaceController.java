@@ -1,8 +1,11 @@
 package com.mindmesh.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -12,15 +15,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mindmesh.backend.dto.requests.marketplace.CreateMarketplaceReportRequestDto;
 import com.mindmesh.backend.dto.requests.marketplace.PublishMarketplaceListingRequestDto;
 import com.mindmesh.backend.dto.requests.marketplace.UpdateMarketplaceListingMetadataRequestDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportDetailDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportResponseDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceImportSummaryDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingDetailDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementDetailDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementPageResponseDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPageResponseDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingPublishResponseDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceReportResponseDto;
+import com.mindmesh.backend.dto.responses.marketplace.MarketplaceUpvoteResponseDto;
 import com.mindmesh.backend.security.CustomUserDetails;
 import com.mindmesh.backend.service.marketplace.MarketplaceBrowsingService;
+import com.mindmesh.backend.service.marketplace.MarketplaceEngagementService;
+import com.mindmesh.backend.service.marketplace.MarketplaceImportAndMergeService;
 import com.mindmesh.backend.service.marketplace.MarketplaceListingManagementService;
 import com.mindmesh.backend.service.marketplace.MarketplacePublishingService;
 
@@ -30,17 +41,22 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/marketplace")
 public class MarketplaceController {
 
-  // The big three
   private final MarketplacePublishingService marketplacePublishingService;
   private final MarketplaceBrowsingService marketplaceBrowsingService;
+  private final MarketplaceEngagementService marketplaceEngagementService;
+  private final MarketplaceImportAndMergeService marketplaceImportAndMergeService;
   private final MarketplaceListingManagementService marketplaceListingManagementService;
 
   public MarketplaceController(
       MarketplacePublishingService marketplacePublishingService,
       MarketplaceBrowsingService marketplaceBrowsingService,
+      MarketplaceEngagementService marketplaceEngagementService,
+      MarketplaceImportAndMergeService marketplaceImportAndMergeService,
       MarketplaceListingManagementService marketplaceListingManagementService) {
     this.marketplacePublishingService = marketplacePublishingService;
     this.marketplaceBrowsingService = marketplaceBrowsingService;
+    this.marketplaceEngagementService = marketplaceEngagementService;
+    this.marketplaceImportAndMergeService = marketplaceImportAndMergeService;
     this.marketplaceListingManagementService = marketplaceListingManagementService;
   }
 
@@ -80,8 +96,76 @@ public class MarketplaceController {
 
   @GetMapping("/listings/{listingId}")
   public ResponseEntity<MarketplaceListingDetailDto> getListingDetail(
-      @PathVariable Long listingId) {
-    MarketplaceListingDetailDto response = marketplaceBrowsingService.getPublishedListingDetail(listingId);
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceListingDetailDto response = marketplaceBrowsingService.getPublishedListingDetail(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/listings/{listingId}/upvote")
+  public ResponseEntity<MarketplaceUpvoteResponseDto> addUpvote(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceUpvoteResponseDto response = marketplaceEngagementService.addUpvote(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @DeleteMapping("/listings/{listingId}/upvote")
+  public ResponseEntity<MarketplaceUpvoteResponseDto> removeUpvote(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceUpvoteResponseDto response = marketplaceEngagementService.removeUpvote(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/listings/{listingId}/reports")
+  public ResponseEntity<MarketplaceReportResponseDto> reportListing(
+      @PathVariable Long listingId,
+      @Valid @RequestBody CreateMarketplaceReportRequestDto request,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceReportResponseDto response = marketplaceEngagementService.reportListing(
+        listingId,
+        userDetails.getId(),
+        request);
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  @PostMapping("/listings/{listingId}/import")
+  public ResponseEntity<MarketplaceImportResponseDto> importListing(
+      @PathVariable Long listingId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceImportResponseDto response = marketplaceImportAndMergeService.importListing(
+        listingId,
+        userDetails.getId());
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  @GetMapping("/imports")
+  public ResponseEntity<List<MarketplaceImportSummaryDto>> listImports(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    List<MarketplaceImportSummaryDto> response = marketplaceImportAndMergeService.listImports(userDetails.getId());
+
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/imports/{importId}")
+  public ResponseEntity<MarketplaceImportDetailDto> getImportDetail(
+      @PathVariable Long importId,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    MarketplaceImportDetailDto response = marketplaceImportAndMergeService.getImportDetail(
+        importId,
+        userDetails.getId());
 
     return ResponseEntity.ok(response);
   }

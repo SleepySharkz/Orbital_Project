@@ -4,9 +4,18 @@ import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
 import "../../tc/styles/tcStyles.css";
-import { fetchMarketplaceListingDetail } from "../api/marketplaceApi";
+import {
+  fetchMarketplaceListingDetail,
+  addMarketplaceListingUpvote,
+  removeMarketplaceListingUpvote,
+  reportMarketplaceListing,
+} from "../api/marketplaceApi";
+import { MarketplaceReportModal } from "../components/MarketplaceReportModal";
 import "../styles/marketplaceStyles.css";
-import type { MarketplaceListingDetail } from "../types/marketplaceTypes";
+import type {
+  CreateMarketplaceReportRequest,
+  MarketplaceListingDetail,
+} from "../types/marketplaceTypes";
 
 export function MarketplaceListingDetailPage() {
   const { listingId } = useParams();
@@ -15,6 +24,11 @@ export function MarketplaceListingDetailPage() {
   const [listing, setListing] = useState<MarketplaceListingDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isUpdatingUpvote, setIsUpdatingUpvote] = useState(false);
+  const [upvoteError, setUpvoteError] = useState("");
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportError, setReportError] = useState("");
 
   useEffect(() => {
     if (!token || !listingId) {
@@ -75,6 +89,72 @@ export function MarketplaceListingDetailPage() {
   async function handleLogout() {
     await logout();
     navigate("/login");
+  }
+
+  async function handleToggleUpvote() {
+    if (!listing || !token || isUpdatingUpvote) {
+      // Prevent ghost input
+      return;
+    }
+
+    setIsUpdatingUpvote(true); // Block other racing upvotes
+    setUpvoteError(""); // Reset
+
+    try {
+      const response = listing.hasCurrentUserUpvoted
+        ? await removeMarketplaceListingUpvote(listing.id, token)
+        : await addMarketplaceListingUpvote(listing.id, token);
+
+      setListing((currentListing) => {
+        // Protect against race condition / stale response scenario
+        if (!currentListing || currentListing.id !== response.listingId) { // Check if its still the same listing
+          return currentListing;
+        }
+
+        return {
+          ...currentListing,
+          upvoteCount: response.upvoteCount,
+          hasCurrentUserUpvoted: response.hasCurrentUserUpvoted,
+        };
+      });
+    } catch (caughtError) {
+      setUpvoteError(
+        toErrorMessage(caughtError, "Could not update your upvote."),
+      );
+    } finally {
+      setIsUpdatingUpvote(false);
+    }
+  }
+
+  async function handleSubmitReport(request: CreateMarketplaceReportRequest) {
+    if (!listing || !token || isSubmittingReport || listing.hasCurrentUserReported) {
+      return;
+    }
+
+    setIsSubmittingReport(true);
+    setReportError("");
+
+    try {
+      const response = await reportMarketplaceListing(listing.id, request, token);
+
+      setListing((currentListing) => {
+        if (!currentListing || currentListing.id !== response.listingId) {
+          return currentListing;
+        }
+
+        return {
+          ...currentListing,
+          hasCurrentUserReported: true,
+        };
+      });
+      setIsReportModalOpen(false);
+    } catch (caughtError) {
+      setReportError(
+        toErrorMessage(caughtError, "Could not report this listing."),
+      );
+    } finally {
+      setIsSubmittingReport(false);
+    }
   }
 
   if (!user || !token) {
@@ -194,11 +274,54 @@ export function MarketplaceListingDetailPage() {
                   <dd>{formatDate(listing.updatedAt)}</dd>
                 </div>
               </dl>
+              <button
+                className={`marketplace-primary-button marketplace-upvote-action${
+                  listing.hasCurrentUserUpvoted ? " upvoted" : ""
+                }`}
+                type="button"
+                aria-pressed={listing.hasCurrentUserUpvoted}
+                disabled={isUpdatingUpvote}
+                onClick={handleToggleUpvote}
+              >
+                {listing.hasCurrentUserUpvoted ? "Upvoted" : "Upvote"}
+              </button>
+              {upvoteError && (
+                <p className="marketplace-banner marketplace-banner-error" role="alert">
+                  {upvoteError}
+                </p>
+              )}
+              <button
+                className={`marketplace-primary-button marketplace-report-action${
+                  listing.hasCurrentUserReported ? " reported" : ""
+                }`}
+                type="button"
+                disabled={listing.hasCurrentUserReported || isSubmittingReport}
+                onClick={() => {
+                  setReportError("");
+                  setIsReportModalOpen(true);
+                }}
+              >
+                {listing.hasCurrentUserReported ? "Reported" : "Report"}
+              </button>
               <button className="marketplace-primary-button" type="button" disabled>
                 Import coming soon
               </button>
             </aside>
           </div>
+        )}
+
+        {isReportModalOpen && listing && (
+          <MarketplaceReportModal
+            isSubmitting={isSubmittingReport}
+            error={reportError}
+            onSubmit={(request) => void handleSubmitReport(request)}
+            onCancel={() => {
+              if (!isSubmittingReport) {
+                setReportError("");
+                setIsReportModalOpen(false);
+              }
+            }}
+          />
         )}
       </main>
     </div>

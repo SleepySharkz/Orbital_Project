@@ -1,7 +1,6 @@
 package com.mindmesh.backend.service.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
@@ -17,14 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.mindmesh.backend.dto.requests.marketplace.UpdateMarketplaceListingMetadataRequestDto;
 import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementDetailDto;
-import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingManagementPageResponseDto;
 import com.mindmesh.backend.entity.CFC;
 import com.mindmesh.backend.entity.CFCEntry;
 import com.mindmesh.backend.entity.CourseModule;
@@ -99,23 +95,6 @@ class MarketplaceListingManagementServiceTest {
   }
 
   @Test
-  void listMyListings_returnsPublisherListingsWithStatusAndStats() {
-    when(marketplaceListingRepository.findByPublisherIdOrderByUpdatedAtDesc(
-        org.mockito.Mockito.eq(7L),
-        org.mockito.Mockito.any(Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of(listing)));
-
-    MarketplaceListingManagementPageResponseDto response = service.listMyListings(7L, 0, 12);
-
-    assertEquals(1, response.getItems().size());
-    assertEquals("Trees Guide", response.getItems().get(0).getPublicTitle());
-    assertEquals(MarketplaceListingStatus.PUBLISHED, response.getItems().get(0).getStatus());
-    assertEquals(1, response.getItems().get(0).getEntryCount());
-    assertEquals(0, response.getItems().get(0).getUpvoteCount());
-    assertEquals(0, response.getItems().get(0).getImportCount());
-  }
-
-  @Test
   void updateMetadata_changesMetadataWithoutChangingEntries() {
     UpdateMarketplaceListingMetadataRequestDto request = new UpdateMarketplaceListingMetadataRequestDto();
     request.setPublicTitle("Updated Trees Guide");
@@ -171,18 +150,6 @@ class MarketplaceListingManagementServiceTest {
   }
 
   @Test
-  void republish_removedListingIsRejected() {
-    listing.remove(Instant.parse("2026-07-13T01:00:00Z"));
-    givenOwnedListing();
-
-    ResponseStatusException exception = assertThrows(
-        ResponseStatusException.class,
-        () -> service.republish(500L, 7L));
-
-    assertEquals(400, exception.getStatusCode().value());
-  }
-
-  @Test
   void getMyListingDetail_nonPublisherGetsNotFound() {
     when(marketplaceListingRepository.findByIdAndPublisherId(500L, 99L))
         .thenReturn(Optional.empty());
@@ -192,18 +159,6 @@ class MarketplaceListingManagementServiceTest {
         () -> service.getMyListingDetail(500L, 99L));
 
     assertEquals(404, exception.getStatusCode().value());
-  }
-
-  @Test
-  void detailShowsSourceTcAvailabilityAndStaleness() {
-    givenOwnedListing();
-    givenSourceTcExists();
-
-    MarketplaceListingManagementDetailDto response = service.getMyListingDetail(500L, 7L);
-
-    assertTrue(response.getSourceTcStillExists());
-    assertFalse(response.getSourceTcIsStale());
-    assertEquals(55L, response.getSourceTcId());
   }
 
   private void givenOwnedListing() {

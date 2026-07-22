@@ -7,6 +7,9 @@ import type {
   MarketplaceListingPublishResponse,
   PublishMarketplaceListingRequest,
   UpdateMarketplaceListingMetadataRequest,
+  MarketplaceUpvoteResponse,
+  CreateMarketplaceReportRequest,
+  MarketplaceReportResponse,
 } from "../types/marketplaceTypes";
 
 type ErrorResponse = {
@@ -178,6 +181,65 @@ export async function fetchMarketplaceListingDetail(
   }
 
   return parseJson<MarketplaceListingDetail>(response);
+}
+
+export async function addMarketplaceListingUpvote(
+  listingId: number,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/marketplace/listings/${listingId}/upvote`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Couldn't upvote this listing :("),
+    );
+  }
+
+  return parseJson<MarketplaceUpvoteResponse>(response);
+}
+
+export async function removeMarketplaceListingUpvote(
+  listingId: number,
+  token: string,
+) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/marketplace/listings/${listingId}/upvote`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Couldn't remove your upvote on this listing"),
+    );
+  }
+
+  return parseJson<MarketplaceUpvoteResponse>(response);
+}
+
+export async function reportMarketplaceListing(
+  listingId: number,
+  request: CreateMarketplaceReportRequest,
+  token: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/marketplace/listings/${listingId}/reports`,
+    {
+      method: "POST",
+      headers: jsonHeaders(token),
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not report this listing."),
+    );
+  }
+
+  return parseJson<MarketplaceReportResponse>(response);
 }
 
 export async function fetchMyMarketplaceListings(token: string) {
