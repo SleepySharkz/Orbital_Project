@@ -92,7 +92,6 @@ export function ModuleDetailPage() {
       <main className="modules-main">
         <header className="modules-header modules-detail-page-header">
           <div>
-            <p className="modules-eyebrow">Module Detail</p>
             <h1 className="modules-title">
               {module ? module.courseCode : "Module Overview"}
             </h1>

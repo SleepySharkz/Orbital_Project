@@ -419,7 +419,7 @@
   letter-spacing: -0.03em;
 }
 
-.marketplace-confirm-modal p:not(.modules-eyebrow) {
+.marketplace-confirm-modal p {
   margin-top: 10px;
   color: #536176;
   line-height: 1.6;

@@ -76,7 +76,6 @@
   gap: 14px;
 }
 
-.tc-eyebrow,
 .tc-subtitle,
 .tc-helper-copy,
 .tc-banner,
@@ -86,15 +85,6 @@
 .tc-source-copy,
 .tc-note-line {
   margin: 0;
-}
-
-.tc-eyebrow {
-  margin-bottom: 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6a7690;
 }
 
 .tc-title {
@@ -182,6 +172,8 @@
 .tc-card-title {
   margin: 0;
   font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: -0.03em;
 }
 
@@ -281,9 +273,20 @@
 }
 
 .tc-overlay-header {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
+}
+
+.tc-overlay .tc-detail-header {
+  padding-right: 96px;
+}
+
+.tc-overlay > .tc-panel {
+  margin-top: 58px;
 }
 
 .tc-overlay-close {
@@ -426,5 +429,10 @@
     width: calc(100vw - 24px);
     max-height: calc(100vh - 24px);
     padding: 18px 18px 22px;
+  }
+
+  .tc-overlay-header {
+    top: 18px;
+    right: 18px;
   }
 }

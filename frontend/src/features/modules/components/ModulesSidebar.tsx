@@ -23,7 +23,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/dashboard"
           >
-            Dashboard
+            Need Help?
           </NavLink>
 
           <NavLink
@@ -59,7 +59,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/topic-sheets"
           >
-            Topical Cheatsheets
+            Topical Cheatsheets (TCs)
           </NavLink>
 
           <NavLink
@@ -77,7 +77,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/friends"
           >
-            Friends
+            My Friends
           </NavLink>
 
           <NavLink
@@ -86,7 +86,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/sharing"
           >
-            Sharing
+            Share Your TCs
           </NavLink>
 
           <NavLink
@@ -104,7 +104,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/shared-tcs"
           >
-            Shared TCs
+            Your Received TCs
           </NavLink>
         </nav>
       </div>

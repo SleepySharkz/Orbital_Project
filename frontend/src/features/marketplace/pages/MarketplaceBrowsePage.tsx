@@ -320,7 +320,6 @@ export function MarketplaceBrowsePage() {
       <main className="modules-main marketplace-main">
         <header className="marketplace-header">
           <div>
-            <p className="modules-eyebrow">Marketplace</p>
             <h1>Marketplace</h1>
             <p>
               Browse public topic sheet snapshots or manage your own published

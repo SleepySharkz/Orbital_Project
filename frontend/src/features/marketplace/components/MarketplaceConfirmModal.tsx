@@ -30,7 +30,6 @@ export function MarketplaceConfirmModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div>
-          <p className="modules-eyebrow">Confirm action</p>
           <h2>{title}</h2>
           <p>{description}</p>
         </div>
