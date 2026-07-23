@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 
 type ReceivedTCDetailEntry = {
   id: number;
@@ -15,6 +16,7 @@ type ReceivedTCDetailOverlayProps = {
   title?: string;
   subtitle?: string;
   entries?: ReceivedTCDetailEntry[];
+  actions?: ReactNode;
   showSourceMaterial?: boolean;
   loadingMessage: string;
   ariaLabel: string;
@@ -28,6 +30,7 @@ export function ReceivedTCDetailOverlay({
   title,
   subtitle,
   entries = [],
+  actions,
   showSourceMaterial = false,
   loadingMessage,
   ariaLabel,
@@ -89,6 +92,8 @@ export function ReceivedTCDetailOverlay({
               <h1 className="tc-detail-title">{title}</h1>
               {subtitle && <p className="tc-subtitle">{subtitle}</p>}
             </header>
+
+            {actions}
 
             <section className="tc-sheet">
               {entries.map((entry) => (

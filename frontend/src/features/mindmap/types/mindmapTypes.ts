@@ -9,7 +9,7 @@ type MindmapEdge = {
   insightId: number;
   sourceTcId: number;
   targetTcId: number;
-  status: "READY" | "REFRESHING";
+  status: "READY" | "REFRESHING" | "REFRESH_FAILED";
   title: string;
   summary: string;
   updatedAt: string;

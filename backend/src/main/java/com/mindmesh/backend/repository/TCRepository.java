@@ -5,10 +5,13 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.mindmesh.backend.entity.TC;
+
+import jakarta.persistence.LockModeType;
 
 public interface TCRepository extends JpaRepository<TC, Long> {
 
@@ -18,6 +21,30 @@ public interface TCRepository extends JpaRepository<TC, Long> {
   Optional<TC> findWithSourceMetadataByIdAndOwnerId(Long id, Long userId);
 
   Optional<TC> findByOwnerIdAndModuleIdAndTopic(Long ownerId, Long moduleId, String topic);
+
+  @Query("""
+      SELECT tc FROM TC tc
+      WHERE tc.owner.id = :ownerId
+        AND tc.module.id = :moduleId
+        AND LOWER(TRIM(tc.topic)) = LOWER(TRIM(:topic))
+      """)
+  Optional<TC> findMatchingOwnedTc(
+      @Param("ownerId") Long ownerId,
+      @Param("moduleId") Long moduleId,
+      @Param("topic") String topic);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @EntityGraph(attributePaths = {"owner", "module", "entries", "entries.cfc"})
+  @Query("""
+      SELECT DISTINCT tc FROM TC tc
+      WHERE tc.owner.id = :ownerId
+        AND tc.module.id = :moduleId
+        AND LOWER(TRIM(tc.topic)) = LOWER(TRIM(:topic))
+      """)
+  Optional<TC> findMatchingOwnedTcForUpdate(
+      @Param("ownerId") Long ownerId,
+      @Param("moduleId") Long moduleId,
+      @Param("topic") String topic);
 
   List<TC> findAllByOwnerIdAndModuleIdOrderByUpdatedAtDesc(Long ownerId, Long moduleId);
 

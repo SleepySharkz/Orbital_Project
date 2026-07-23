@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +42,8 @@ import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCEntryRepository;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
 import com.mindmesh.backend.repository.MarketplaceImportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingReportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
@@ -74,6 +77,12 @@ class MarketplaceControllerIntegrationTest {
   private MarketplaceListingRepository marketplaceListingRepository;
 
   @Autowired
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
+  @Autowired
   private MarketplaceImportRepository marketplaceImportRepository;
 
   @Autowired
@@ -100,6 +109,8 @@ class MarketplaceControllerIntegrationTest {
     marketplaceImportRepository.deleteAll();
     marketplaceListingReportRepository.deleteAll();
     marketplaceListingRepository.deleteAll();
+    friendshipRepository.deleteAll();
+    friendRequestRepository.deleteAll();
     cfcRepository.deleteAll();
     tcRepository.deleteAll();
     courseModuleRepository.deleteAll();
@@ -624,7 +635,7 @@ class MarketplaceControllerIntegrationTest {
 
   private MarketplaceListing savedListingFor(User user) {
     MarketplaceListing listingSummary = marketplaceListingRepository
-        .findByPublisherIdOrderByPublishedAtDesc(user.getId(), Pageable.unpaged())
+        .findByPublisherIdOrderByPublishedAtDesc(user.getId(), PageRequest.of(0, 1))
         .getContent()
         .get(0);
 

@@ -1,4 +1,5 @@
 import type {
+  MergeSharedTCResponse,
   SharedTCDetail,
   SharedTCSummary,
   TCSharingRequestDetail,
@@ -222,4 +223,22 @@ export async function fetchSharedTCById(sharedTcId: number, token: string) {
   }
 
   return parseJson<SharedTCDetail>(response);
+}
+
+export async function mergeSharedTC(sharedTcId: number, token: string) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/shared-tcs/${sharedTcId}/merge`,
+    {
+      method: "POST",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not merge shared TC."),
+    );
+  }
+
+  return parseJson<MergeSharedTCResponse>(response);
 }

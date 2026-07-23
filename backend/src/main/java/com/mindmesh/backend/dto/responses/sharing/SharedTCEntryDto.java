@@ -2,6 +2,8 @@ package com.mindmesh.backend.dto.responses.sharing;
 
 import java.time.LocalDateTime;
 
+import com.mindmesh.backend.enums.SourceType;
+
 public class SharedTCEntryDto {
 
     private final Long id;
@@ -10,6 +12,8 @@ public class SharedTCEntryDto {
     private final String flashcardNoteContent;
     private final String questionText;
     private final String roughNote;
+    private final SourceType sourceType;
+    private final String sourceTitle;
     private final LocalDateTime sourceEntryCreatedAt;
 
     public SharedTCEntryDto(
@@ -19,6 +23,8 @@ public class SharedTCEntryDto {
         String flashcardNoteContent,
         String questionText,
         String roughNote,
+        SourceType sourceType,
+        String sourceTitle,
         LocalDateTime sourceEntryCreatedAt
     ) {
         this.id = id;
@@ -27,6 +33,8 @@ public class SharedTCEntryDto {
         this.flashcardNoteContent = flashcardNoteContent;
         this.questionText = questionText;
         this.roughNote = roughNote;
+        this.sourceType = sourceType;
+        this.sourceTitle = sourceTitle;
         this.sourceEntryCreatedAt = sourceEntryCreatedAt;
     }
 
@@ -53,6 +61,9 @@ public class SharedTCEntryDto {
     public String getRoughNote() {
         return roughNote;
     }
+
+    public SourceType getSourceType() { return sourceType; }
+    public String getSourceTitle() { return sourceTitle; }
 
     public LocalDateTime getSourceEntryCreatedAt() {
         return sourceEntryCreatedAt;

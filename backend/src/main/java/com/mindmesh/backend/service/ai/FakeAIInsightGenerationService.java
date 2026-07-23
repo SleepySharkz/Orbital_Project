@@ -10,7 +10,7 @@ import com.mindmesh.backend.dto.ai.AIGeneratedInsightResponse;
 import com.mindmesh.backend.dto.ai.AIInsightGenerationRequest;
 
 @Service
-@Profile("local-ai-fake")
+@Profile({ "local-ai-fake", "test" })
 public class FakeAIInsightGenerationService implements AIInsightGenerationService {
 
   @Override

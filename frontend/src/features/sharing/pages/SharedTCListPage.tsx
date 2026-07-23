@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import { MarketplaceImportsPanel } from "../components/MarketplaceImportsPanel";
 import { PrivateSharedTCPanel } from "../components/PrivateSharedTCPanel";
+import "../../friends/styles/friendsStyles.css";
 import "../../modules/styles/modulesStyles.css";
 import "../../tc/styles/tcStyles.css";
 import "../styles/sharingStyles.css";

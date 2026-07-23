@@ -1,4 +1,5 @@
 type SourceType = "ASSIGNMENT" | "TUTORIAL" | "PRACTICE_PAPER";
+type StoredSourceType = SourceType | "SHARED_TC";
 
 type CFCContent = {
   flashcardQuestion: string;
@@ -41,7 +42,7 @@ type CFCSummary = {
   moduleId: number;
   courseCode: string;
   schoolSem: string;
-  sourceType: SourceType;
+  sourceType: StoredSourceType;
   sourceTitle: string;
   title: string;
   summary: string;
@@ -53,7 +54,7 @@ type CFCResponse = {
   moduleId: number;
   courseCode: string;
   schoolSem: string;
-  sourceType: SourceType;
+  sourceType: StoredSourceType;
   sourceTitle: string;
   title: string;
   summary: string;
@@ -221,6 +222,7 @@ export type {
   CFCSummary,
   SourceMaterial,
   SourceType,
+  StoredSourceType,
   UpdateCFCEntryContentPayload,
   UpdateCFCSummaryPayload,
 };

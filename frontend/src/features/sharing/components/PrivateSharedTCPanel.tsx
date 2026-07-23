@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   fetchSharedTCById,
   fetchSharedTCs,
+  mergeSharedTC,
 } from "../api/tcSharingApi";
 import type {
+  MergeSharedTCResponse,
   SharedTCDetail,
   SharedTCSummary,
 } from "../types/tcSharingTypes";
@@ -50,6 +52,10 @@ export function PrivateSharedTCPanel({ token }: PrivateSharedTCPanelProps) {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [listError, setListError] = useState("");
   const [detailError, setDetailError] = useState("");
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeError, setMergeError] = useState("");
+  const [mergeSuccess, setMergeSuccess] =
+    useState<MergeSharedTCResponse | null>(null);
 
   useEffect(() => {
     async function loadSharedTcs() {
@@ -83,6 +89,7 @@ export function PrivateSharedTCPanel({ token }: PrivateSharedTCPanelProps) {
 
       try {
         setDetailError("");
+        setMergeError("");
         setIsDetailLoading(true);
         setSelectedSharedTc(await fetchSharedTCById(parsedSharedTcId, token));
       } catch (caughtError) {
@@ -102,8 +109,54 @@ export function PrivateSharedTCPanel({ token }: PrivateSharedTCPanelProps) {
 
   const isDetailOpen = isDetailLoading || Boolean(detailError) || Boolean(selectedSharedTc);
 
+  async function handleMerge() {
+    if (!selectedSharedTc?.canMerge) {
+      return;
+    }
+
+    try {
+      setIsMerging(true);
+      setMergeError("");
+      const result = await mergeSharedTC(selectedSharedTc.id, token);
+      setSharedTcs((current) =>
+        current.filter((sharedTc) => sharedTc.id !== result.sharedTcId),
+      );
+      setSelectedSharedTc(null);
+      setMergeSuccess(result);
+      navigate("/shared-tcs", { replace: true });
+    } catch (caughtError) {
+      setMergeError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Could not merge shared TC.",
+      );
+    } finally {
+      setIsMerging(false);
+    }
+  }
+
   return (
     <>
+      {mergeSuccess && (
+        <section className="sharing-merge-success" role="status">
+          <div>
+            <strong>Shared TC merged</strong>
+            <p>
+              {mergeSuccess.mergedEntryCount}{" "}
+              {mergeSuccess.mergedEntryCount === 1 ? "entry is" : "entries are"}{" "}
+              now part of your TC.
+            </p>
+          </div>
+          <button
+            className="friends-secondary-button"
+            type="button"
+            onClick={() => navigate(`/topic-sheets/${mergeSuccess.ownedTcId}`)}
+          >
+            Open merged TC
+          </button>
+        </section>
+      )}
+
       <section className="tc-section">
         {isListLoading && (
           <div className="tc-panel">
@@ -171,6 +224,33 @@ export function PrivateSharedTCPanel({ token }: PrivateSharedTCPanelProps) {
             : undefined
         }
         entries={selectedSharedTc?.entries}
+        actions={
+          selectedSharedTc ? (
+            <div className="sharing-merge-actions">
+              {selectedSharedTc.canMerge ? (
+                <button
+                  className="friends-primary-button"
+                  type="button"
+                  disabled={isMerging}
+                  onClick={() => void handleMerge()}
+                >
+                  {isMerging ? "Merging..." : "Merge into my TC"}
+                </button>
+              ) : (
+                <p className="tc-banner tc-banner-error">
+                  {selectedSharedTc.mergeBlockingReason
+                    ?? "This shared TC cannot be merged."}
+                </p>
+              )}
+
+              {mergeError && (
+                <p className="tc-banner tc-banner-error" role="alert">
+                  {mergeError}
+                </p>
+              )}
+            </div>
+          ) : undefined
+        }
         showSourceMaterial
         loadingMessage="Loading shared TC..."
         ariaLabel="Shared TC overlay"

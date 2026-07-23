@@ -4,9 +4,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mindmesh.backend.enums.SharedTCStatus;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +26,7 @@ import jakarta.persistence.Table;
     name = "shared_tcs",
     indexes = {
         @Index(name = "idx_shared_tcs_owner_accepted_at", columnList = "owner_id,accepted_at"),
+        @Index(name = "idx_shared_tcs_owner_status_accepted_at", columnList = "owner_id,status,accepted_at"),
         @Index(name = "idx_shared_tcs_source_request", columnList = "source_sharing_request_id"),
         @Index(name = "idx_shared_tcs_source_item", columnList = "source_sharing_request_item_id")
     }
@@ -65,6 +70,17 @@ public class SharedTC {
 
     @Column(name = "accepted_at", nullable = false)
     private Instant acceptedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private SharedTCStatus status;
+
+    @Column(name = "merged_at")
+    private Instant mergedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merged_into_tc_id")
+    private TC mergedIntoTc;
 
     @OneToMany(mappedBy= "sharedTc", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SharedTCEntry> entries = new ArrayList<>();
@@ -111,6 +127,7 @@ public class SharedTC {
         this.topic = topic;
         this.originalOwnerUsername = originalOwnerUsername;
         this.acceptedAt = acceptedAt;
+        this.status = SharedTCStatus.ACTIVE;
     }
 
     public void addEntry(SharedTCEntry entry) {
@@ -134,6 +151,22 @@ public class SharedTC {
         if (entries.remove(entry) && entry.getSharedTc() == this) {
         entry.setSharedTc(null);
         }
+    }
+
+    public void markMerged(TC ownedTc, Instant mergedAt) {
+        if (getStatus() != SharedTCStatus.ACTIVE) {
+            throw new IllegalStateException("Only an active shared TC can be merged.");
+        }
+        if (ownedTc == null || ownedTc.getId() == null || mergedAt == null) {
+            throw new IllegalArgumentException("Merged TC and timestamp are required.");
+        }
+        if (!owner.getId().equals(ownedTc.getOwner().getId())
+            || !module.getId().equals(ownedTc.getModule().getId())) {
+            throw new IllegalArgumentException("Merged TC must belong to the shared TC owner and module.");
+        }
+        status = SharedTCStatus.MERGED;
+        mergedIntoTc = ownedTc;
+        this.mergedAt = mergedAt;
     }
 
     private boolean isBlank(String value) {
@@ -187,4 +220,8 @@ public class SharedTC {
     public List<SharedTCEntry> getEntries() {
         return entries;
     }
+
+    public SharedTCStatus getStatus() { return status == null ? SharedTCStatus.ACTIVE : status; }
+    public Instant getMergedAt() { return mergedAt; }
+    public TC getMergedIntoTc() { return mergedIntoTc; }
 }

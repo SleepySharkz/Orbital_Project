@@ -52,7 +52,8 @@ class TCInsightServiceTest {
     tcInsightService = new TCInsightService(
         tcInsightRepository,
         tcRepository,
-        courseModuleRepository);
+        courseModuleRepository,
+        new TCInsightInputFactory());
 
     owner = new User("Timmy", "timmy@example.com", "hashed");
     ReflectionTestUtils.setField(owner, "id", 7L);

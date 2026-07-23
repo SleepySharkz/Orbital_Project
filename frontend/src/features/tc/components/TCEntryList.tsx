@@ -1,8 +1,17 @@
-import type { TcEntryView } from "../api/tcApi";
+import type { TcEntrySourceType, TcEntryView } from "../api/tcApi";
 
 type TCEntryListProps = {
   entries: TcEntryView[];
 };
+
+function formatSourceType(value: TcEntrySourceType) {
+  if (value === "SHARED_TC") return "Shared TC";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export function TCEntryList({ entries }: TCEntryListProps) {
   return (
@@ -25,6 +34,28 @@ export function TCEntryList({ entries }: TCEntryListProps) {
             <summary className="tc-source-summary">Show original source material</summary>
 
             <div className="tc-source-grid">
+              {entry.origin === "MERGED_SHARED" && (
+                <div className="tc-source-provenance">
+                  <p className="tc-source-label">Private Share</p>
+                  <p className="tc-source-copy">
+                    Shared by {entry.sourceOwnerUsername ?? "another user"}
+                    {entry.sourceEntryCreatedAt
+                      ? ` - Original entry ${new Date(entry.sourceEntryCreatedAt).toLocaleString()}`
+                      : ""}
+                  </p>
+                  {(entry.sourceTypeAtShare || entry.sourceTitleAtShare) && (
+                    <p className="tc-source-copy">
+                      Original source: {entry.sourceTypeAtShare
+                        ? formatSourceType(entry.sourceTypeAtShare)
+                        : "Source"}
+                      {entry.sourceTitleAtShare
+                        ? ` - ${entry.sourceTitleAtShare}`
+                        : ""}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="tc-source-card">
                 <p className="tc-source-label">Original Question</p>
                 <p className="tc-source-copy">

@@ -55,6 +55,9 @@ class CFCServiceTest {
   @Mock
   private TCService tcService;
 
+  @Mock
+  private TCUpdateEventPublisher tcUpdateEventPublisher;
+
   @InjectMocks
   private CFCService cfcService;
 

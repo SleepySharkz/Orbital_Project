@@ -176,11 +176,16 @@ class MindmapControllerIntegrationTest {
         .andExpect(jsonPath(
             "$.nodes[*].topic",
             hasItems("Trees", "Graphs", "Hashing", "Sorting")))
-        .andExpect(jsonPath("$.edges", hasSize(2)))
+        .andExpect(jsonPath("$.edges", hasSize(3)))
         .andExpect(jsonPath(
             "$.edges[*].title",
-            hasItems("Trees and graphs", "Graph lookup with hashing")))
-        .andExpect(jsonPath("$.edges[*].status", hasItems("READY", "REFRESHING")))
+            hasItems(
+                "Trees and graphs",
+                "Graph lookup with hashing",
+                "Readable but failed refresh")))
+        .andExpect(jsonPath(
+            "$.edges[*].status",
+            hasItems("READY", "REFRESHING", "REFRESH_FAILED")))
         .andExpect(jsonPath("$.edges[*].isRefreshing", hasItems(false, true)));
   }
 
@@ -298,6 +303,8 @@ class MindmapControllerIntegrationTest {
         "Shared note",
         "Shared source question",
         "Shared rough note",
+        SourceType.TUTORIAL,
+        "Tutorial fixture",
         null);
     sharedTcRepository.save(sharedTc);
   }
