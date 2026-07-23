@@ -66,7 +66,6 @@ export function CFCDetailHeader({ cfc, onSummarySave }: CFCDetailHeaderProps) {
   return (
     <section className="cfc-detail-header-panel">
       <div className="cfc-detail-header-copy">
-        <p className="cfc-eyebrow">Saved CFC</p>
         <h1 className="cfc-detail-title">{cfc.title}</h1>
 
         {isEditingSummary ? (

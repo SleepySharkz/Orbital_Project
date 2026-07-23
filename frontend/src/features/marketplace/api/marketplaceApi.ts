@@ -10,6 +10,9 @@ import type {
   MarketplaceUpvoteResponse,
   CreateMarketplaceReportRequest,
   MarketplaceReportResponse,
+  MarketplaceImportDetail,
+  MarketplaceImportSummary,
+  MarketplaceImportResponse,
 } from "../types/marketplaceTypes";
 
 type ErrorResponse = {
@@ -361,3 +364,62 @@ export async function publishMarketplaceListing(
 
   return parseJson<MarketplaceListingPublishResponse>(response);
 }
+
+export async function importMarketplaceListing(
+  listingId: number,
+  token: string,
+) {
+  const resp = await fetch(
+    `${API_BASE_URL}/api/v1/marketplace/listings/${listingId}/import`,
+    {
+      method: "POST",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!resp.ok) {
+    throw new Error(
+      await getErrorMessage(resp, "Could not import this listing."),
+    );
+  }
+  return parseJson<MarketplaceImportResponse>(resp);
+}
+
+export async function fetchMarketplaceImportDetail(
+  importId: number,
+  token: string,
+) {
+  const resp = await fetch(
+    `${API_BASE_URL}/api/v1/marketplace/imports/${importId}`,
+    {
+      method: "GET",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!resp.ok) {
+    throw new Error(
+      await getErrorMessage(resp, "Could not load this import."),
+    );
+  }
+  return parseJson<MarketplaceImportDetail>(resp);
+}
+
+export async function fetchMarketplaceImports(token: string) {
+  const resp = await fetch(
+    `${API_BASE_URL}/api/v1/marketplace/imports`,
+    {
+      method: "GET",
+      headers: authHeaders(token),
+    },
+  );
+
+  if (!resp.ok) {
+    throw new Error(
+      await getErrorMessage(resp, "Could not load imports."),
+    );
+  }
+  return parseJson<MarketplaceImportSummary[]>(resp);
+}
+
+

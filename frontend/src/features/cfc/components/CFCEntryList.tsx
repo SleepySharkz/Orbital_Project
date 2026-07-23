@@ -11,7 +11,6 @@ export function CFCEntryList({ entries, onEntryContentSave }: CFCEntryListProps)
     <section className="cfc-detail-entries-panel">
       <div className="cfc-detail-entries-header">
         <div>
-          <p className="cfc-eyebrow">Entries</p>
           <h2 className="cfc-detail-section-heading">Generated Flashcard Entries</h2>
         </div>
         <p className="cfc-entry-counter">{entries.length} saved item(s)</p>

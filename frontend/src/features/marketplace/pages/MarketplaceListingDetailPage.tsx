@@ -9,12 +9,14 @@ import {
   addMarketplaceListingUpvote,
   removeMarketplaceListingUpvote,
   reportMarketplaceListing,
+  importMarketplaceListing,
 } from "../api/marketplaceApi";
 import { MarketplaceReportModal } from "../components/MarketplaceReportModal";
 import "../styles/marketplaceStyles.css";
 import type {
   CreateMarketplaceReportRequest,
   MarketplaceListingDetail,
+  MarketplaceImportResponse,
 } from "../types/marketplaceTypes";
 
 export function MarketplaceListingDetailPage() {
@@ -24,11 +26,17 @@ export function MarketplaceListingDetailPage() {
   const [listing, setListing] = useState<MarketplaceListingDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [isUpdatingUpvote, setIsUpdatingUpvote] = useState(false);
   const [upvoteError, setUpvoteError] = useState("");
+
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [reportError, setReportError] = useState("");
+
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [importResult, setImportResult] = useState<MarketplaceImportResponse | null>(null);
 
   useEffect(() => {
     if (!token || !listingId) {
@@ -57,6 +65,11 @@ export function MarketplaceListingDetailPage() {
         }
 
         setError("");
+
+        // Reset import states
+        setImportError("");
+        setImportResult(null);
+
         setIsLoading(true);
         return fetchMarketplaceListingDetail(numericListingId, token);
       })
@@ -157,6 +170,38 @@ export function MarketplaceListingDetailPage() {
     }
   }
 
+  // Handle importing. Lots of functions have common code, need to improve reusablitily
+  async function handleImportListing() {
+    if (!listing || !token || isImporting || importResult) {
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      setImportError("");
+
+      const response = await importMarketplaceListing(listing.id, token);
+      setImportResult(response);
+
+      setListing((currentListing) => {
+        if (!currentListing || currentListing.id !== response.sourceListingId) {
+          return currentListing;
+        }
+
+        return {
+          ...currentListing,
+          importCount: currentListing.importCount + 1,
+        };
+      });
+    } catch (caughtError) {
+      setImportError(
+        toErrorMessage(caughtError, "Could not import this marketplace listing."),
+      );
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
   if (!user || !token) {
     return null;
   }
@@ -186,7 +231,6 @@ export function MarketplaceListingDetailPage() {
           <div className="marketplace-detail-layout">
             <section className="marketplace-detail-main-panel">
               <div className="marketplace-detail-heading">
-                <p className="modules-eyebrow">Listing preview</p>
                 <h1>{listing.publicTitle}</h1>
                 <p>
                   {listing.description ||
@@ -275,9 +319,8 @@ export function MarketplaceListingDetailPage() {
                 </div>
               </dl>
               <button
-                className={`marketplace-primary-button marketplace-upvote-action${
-                  listing.hasCurrentUserUpvoted ? " upvoted" : ""
-                }`}
+                className={`marketplace-primary-button marketplace-upvote-action${listing.hasCurrentUserUpvoted ? " upvoted" : ""
+                  }`}
                 type="button"
                 aria-pressed={listing.hasCurrentUserUpvoted}
                 disabled={isUpdatingUpvote}
@@ -291,9 +334,8 @@ export function MarketplaceListingDetailPage() {
                 </p>
               )}
               <button
-                className={`marketplace-primary-button marketplace-report-action${
-                  listing.hasCurrentUserReported ? " reported" : ""
-                }`}
+                className={`marketplace-primary-button marketplace-report-action${listing.hasCurrentUserReported ? " reported" : ""
+                  }`}
                 type="button"
                 disabled={listing.hasCurrentUserReported || isSubmittingReport}
                 onClick={() => {
@@ -303,9 +345,36 @@ export function MarketplaceListingDetailPage() {
               >
                 {listing.hasCurrentUserReported ? "Reported" : "Report"}
               </button>
-              <button className="marketplace-primary-button" type="button" disabled>
-                Import coming soon
+              <button
+                className="marketplace-primary-button"
+                type="button"
+                disabled={isImporting || importResult !== null}
+                onClick={() => void handleImportListing()}
+              >
+                {isImporting
+                  ? "Importing..."
+                  : importResult
+                    ? "Imported"
+                    : "Import"}
               </button>
+              {importError && (
+                <p
+                  className="marketplace-banner marketplace-banner-error"
+                  role="alert"
+                >
+                  {importError}
+                </p>
+              )}
+              {importResult && (
+                <div className="marketplace-banner marketplace-banner-success">
+                  <p>
+                    Imported “{importResult.sourceListingTitle}” into your account.
+                  </p>
+                  <Link to="/shared-tcs?tab=marketplace">
+                    View marketplace imports
+                  </Link>
+                </div>
+              )}
             </aside>
           </div>
         )}

@@ -54,7 +54,6 @@ export function MarketplaceListingEditModal({
       >
         <div className="marketplace-edit-header">
           <div>
-            <p className="modules-eyebrow">Edit listing</p>
             <h2>{listing.publicTitle}</h2>
           </div>
           <button

@@ -338,7 +338,6 @@ export function FriendsPage() {
       <main className="modules-main friends-main">
         <header className="friends-header">
           <div>
-            <p className="friends-eyebrow">Friends</p>
             <h1>Build your learning network</h1>
             <p>
               Connect with people you trust. Build knowledge through private sharing.
