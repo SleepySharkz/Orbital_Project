@@ -18,6 +18,7 @@ import com.mindmesh.backend.dto.responses.marketplace.MarketplaceListingSummaryD
 import com.mindmesh.backend.entity.MarketplaceListing;
 import com.mindmesh.backend.entity.MarketplaceListingEntrySnapshot;
 import com.mindmesh.backend.enums.MarketplaceListingStatus;
+import com.mindmesh.backend.repository.MarketplaceListingReportRepository;
 import com.mindmesh.backend.repository.MarketplaceListingRepository;
 
 import jakarta.transaction.Transactional;
@@ -29,9 +30,13 @@ public class MarketplaceBrowsingService {
   private static final int MAX_PAGE_SIZE = 50;
 
   private final MarketplaceListingRepository marketplaceListingRepository;
+  private final MarketplaceListingReportRepository marketplaceListingReportRepository;
 
-  public MarketplaceBrowsingService(MarketplaceListingRepository marketplaceListingRepository) {
+  public MarketplaceBrowsingService(
+      MarketplaceListingRepository marketplaceListingRepository,
+      MarketplaceListingReportRepository marketplaceListingReportRepository) {
     this.marketplaceListingRepository = marketplaceListingRepository;
+    this.marketplaceListingReportRepository = marketplaceListingReportRepository;
   }
 
   @Transactional
@@ -70,12 +75,17 @@ public class MarketplaceBrowsingService {
   }
 
   @Transactional
-  public MarketplaceListingDetailDto getPublishedListingDetail(Long listingId) {
+  public MarketplaceListingDetailDto getPublishedListingDetail(Long listingId, Long userId) {
     MarketplaceListing listing = marketplaceListingRepository
         .findByIdAndStatus(listingId, MarketplaceListingStatus.PUBLISHED)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Marketplace listing not found."));
 
-    return toDetailDto(listing);
+    boolean hasCurrentUserUpvoted = marketplaceListingRepository.hasUpvoteFromUser(
+        listingId,
+        userId);
+    boolean hasCurrentUserReported = marketplaceListingReportRepository
+        .existsByListingIdAndReporterId(listingId, userId);
+    return toDetailDto(listing, hasCurrentUserUpvoted, hasCurrentUserReported);
   }
 
   private MarketplaceListingSummaryDto toSummaryDto(MarketplaceListing listing) {
@@ -95,7 +105,10 @@ public class MarketplaceBrowsingService {
         listing.getPublishedAt());
   }
 
-  private MarketplaceListingDetailDto toDetailDto(MarketplaceListing listing) {
+  private MarketplaceListingDetailDto toDetailDto(
+      MarketplaceListing listing,
+      boolean hasCurrentUserUpvoted,
+      boolean hasCurrentUserReported) {
     List<MarketplaceListingEntrySnapshotDto> entries = listing.getEntries()
         .stream()
         .sorted(Comparator.comparing(MarketplaceListingEntrySnapshot::getDisplayOrder))
@@ -115,6 +128,8 @@ public class MarketplaceBrowsingService {
         listing.getPublisherDisplayName(),
         listing.getEntryCount(),
         listing.getUpvoteCount(),
+        hasCurrentUserUpvoted,
+        hasCurrentUserReported,
         listing.getImportCount(),
         listing.getPublishedAt(),
         listing.getUpdatedAt(),

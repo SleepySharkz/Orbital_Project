@@ -301,7 +301,6 @@ export function MindmapPage() {
       <main className="modules-main mindmap-main">
         <header className="mindmap-header">
           <div>
-            <p className="modules-eyebrow">Mindmap</p>
             <h1 className="modules-title">Module Mindmap</h1>
             <p className="modules-subtitle">
               Discover and revisit connections across your active Topical

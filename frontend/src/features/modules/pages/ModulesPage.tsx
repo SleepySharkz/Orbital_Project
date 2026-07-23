@@ -97,7 +97,6 @@ export function ModulesPage() {
       <main className="modules-main">
         <header className="modules-header">
           <div>
-            <p className="modules-eyebrow">Modules</p>
             <h1 className="modules-title">Manage Your Modules</h1>
             <p className="modules-subtitle">Create modules and manage their topic lists.</p>
           </div>

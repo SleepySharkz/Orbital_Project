@@ -2,7 +2,9 @@ package com.mindmesh.backend.entity;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -21,9 +23,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "marketplace_listings", indexes = {
@@ -112,6 +117,16 @@ public class MarketplaceListing {
   @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<MarketplaceListingEntrySnapshot> entries = new ArrayList<>();
 
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "marketplace_listing_upvotes",
+      joinColumns = @JoinColumn(name = "listing_id"),
+      inverseJoinColumns = @JoinColumn(name = "user_id"),
+      uniqueConstraints = @UniqueConstraint(
+          name = "uk_marketplace_listing_upvote_user",
+          columnNames = { "listing_id", "user_id" }))
+  private Set<User> upvoters = new HashSet<>();
+
   protected MarketplaceListing() {
   }
 
@@ -128,6 +143,8 @@ public class MarketplaceListing {
       String institution,
       PublisherVisibility publisherVisibility,
       String publisherDisplayName) {
+
+    // Validation checks
     if (publisher == null) {
       throw new IllegalArgumentException("Publisher is required.");
     }
@@ -211,6 +228,81 @@ public class MarketplaceListing {
 
     this.status = MarketplaceListingStatus.REMOVED;
     this.removedAt = removedAt;
+  }
+
+  // Faciliate metedata editing for listing management
+  public void updateMetadata(
+      String publicTitle,
+      String description,
+      String tags,
+      String institution,
+      PublisherVisibility publisherVisibility,
+      String publisherDisplayName) {
+    if (isBlank(publicTitle)) {
+      throw new IllegalArgumentException("Public title is required.");
+    }
+
+    if (publisherVisibility == null) {
+      throw new IllegalArgumentException("Publisher visibility is required.");
+    }
+
+    if (isBlank(publisherDisplayName)) {
+      throw new IllegalArgumentException("Publisher display name is required.");
+    }
+
+    this.publicTitle = publicTitle;
+    this.description = description;
+    this.tags = tags;
+    this.institution = institution;
+    this.publisherVisibility = publisherVisibility;
+    this.publisherDisplayName = publisherDisplayName;
+  }
+
+  // We support full replacement of new TC (Even unchanged entries get replaced)
+  // Currently we feel that versioning is of no priority -> adds complexity for
+  // not much benefit
+  public void replaceEntries(List<MarketplaceListingEntrySnapshot> replacementEntries) {
+    clearEntries();
+
+    if (replacementEntries == null) {
+      return;
+    }
+
+    for (MarketplaceListingEntrySnapshot entry : replacementEntries) {
+      addEntry(entry);
+    }
+  }
+
+  public void clearEntries() {
+    for (MarketplaceListingEntrySnapshot entry : new ArrayList<>(entries)) {
+      removeEntry(entry);
+    }
+  }
+
+  public void incrementImportCount() {
+    importCount++;
+  }
+
+  public boolean addUpvote(User user) {
+    if (user == null || !upvoters.add(user)) {
+      return false;
+    }
+
+    upvoteCount = upvoters.size();
+    return true;
+  }
+
+  public boolean removeUpvote(User user) {
+    if (user == null || !upvoters.remove(user)) {
+      return false;
+    }
+
+    upvoteCount = upvoters.size();
+    return true;
+  }
+
+  public boolean hasUpvoteFrom(User user) {
+    return user != null && upvoters.contains(user);
   }
 
   private boolean isBlank(String value) {
