@@ -21,7 +21,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/help");
     }
   }, [navigate, user]);
 
@@ -44,7 +44,7 @@ export function LoginPage() {
 
     try {
       await login({ email: normalizedEmail, password });
-      navigate("/dashboard");
+      navigate("/help");
       setPassword("");
       setEmail("");
     } catch (caughtError) {

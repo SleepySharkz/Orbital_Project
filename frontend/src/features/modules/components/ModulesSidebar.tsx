@@ -21,7 +21,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             className={({ isActive }) =>
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
-            to="/dashboard"
+            to="/help"
           >
             Need Help?
           </NavLink>

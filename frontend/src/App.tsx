@@ -4,11 +4,11 @@ import { ProtectedRoute } from "./features/auth/components/ProtectedRoute";
 import { PublicOnlyRoute } from "./features/auth/components/PublicOnlyRoute";
 import { LoginPage } from "./features/auth/pages/LoginPage";
 import { SignupPage } from "./features/auth/pages/SignupPage";
-import { DashboardPage } from "./features/auth/pages/Dashboard";
 import { LandingPage } from "./features/landing/pages/LandingPage";
 import { CFCDetailPage } from "./features/cfc/pages/CFCDetailPage";
 import { CFCPage } from "./features/cfc/pages/CFCPage";
 import { MyCFCsPage } from "./features/cfc/pages/MyCFCsPage";
+import { HelpPage } from "./features/help/pages/HelpPage";
 import { ModuleDetailPage } from "./features/modules/pages/ModuleDetailPage";
 import { ModulesPage } from "./features/modules/pages/ModulesPage";
 import { FriendsPage } from "./features/friends/pages/FriendsPage";
@@ -50,13 +50,14 @@ function App() {
         }
       />
       <Route
-        path="/dashboard"
+        path="/help"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <HelpPage />
           </ProtectedRoute>
         }
       />
+      <Route path="/dashboard" element={<Navigate to="/help" replace />} />
       <Route
         path="/modules"
         element={
