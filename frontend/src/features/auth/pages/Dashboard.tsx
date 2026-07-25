@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import { useAuth } from "../context/useAuth";
 import "../../modules/styles/modulesStyles.css";
@@ -23,10 +23,15 @@ export function DashboardPage() {
 
       <main className="dashboard-main">
         <section className="dashboard-panel">
-          <h1 className="dashboard-title">Welcome Back</h1>
+          <h1 className="dashboard-title">What do you need help with?</h1>
           <p className="dashboard-subtitle">
-            Use the navigation on the left to move between your dashboard, modules, and saved CFCs.
+            Choose a workflow below to continue building or reviewing your study material.
           </p>
+          <nav className="dashboard-help-actions" aria-label="Help workflows">
+            <Link className="dashboard-primary-button" to="/modules">Set up a module</Link>
+            <Link className="dashboard-primary-button" to="/cfcs">Create a CFC</Link>
+            <Link className="dashboard-primary-button" to="/my-cfcs">Review saved CFCs</Link>
+          </nav>
         </section>
       </main>
     </div>);
