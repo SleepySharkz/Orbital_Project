@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import { fetchModules } from "../../modules/api/moduleApi";
 import { fetchCFCById, fetchCFCsForModule, type CFCResponse } from "../api/cfcApi";
@@ -85,7 +85,6 @@ export function MyCFCsPage() {
       <main className="cfc-main">
         <header className="cfc-collection-header">
           <div>
-            <p className="cfc-eyebrow">My CFCs</p>
             <h1 className="cfc-title">Saved Coursework Flashcards</h1>
             <p className="cfc-subtitle">
               Review every saved CFC across your modules.

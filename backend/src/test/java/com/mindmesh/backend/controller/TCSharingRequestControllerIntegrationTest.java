@@ -36,6 +36,7 @@ import com.mindmesh.backend.entity.SharedTC;
 import com.mindmesh.backend.entity.TC;
 import com.mindmesh.backend.entity.TCSharingRequest;
 import com.mindmesh.backend.entity.User;
+import com.mindmesh.backend.enums.SharedTCStatus;
 import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.enums.TCSharingRequestStatus;
 import com.mindmesh.backend.repository.CFCEntryRepository;
@@ -508,6 +509,46 @@ class TCSharingRequestControllerIntegrationTest {
         .andExpect(jsonPath("$", hasSize(2)))
         .andExpect(jsonPath("$[0].sharedByUsername").value("Alice"))
         .andExpect(jsonPath("$[0].entryCount").isNumber());
+  }
+
+  @Test
+  void mergeSharedTc_appendsEntriesAndRemovesItFromActiveList() throws Exception {
+    User alice = saveUser("Alice", "alice@example.com");
+    User bob = saveUser("Bob", "bob@example.com");
+    friendshipRepository.save(new Friendship(alice, bob));
+    TC aliceTc = saveTcWithEntries(saveModule(alice, "Trees"), alice, "Trees", 2);
+    TC bobTc = saveTcWithEntries(saveModule(bob, "Trees"), bob, "Trees", 1);
+
+    sendSharingRequest(alice, bob, aliceTc.getId()).andExpect(status().isCreated());
+    TCSharingRequest request = tcSharingRequestRepository.findAll().get(0);
+    acceptSharingRequest(bob, request.getId()).andExpect(status().isOk());
+    SharedTC sharedTc = sharedTcRepository.findAll().get(0);
+
+    mockMvc.perform(get("/api/v1/shared-tcs/" + sharedTc.getId())
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canMerge").value(true))
+        .andExpect(jsonPath("$.matchingOwnedTcId").value(bobTc.getId()));
+
+    mockMvc.perform(post("/api/v1/shared-tcs/" + sharedTc.getId() + "/merge")
+        .with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.ownedTcId").value(bobTc.getId()))
+        .andExpect(jsonPath("$.mergedEntryCount").value(2))
+        .andExpect(jsonPath("$.status").value("MERGED"));
+
+    mockMvc.perform(get("/api/v1/shared-tcs").with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+    mockMvc.perform(get("/api/v1/tcs/" + bobTc.getId()).with(authentication(authFor(bob))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.entries", hasSize(3)))
+        .andExpect(jsonPath("$.entries[0].origin").value("MERGED_SHARED"))
+        .andExpect(jsonPath("$.entries[0].sourceTypeAtShare").value("TUTORIAL"));
+
+    SharedTC merged = sharedTcRepository.findById(sharedTc.getId()).orElseThrow();
+    assertEquals(SharedTCStatus.MERGED, merged.getStatus());
+    assertEquals(bobTc.getId(), merged.getMergedIntoTc().getId());
   }
 
   @Test

@@ -2,8 +2,12 @@ package com.mindmesh.backend.entity;
 
 import java.time.LocalDateTime;
 
+import com.mindmesh.backend.enums.SourceType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,6 +52,13 @@ public class SharedTCEntry {
     @Column(name = "rough_note", nullable = false, columnDefinition = "TEXT")
     private String roughNote;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", length = 32)
+    private SourceType sourceType;
+
+    @Column(name = "source_title")
+    private String sourceTitle;
+
     @Column(name = "source_entry_created_at")
     private LocalDateTime sourceEntryCreatedAt;
 
@@ -63,6 +74,8 @@ public class SharedTCEntry {
       String flashcardNoteContent,
       String questionText,
       String roughNote,
+      SourceType sourceType,
+      String sourceTitle,
       LocalDateTime sourceEntryCreatedAt
     ) {
         if (sharedTc == null) {
@@ -88,6 +101,8 @@ public class SharedTCEntry {
         this.flashcardNoteContent = flashcardNoteContent;
         this.questionText = questionText;
         this.roughNote = roughNote;
+        this.sourceType = sourceType;
+        this.sourceTitle = sourceTitle;
         this.sourceEntryCreatedAt = sourceEntryCreatedAt;
 
         sharedTc.addEntry(this);
@@ -132,6 +147,9 @@ public class SharedTCEntry {
     public String getRoughNote() {
         return roughNote;
     }
+
+    public SourceType getSourceType() { return sourceType; }
+    public String getSourceTitle() { return sourceTitle; }
 
     public LocalDateTime getSourceEntryCreatedAt() {
         return sourceEntryCreatedAt;

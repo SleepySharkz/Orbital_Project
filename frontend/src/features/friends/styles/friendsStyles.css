@@ -9,7 +9,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .friends-header h1,
@@ -38,7 +38,6 @@
   line-height: 1.65;
 }
 
-.friends-eyebrow,
 .friends-label {
   margin-bottom: 10px;
   color: #68758f;
@@ -308,8 +307,8 @@
 .friends-status-pill {
   border-radius: 999px;
   padding: 7px 10px;
-  background: #edf0f6;
-  color: #536078;
+  background: #FFF1E7;
+  color: #9A3412;
   font-size: 0.78rem;
   font-weight: 750;
   white-space: nowrap;

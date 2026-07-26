@@ -72,4 +72,20 @@ public class AIProviderClient {
 
     return image.getContentType();
   }
+
+  public String generateJson(String prompt) {
+    Map<String, Object> requestBody = Map.of(
+        "contents", List.of(
+            Map.of("parts", List.of(Map.of("text", prompt)))),
+        "generationConfig", Map.of(
+            "temperature", 0.15,
+            "responseMimeType", "application/json"));
+
+    return restClient.post()
+        .uri("/v1beta/models/{model}:generateContent", properties.getModel())
+        .header("x-goog-api-key", properties.getApiKey())
+        .body(requestBody)
+        .retrieve()
+        .body(String.class);
+  }
 }

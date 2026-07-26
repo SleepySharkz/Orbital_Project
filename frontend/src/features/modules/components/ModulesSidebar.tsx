@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import type { User } from "../../auth/api/authApi";
 
@@ -7,6 +8,15 @@ type ModulesSidebarProps = {
 };
 
 export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => localStorage.getItem("mindmesh-theme") === "dark",
+  );
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
+    localStorage.setItem("mindmesh-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
   return (
     <aside className="modules-sidebar">
       <div className="modules-sidebar-top">
@@ -21,9 +31,9 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             className={({ isActive }) =>
               isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
             }
-            to="/dashboard"
+            to="/help"
           >
-            Dashboard
+            Need Help?
           </NavLink>
 
           <NavLink
@@ -59,7 +69,16 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/topic-sheets"
           >
-            Topical Cheatsheets
+            Topical Cheatsheets (TCs)
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/mindmap"
+          >
+            Mindmap
           </NavLink>
 
           <NavLink
@@ -68,7 +87,7 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/friends"
           >
-            Friends
+            My Friends
           </NavLink>
 
           <NavLink
@@ -77,7 +96,16 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/sharing"
           >
-            Sharing
+            Share Your TCs
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              isActive ? "modules-nav-link modules-nav-link-active" : "modules-nav-link"
+            }
+            to="/marketplace"
+          >
+            Marketplace
           </NavLink>
 
           <NavLink
@@ -86,18 +114,25 @@ export function ModulesSidebar({ user, onLogout }: ModulesSidebarProps) {
             }
             to="/shared-tcs"
           >
-            Shared TCs
+            Your Received TCs
           </NavLink>
         </nav>
       </div>
 
-      <button
-        className="modules-logout"
-        type="button"
-        onClick={() => void onLogout()}
-      >
-        Log Out
-      </button>
+      <div className="modules-sidebar-actions">
+        <label className="modules-theme-toggle">
+          <span>Dark mode</span>
+          <input
+            type="checkbox"
+            checked={isDarkMode}
+            onChange={(event) => setIsDarkMode(event.target.checked)}
+          />
+          <span className="modules-theme-switch" aria-hidden="true" />
+        </label>
+        <button className="modules-logout" type="button" onClick={() => void onLogout()}>
+          Log Out
+        </button>
+      </div>
     </aside>
   );
 }

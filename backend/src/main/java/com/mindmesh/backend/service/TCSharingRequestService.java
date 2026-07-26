@@ -32,6 +32,7 @@ import com.mindmesh.backend.entity.TCSharingRequest;
 import com.mindmesh.backend.entity.TCSharingRequestEntrySnapshot;
 import com.mindmesh.backend.entity.TCSharingRequestItem;
 import com.mindmesh.backend.entity.User;
+import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.enums.TCSharingCompatibilityStatus;
 import com.mindmesh.backend.enums.TCSharingRequestStatus;
 import com.mindmesh.backend.repository.CourseModuleRepository;
@@ -272,6 +273,12 @@ public class TCSharingRequestService {
         int displayOrder
     ) {
         GeneratedCFCPage generatedCFCPage = entry.getGeneratedCFCPage();
+        SourceType sourceType = entry.getSourceTypeAtShare() == null
+            ? entry.getCfc().getSourceType()
+            : entry.getSourceTypeAtShare();
+        String sourceTitle = entry.getSourceTitleAtShare() == null
+            ? entry.getCfc().getSourceTitle()
+            : entry.getSourceTitleAtShare();
 
         return new TCSharingRequestEntrySnapshot(
             item,
@@ -281,6 +288,8 @@ public class TCSharingRequestService {
             generatedCFCPage.getFlashcardNoteContent(),
             entry.getQuestionText(),
             entry.getRoughNote(),
+            sourceType,
+            sourceTitle,
             entry.getCreatedAt()
         );
     }
@@ -442,6 +451,8 @@ public class TCSharingRequestService {
             snapshot.getFlashcardNoteContent(),
             snapshot.getQuestionText(),
             snapshot.getRoughNote(),
+            snapshot.getSourceType(),
+            snapshot.getSourceTitle(),
             snapshot.getSourceEntryCreatedAt()
         );
     }
@@ -612,6 +623,8 @@ public class TCSharingRequestService {
             snapshot.getFlashcardNoteContent(),
             snapshot.getQuestionText(),
             snapshot.getRoughNote(),
+            snapshot.getSourceType(),
+            snapshot.getSourceTitle(),
             snapshot.getSourceEntryCreatedAt()
         );
     }

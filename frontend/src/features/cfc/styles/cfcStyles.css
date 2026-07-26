@@ -188,7 +188,6 @@
   grid-column: span 1;
 }
 
-.cfc-eyebrow,
 .cfc-subtitle,
 .cfc-helper-copy,
 .cfc-field-label,
@@ -198,15 +197,6 @@
 .cfc-panel-number,
 .cfc-banner {
   margin: 0;
-}
-
-.cfc-eyebrow {
-  margin-bottom: 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6a7690;
 }
 
 .cfc-title {
@@ -597,12 +587,12 @@
 
 .cfc-flashcard-card-moving-forward {
   z-index: 7;
-  animation: cfc-card-cycle-forward 560ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
+  animation: cfc-card-cycle-forward 300ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
 }
 
 .cfc-flashcard-card-moving-backward {
   z-index: 7;
-  animation: cfc-card-cycle-backward 620ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
+  animation: cfc-card-cycle-backward 320ms cubic-bezier(0.22, 0.75, 0.18, 1) both;
 }
 
 .cfc-flashcard-card-moving-skip {
@@ -688,7 +678,7 @@
 
 .cfc-flashcard-copy-shell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   min-height: 0;
   overflow: auto;
 }
@@ -700,6 +690,7 @@
   line-height: 1.42;
   overflow-wrap: anywhere;
   white-space: pre-line;
+  margin-block: auto;
 }
 
 .cfc-flashcard-overlay {
@@ -732,15 +723,15 @@
 
 .cfc-flashcard-stage-overlay {
   grid-template-columns: 66px minmax(0, 920px) 66px;
-  min-height: 72vh;
+  min-height: min(560px, 72vh);
 }
 
 .cfc-flashcard-deck-overlay {
-  min-height: 70vh;
+  min-height: min(520px, 70vh);
 }
 
 .cfc-flashcard-card-overlay {
-  min-height: 68vh;
+  min-height: min(500px, 68vh);
 }
 
 .cfc-flashcard-card-overlay .cfc-flashcard-face {

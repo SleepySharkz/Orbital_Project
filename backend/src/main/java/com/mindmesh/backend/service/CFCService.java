@@ -43,16 +43,19 @@ public class CFCService {
 
   private final AICFCGenerationService aicfcGenerationService;
   private final TCService tcService;
+  private final TCUpdateEventPublisher tcUpdateEventPublisher;
 
   public CFCService(
       CFCRepository cfcRepository,
       CourseModuleRepository courseModuleRepository,
       AICFCGenerationService aicfcGenerationService,
-      TCService tcService) {
+      TCService tcService,
+      TCUpdateEventPublisher tcUpdateEventPublisher) {
     this.cfcRepository = cfcRepository;
     this.courseModuleRepository = courseModuleRepository;
     this.aicfcGenerationService = aicfcGenerationService;
     this.tcService = tcService;
+    this.tcUpdateEventPublisher = tcUpdateEventPublisher;
   }
 
   @Transactional
@@ -70,6 +73,11 @@ public class CFCService {
     CFCHeaderDto headerDto = requestDto.getFlashcardHeader();
     SourceType sourceType = headerDto.getSourceType();
     String sourceTitle = headerDto.getSourceTitle();
+    if (sourceType == SourceType.SHARED_TC) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "SHARED_TC is reserved for imported private shares.");
+    }
 
     // Start validating
     checkUniqueItemIDs(items);
@@ -206,6 +214,9 @@ public class CFCService {
         requestDto.getFlashcardNoteContent().trim());
 
     cfcRepository.save(cfc);
+    if (entry.getTc() != null) {
+      tcUpdateEventPublisher.publishUpdated(entry.getTc());
+    }
     return toCFCEntryResponseDto(entry);
   }
 

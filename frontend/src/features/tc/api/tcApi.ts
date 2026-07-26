@@ -10,6 +10,14 @@ type TcSummary = {
   isStale?: boolean | null;
 };
 
+type CFCEntryOrigin = "OWN_GENERATED" | "MERGED_SHARED";
+
+type TcEntrySourceType =
+  | "ASSIGNMENT"
+  | "TUTORIAL"
+  | "PRACTICE_PAPER"
+  | "SHARED_TC";
+
 type TcEntryView = {
   entryId: number;
   topic: string;
@@ -18,6 +26,14 @@ type TcEntryView = {
   questionText: string | null;
   roughNote: string;
   createdAt: string;
+  origin: CFCEntryOrigin;
+  sourceOwnerUsername: string | null;
+  sourceTypeAtShare: TcEntrySourceType | null;
+  sourceTitleAtShare: string | null;
+  sourceSharedTcId: number | null;
+  sourceSharedEntryId: number | null;
+  sourceEntryCreatedAt: string | null;
+  mergedAt: string | null;
 };
 
 // Summary level response
@@ -82,7 +98,9 @@ export async function fetchTCById(tcId: number, token: string) {
 }
 
 export type {
+  CFCEntryOrigin,
   TcContentResponse,
   TcEntryView,
+  TcEntrySourceType,
   TcSummary,
 };

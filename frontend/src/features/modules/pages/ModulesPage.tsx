@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchModules, type ModuleSummary } from "../api/moduleApi";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { CreateModuleForm } from "../components/CreateModuleForm";
 import { ModulesList } from "../components/ModulesList";
 import { ModulesSidebar } from "../components/ModulesSidebar";
@@ -14,15 +14,7 @@ export function ModulesPage() {
   const [isModulesLoading, setIsModulesLoading] = useState(true);
   const [modulesError, setModulesError] = useState("");
 
-  useEffect(() => {
-    async function loadModules() {
-      await loadModulesPageData();
-    }
-
-    void loadModules();
-  }, [token]);
-
-  async function loadModulesPageData() {
+  const loadModulesPageData = useCallback(async () => {
     if (!token) {
       setModules([]);
       setIsModulesLoading(false);
@@ -43,7 +35,51 @@ export function ModulesPage() {
     } finally {
       setIsModulesLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let didCancel = false;
+
+    Promise.resolve()
+      .then(() => {
+        if (didCancel) {
+          return [];
+        }
+
+        setModulesError("");
+        setIsModulesLoading(true);
+        return fetchModules(token);
+      })
+      .then((fetchedModules) => {
+        if (!didCancel) {
+          setModules(fetchedModules);
+        }
+      })
+      .catch((caughtError) => {
+        if (didCancel) {
+          return;
+        }
+
+        if (caughtError instanceof Error) {
+          setModulesError(caughtError.message);
+        } else {
+          setModulesError("Could not load modules.");
+        }
+      })
+      .finally(() => {
+        if (!didCancel) {
+          setIsModulesLoading(false);
+        }
+      });
+
+    return () => {
+      didCancel = true;
+    };
+  }, [token]);
 
   async function handleLogout() {
     await logout();
@@ -61,7 +97,6 @@ export function ModulesPage() {
       <main className="modules-main">
         <header className="modules-header">
           <div>
-            <p className="modules-eyebrow">Modules</p>
             <h1 className="modules-title">Manage Your Modules</h1>
             <p className="modules-subtitle">Create modules and manage their topic lists.</p>
           </div>

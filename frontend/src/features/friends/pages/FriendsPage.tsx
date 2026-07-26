@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { ModulesSidebar } from "../../modules/components/ModulesSidebar";
 import "../../modules/styles/modulesStyles.css";
 import {
@@ -338,7 +338,6 @@ export function FriendsPage() {
       <main className="modules-main friends-main">
         <header className="friends-header">
           <div>
-            <p className="friends-eyebrow">Friends</p>
             <h1>Build your learning network</h1>
             <p>
               Connect with people you trust. Build knowledge through private sharing.

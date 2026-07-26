@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../../auth/context/AuthContext";
+import { useAuth } from "../../auth/context/useAuth";
 import { fetchCFCsForModule, type CFCSummary } from "../../cfc/api/cfcApi";
 import { fetchModuleById, type ModuleResponse } from "../api/moduleApi";
 import { CFCSummaryList } from "../components/CFCSummaryList";
@@ -92,7 +92,6 @@ export function ModuleDetailPage() {
       <main className="modules-main">
         <header className="modules-header modules-detail-page-header">
           <div>
-            <p className="modules-eyebrow">Module Detail</p>
             <h1 className="modules-title">
               {module ? module.courseCode : "Module Overview"}
             </h1>

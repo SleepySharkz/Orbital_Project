@@ -9,6 +9,14 @@ type TCSharingCompatibilityStatus =
   | "MISSING_MODULE"
   | "MISSING_TOPIC";
 
+type SharedEntrySourceType =
+  | "ASSIGNMENT"
+  | "TUTORIAL"
+  | "PRACTICE_PAPER"
+  | "SHARED_TC";
+
+type SharedTCStatus = "ACTIVE" | "MERGED";
+
 type TCSharingRequestSummary = {
   id: number;
   senderUserId: number;
@@ -30,6 +38,8 @@ type TCSharingRequestEntrySnapshot = {
   flashcardNoteContent: string;
   questionText: string | null;
   roughNote: string;
+  sourceType: SharedEntrySourceType | null;
+  sourceTitle: string | null;
   sourceEntryCreatedAt: string | null;
 };
 
@@ -75,6 +85,8 @@ type SharedTCEntry = {
   flashcardNoteContent: string;
   questionText: string | null;
   roughNote: string;
+  sourceType: SharedEntrySourceType | null;
+  sourceTitle: string | null;
   sourceEntryCreatedAt: string | null;
 };
 
@@ -99,12 +111,29 @@ type SharedTCDetail = {
   sharedByUserId: number;
   sharedByUsername: string;
   acceptedAt: string;
+  status: SharedTCStatus;
+  matchingOwnedTcId: number | null;
+  canMerge: boolean;
+  mergeBlockingReason: string | null;
+  mergedIntoTcId: number | null;
+  mergedAt: string | null;
   entries: SharedTCEntry[];
 };
 
+type MergeSharedTCResponse = {
+  ownedTcId: number;
+  sharedTcId: number;
+  mergedEntryCount: number;
+  status: "MERGED";
+  mergedAt: string;
+};
+
 export type {
+  MergeSharedTCResponse,
+  SharedEntrySourceType,
   SharedTCDetail,
   SharedTCEntry,
+  SharedTCStatus,
   SharedTCSummary,
   TCSharingCompatibilityStatus,
   TCSharingRequestDetail,

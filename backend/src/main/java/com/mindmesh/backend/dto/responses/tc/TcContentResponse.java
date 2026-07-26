@@ -1,7 +1,11 @@
 package com.mindmesh.backend.dto.responses.tc;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.mindmesh.backend.enums.CFCEntryOrigin;
+import com.mindmesh.backend.enums.SourceType;
 
 public class TcContentResponse {
 
@@ -73,6 +77,14 @@ public class TcContentResponse {
     private String questionText;
     private String roughNote;
     private LocalDateTime createdAt;
+    private CFCEntryOrigin origin;
+    private String sourceOwnerUsername;
+    private SourceType sourceTypeAtShare;
+    private String sourceTitleAtShare;
+    private Long sourceSharedTcId;
+    private Long sourceSharedEntryId;
+    private LocalDateTime sourceEntryCreatedAt;
+    private Instant mergedAt;
 
     public TcEntryView(
         Long entryId,
@@ -81,7 +93,15 @@ public class TcContentResponse {
         String flashcardNoteContent,
         String questionText,
         String roughNote,
-        LocalDateTime createdAt) {
+        LocalDateTime createdAt,
+        CFCEntryOrigin origin,
+        String sourceOwnerUsername,
+        SourceType sourceTypeAtShare,
+        String sourceTitleAtShare,
+        Long sourceSharedTcId,
+        Long sourceSharedEntryId,
+        LocalDateTime sourceEntryCreatedAt,
+        Instant mergedAt) {
       this.entryId = entryId;
       this.topic = topic;
       this.flashcardQuestion = flashcardQuestion;
@@ -89,6 +109,14 @@ public class TcContentResponse {
       this.questionText = questionText;
       this.roughNote = roughNote;
       this.createdAt = createdAt;
+      this.origin = origin;
+      this.sourceOwnerUsername = sourceOwnerUsername;
+      this.sourceTypeAtShare = sourceTypeAtShare;
+      this.sourceTitleAtShare = sourceTitleAtShare;
+      this.sourceSharedTcId = sourceSharedTcId;
+      this.sourceSharedEntryId = sourceSharedEntryId;
+      this.sourceEntryCreatedAt = sourceEntryCreatedAt;
+      this.mergedAt = mergedAt;
     }
 
     public Long getEntryId() {
@@ -118,5 +146,14 @@ public class TcContentResponse {
     public LocalDateTime getCreatedAt() {
       return createdAt;
     }
+
+    public CFCEntryOrigin getOrigin() { return origin; }
+    public String getSourceOwnerUsername() { return sourceOwnerUsername; }
+    public SourceType getSourceTypeAtShare() { return sourceTypeAtShare; }
+    public String getSourceTitleAtShare() { return sourceTitleAtShare; }
+    public Long getSourceSharedTcId() { return sourceSharedTcId; }
+    public Long getSourceSharedEntryId() { return sourceSharedEntryId; }
+    public LocalDateTime getSourceEntryCreatedAt() { return sourceEntryCreatedAt; }
+    public Instant getMergedAt() { return mergedAt; }
   }
 }

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { CFCResponse, SourceType } from "../api/cfcApi";
+import type { CFCResponse, StoredSourceType } from "../api/cfcApi";
 
 type CFCDetailHeaderProps = {
   cfc: CFCResponse;
   onSummarySave: (summary: string) => Promise<void>;
 };
 
-function formatSourceType(sourceType: SourceType) {
+function formatSourceType(sourceType: StoredSourceType) {
+  if (sourceType === "SHARED_TC") return "Shared TC";
   return sourceType
     .toLowerCase()
     .split("_")
@@ -66,7 +67,6 @@ export function CFCDetailHeader({ cfc, onSummarySave }: CFCDetailHeaderProps) {
   return (
     <section className="cfc-detail-header-panel">
       <div className="cfc-detail-header-copy">
-        <p className="cfc-eyebrow">Saved CFC</p>
         <h1 className="cfc-detail-title">{cfc.title}</h1>
 
         {isEditingSummary ? (

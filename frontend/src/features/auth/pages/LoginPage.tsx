@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { SyntheticEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import "../styles/authStyles.css";
 
 type RouteState = {
@@ -13,21 +13,15 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const location = useLocation();
   const routeState = location.state as RouteState | null;
+  const [success, setSuccess] = useState(routeState?.message ?? "");
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
   useEffect(() => {
-    if (routeState?.message) {
-      setSuccess(routeState.message);
-    }
-  }, [routeState]);
-
-  useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/help");
     }
   }, [navigate, user]);
 
@@ -50,7 +44,7 @@ export function LoginPage() {
 
     try {
       await login({ email: normalizedEmail, password });
-      navigate("/dashboard");
+      navigate("/help");
       setPassword("");
       setEmail("");
     } catch (caughtError) {

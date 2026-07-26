@@ -1,8 +1,13 @@
 package com.mindmesh.backend.entity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.mindmesh.backend.enums.CFCEntryOrigin;
+import com.mindmesh.backend.enums.SourceType;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -36,6 +41,32 @@ public class CFCEntry {
   @JoinColumn(name = "tc_id")
   private TC tc;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "origin", length = 24)
+  private CFCEntryOrigin origin;
+
+  @Column(name = "source_owner_username")
+  private String sourceOwnerUsername;
+
+  @Column(name = "source_shared_tc_id")
+  private Long sourceSharedTcId;
+
+  @Column(name = "source_shared_entry_id")
+  private Long sourceSharedEntryId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "source_type_at_share", length = 32)
+  private SourceType sourceTypeAtShare;
+
+  @Column(name = "source_title_at_share")
+  private String sourceTitleAtShare;
+
+  @Column(name = "source_entry_created_at")
+  private LocalDateTime sourceEntryCreatedAt;
+
+  @Column(name = "merged_at")
+  private Instant mergedAt;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 
@@ -55,6 +86,7 @@ public class CFCEntry {
     this.questionText = questionText;
     this.roughNote = roughNote;
     this.generatedCFCPage = generatedCFCPage;
+    this.origin = CFCEntryOrigin.OWN_GENERATED;
     if (cfc != null) {
       cfc.addEntry(this);
     }
@@ -120,6 +152,37 @@ public class CFCEntry {
   public void setTc(TC tc) {
     this.tc = tc;
   }
+
+  public void recordSharedOrigin(
+      String sourceOwnerUsername,
+      SourceType sourceTypeAtShare,
+      String sourceTitleAtShare,
+      Long sourceSharedTcId,
+      Long sourceSharedEntryId,
+      LocalDateTime sourceEntryCreatedAt,
+      Instant mergedAt) {
+    if (sourceOwnerUsername == null || sourceOwnerUsername.isBlank()
+        || sourceSharedTcId == null || sourceSharedEntryId == null || mergedAt == null) {
+      throw new IllegalArgumentException("Shared-entry provenance is required.");
+    }
+    origin = CFCEntryOrigin.MERGED_SHARED;
+    this.sourceOwnerUsername = sourceOwnerUsername.trim();
+    this.sourceTypeAtShare = sourceTypeAtShare;
+    this.sourceTitleAtShare = sourceTitleAtShare;
+    this.sourceSharedTcId = sourceSharedTcId;
+    this.sourceSharedEntryId = sourceSharedEntryId;
+    this.sourceEntryCreatedAt = sourceEntryCreatedAt;
+    this.mergedAt = mergedAt;
+  }
+
+  public CFCEntryOrigin getOrigin() { return origin == null ? CFCEntryOrigin.OWN_GENERATED : origin; }
+  public String getSourceOwnerUsername() { return sourceOwnerUsername; }
+  public Long getSourceSharedTcId() { return sourceSharedTcId; }
+  public Long getSourceSharedEntryId() { return sourceSharedEntryId; }
+  public SourceType getSourceTypeAtShare() { return sourceTypeAtShare; }
+  public String getSourceTitleAtShare() { return sourceTitleAtShare; }
+  public LocalDateTime getSourceEntryCreatedAt() { return sourceEntryCreatedAt; }
+  public Instant getMergedAt() { return mergedAt; }
 
   public LocalDateTime getCreatedAt() {
     return createdAt;

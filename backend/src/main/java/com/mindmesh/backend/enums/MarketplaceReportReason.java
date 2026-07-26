@@ -1,0 +1,11 @@
+package com.mindmesh.backend.enums;
+
+public enum MarketplaceReportReason {
+  INACCURATE_CONTENT,
+  SPAM,
+  OFFENSIVE_CONTENT,
+  PERSONAL_INFORMATION,
+  RESTRICTED_ASSESSMENT_MATERIAL,
+  COPYRIGHTED_MATERIAL,
+  OTHER
+}
