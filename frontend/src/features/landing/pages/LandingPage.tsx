@@ -12,7 +12,7 @@ const featureCards = [
     icon: "◎",
     title: "Topic Aggregation",
     description:
-      "Automatically organize flashcards by topic so scattered practice becomes structured knowledge.",
+      "Automatically organize flashcards by topic to form cheatsheets so scattered practice becomes structured knowledge.",
   },
   {
     icon: "⌘",
@@ -22,9 +22,9 @@ const featureCards = [
   },
   {
     icon: "↗",
-    title: "Private Sharing",
+    title: "Cheatsheet Sharing",
     description:
-      "Share your strongest notes with friends and merge useful insights into your own collection.",
+      "Share your strongest notes and merge useful ones into your own collection.",
   },
 ];
 
