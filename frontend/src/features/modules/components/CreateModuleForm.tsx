@@ -38,13 +38,32 @@ export function CreateModuleForm({ token, onModuleCreated }: CreateModuleFormPro
     setCreateModuleError("");
     setCreateModuleSuccess("");
 
+    const normalizedCourseCode = courseCode.trim();
+    const normalizedSchoolSem = schoolSem.trim();
+    const normalizedTopics = topics.map((topic) => topic.trim());
+
+    if (!normalizedCourseCode || !normalizedSchoolSem) {
+      setCreateModuleError("Please fill in all the details.");
+      return;
+    }
+
+    if (normalizedTopics.every((topic) => !topic)) {
+      setCreateModuleError("Your module has no topics?");
+      return;
+    }
+
+    if (normalizedTopics.some((topic) => !topic)) {
+      setCreateModuleError("Please fill in all the details.");
+      return;
+    }
+
     try {
       setIsCreatingModule(true);
       await createModuleRequest(
         {
-          courseCode,
-          schoolSem,
-          topics,
+          courseCode: normalizedCourseCode,
+          schoolSem: normalizedSchoolSem,
+          topics: normalizedTopics,
         },
         token,
       );

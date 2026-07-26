@@ -123,25 +123,67 @@ export function CFCPage() {
       return;
     }
 
+    setSubmissionError("");
+    setSubmissionSuccess("");
+
+    const normalizedSourceTitle = sourceTitle.trim();
+    const normalizedEntries = entries.map((entry, index) => ({
+      entryNumber: index + 1,
+      topic: entry.topic.trim(),
+      questionText: entry.questionText.trim(),
+      roughNote: entry.roughNote.trim(),
+      files: entry.files,
+    }));
+    const filledEntries = normalizedEntries.filter(
+      (entry) =>
+        entry.topic ||
+        entry.questionText ||
+        entry.roughNote ||
+        entry.files.length > 0,
+    );
+    const entriesToValidate =
+      filledEntries.length > 0 ? filledEntries : [normalizedEntries[0]];
+    const missingInputs: string[] = [];
+
+    if (!normalizedSourceTitle) {
+      missingInputs.push("Source Title");
+    }
+
+    entriesToValidate.forEach((entry) => {
+      const entrySuffix =
+        entriesToValidate.length > 1 ? ` for Entry ${entry.entryNumber}` : "";
+
+      if (!entry.topic) {
+        missingInputs.push(`Topic${entrySuffix}`);
+      }
+
+      if (!entry.roughNote) {
+        missingInputs.push(`Rough Note${entrySuffix}`);
+      }
+
+      if (!entry.questionText && entry.files.length === 0) {
+        missingInputs.push(`Question Text or Screenshot${entrySuffix}`);
+      }
+    });
+
+    if (missingInputs.length > 1) {
+      setSubmissionError("Fill all the inputs!");
+      return;
+    }
+
+    if (missingInputs.length === 1) {
+      setSubmissionError(`Fill in ${missingInputs[0]}.`);
+      return;
+    }
+
     try {
       setIsGenerating(true);
-      setSubmissionError("");
-      setSubmissionSuccess("");
-
-      const filledEntries = entries
-        .map((entry) => ({
-          topic: entry.topic.trim(),
-          questionText: entry.questionText.trim(),
-          roughNote: entry.roughNote.trim(),
-          files: entry.files,
-        }))
-        .filter((entry) => entry.topic || entry.questionText || entry.roughNote || entry.files.length > 0);
 
       const payload = {
         moduleId: selectedModuleId,
         flashcardHeader: {
           sourceType,
-          sourceTitle: sourceTitle.trim(),
+          sourceTitle: normalizedSourceTitle,
         },
         items: filledEntries.map((entry, index) => ({
           itemId: index + 1,
