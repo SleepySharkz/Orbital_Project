@@ -31,6 +31,8 @@ import com.mindmesh.backend.enums.SourceType;
 import com.mindmesh.backend.repository.CFCEntryRepository;
 import com.mindmesh.backend.repository.CFCRepository;
 import com.mindmesh.backend.repository.CourseModuleRepository;
+import com.mindmesh.backend.repository.FriendRequestRepository;
+import com.mindmesh.backend.repository.FriendshipRepository;
 import com.mindmesh.backend.repository.TCRepository;
 import com.mindmesh.backend.repository.UserRepository;
 import com.mindmesh.backend.security.CustomUserDetails;
@@ -59,6 +61,12 @@ class TCControllerIntegrationTest {
   @Autowired
   private TCRepository tcRepository;
 
+  @Autowired
+  private FriendRequestRepository friendRequestRepository;
+
+  @Autowired
+  private FriendshipRepository friendshipRepository;
+
   @BeforeEach
   void cleanDatabase() {
     mockMvc = MockMvcBuilders
@@ -66,6 +74,9 @@ class TCControllerIntegrationTest {
         .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
         .build();
 
+    // remove child rows that reference users first
+    friendRequestRepository.deleteAll();
+    friendshipRepository.deleteAll();
     cfcRepository.deleteAll();
     tcRepository.deleteAll();
     courseModuleRepository.deleteAll();
