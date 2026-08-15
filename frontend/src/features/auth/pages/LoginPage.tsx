@@ -32,6 +32,7 @@ export function LoginPage() {
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // Check email
     if (!normalizedEmail) {
       setError("Email is required.");
       return;
